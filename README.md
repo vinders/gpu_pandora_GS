@@ -1,4 +1,4 @@
-# ![Pandora Toolbox](_img/pandora_gs_logo.svg)
+# ![Pandora GS](_img/pandora_gs_logo.svg)
 [![latest version](https://img.shields.io/badge/release-none-4da36a.svg)](https://github.com/vinders/gpu_pandora_GS/releases)
 [![license - MIT](https://img.shields.io/badge/license-GPLv2-4da36a.svg)](LICENSE)
 ![project - Cmake](_img/badges/project_cmake.svg)

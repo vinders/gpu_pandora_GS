@@ -33,6 +33,7 @@ tmp/
 */_docs/
 */_generated/
 */include/_embed/
+*/include/_generated/
 */obj/
 */tmp/
 */cmake/CMakeLists/
