@@ -7,24 +7,24 @@ environment:
   matrix:
   # Clang10-LLVM x86_64 / C++17
   - TOOLCHAIN: "Visual Studio 2019 Clang/LLVM 11.0.0"
-    PACKAGE_ID: clang11_x86_64
+    PACKAGE_ID: clang11_x86
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    APPVEYOR_JOB_NAME: clangcl-ninja-64
+    APPVEYOR_JOB_NAME: clangcl-ninja
     BUILD_TYPE: Debug
-    CMAKE_ARGS: -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe
+    CMAKE_ARGS: -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe -DCWORK_WINDOWS_VERSION="10" -DCWORK_OPENGL4_VERSION="46" -DCWORK_D3D11_VERSION="114"
     GENERATOR: Ninja
     VCVARS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
-    VCVARSARG: amd64
+    VCVARSARG: x86
     PATH: C:\Program Files\LLVM\bin;C:\msys64\mingw64\bin;%PATH%;C:\Windows\System32
     LIB_SUFFIX: C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\architecture;C:\Program Files (x86)\Windows Kits\10\bin\architecture\ucrt;C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64
-    PACMAN_PACKAGES: "mingw-w64-x86_64-ninja"
-    CLANG_URL: https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/LLVM-11.0.0-win64.exe
+    PACMAN_PACKAGES: "mingw-w64-i686-ninja"
+    CLANG_URL: https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/LLVM-11.0.0-win32.exe
 
   # MSVC-VS2019 x86 / C++17 - Windows 10+
   - TOOLCHAIN: "Visual Studio 2019"
     PACKAGE_ID: vs2019_x86
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    APPVEYOR_JOB_NAME: msvc-vs2019-32
+    APPVEYOR_JOB_NAME: msvc-vs2019-w10
     BUILD_TYPE: Release
     CMAKE_ARGS: -A Win32 -DCWORK_WINDOWS_VERSION="10" -DCWORK_OPENGL4_VERSION="46" -DCWORK_D3D11_VERSION="114"
     GENERATOR: Visual Studio 16 2019
@@ -35,7 +35,7 @@ environment:
   - TOOLCHAIN: "Visual Studio 2017"
     PACKAGE_ID: vs2017_x86
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    APPVEYOR_JOB_NAME: msvc-vs2017-32
+    APPVEYOR_JOB_NAME: msvc-vs2017-w7
     BUILD_TYPE: Debug
     CMAKE_ARGS: -A Win32 -DCWORK_CPP_REVISION="14" -DCWORK_WINDOWS_VERSION="7" -DCWORK_OPENGL4_VERSION="41" -DCWORK_D3D11_VERSION="110"
     GENERATOR: Visual Studio 15 2017
