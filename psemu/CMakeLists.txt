@@ -24,7 +24,7 @@ cwork_set_internal_libs(config display)
 # │  Library file generation                                         │
 # └──────────────────────────────────────────────────────────────────┘
 set(_LIB_FILE gpuPandoraGS)
-set(_LIB_NAME "Pandora-GS GPU driver ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+set(_LIB_NAME "Pandora-GS GPU driver")
 
 if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
     if(CWORK_WINDOWS_VERSION AND CWORK_WINDOWS_VERSION STREQUAL "7")
