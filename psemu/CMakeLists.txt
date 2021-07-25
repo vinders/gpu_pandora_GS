@@ -5,6 +5,7 @@
 # Display pipeline and rendering
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.14)
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake_options.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../_libs/pandora_toolbox/_cmake/cwork.cmake")
 cwork_set_default_solution("gpu_pandora_GS" "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
@@ -57,7 +58,7 @@ cwork_create_project("dynamic" "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cm
                      "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cmake/modules"
                      "include" "src" "test")
 
-if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
+if(MSVC AND (WIN32 OR WIN64 OR _WIN32 OR _WIN64))
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${_PROJECT_TITLE}/$<CONFIG>/${PROJECT_NAME}.dll ${CMAKE_BINARY_DIR}/$<CONFIG>/${_LIB_FILE}.dll)
 endif()
