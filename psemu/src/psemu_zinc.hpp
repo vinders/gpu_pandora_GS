@@ -16,6 +16,7 @@ PSEmu Plugin Developer Kit Header definition - (C)1998 Vision Thing
 This file can be used only to develop PSEmu Plugins. Other usage is highly prohibited.
 *******************************************************************************/
 #include "psemu/psemu_gpu.h"
+// this implementation is included in psemu_gpu.cpp -> single object file (less overhead + smaller lib size)
 
 /// @brief ZiNc config structure
 typedef struct GPUOTAG {
