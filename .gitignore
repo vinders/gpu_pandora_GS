@@ -34,6 +34,8 @@ tmp/
 */_generated/
 */include/_embed/
 */include/_generated/
+*/*/*/_generated/
+*/*/*/include/_generated/
 */obj/
 */tmp/
 */cmake/CMakeLists/
