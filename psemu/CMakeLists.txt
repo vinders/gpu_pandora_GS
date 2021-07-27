@@ -1,8 +1,17 @@
 #*******************************************************************************
-# Author  :     Romain Vinders
-# License :     GPLv2
+# Pandora GS - PSEmu-compatible GPU driver
+# Copyright (C) 2021  Romain Vinders
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, version 2 of the License.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details (LICENSE file).
 # ------------------------------------------------------------------------------
-# Display pipeline and rendering
+# PSEmu-compatible linked library interface
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.14)
 include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake_options.cmake")
@@ -26,6 +35,7 @@ cwork_set_internal_libs(config display)
 # └──────────────────────────────────────────────────────────────────┘
 set(_LIB_FILE gpuPandoraGS)
 set(_LIB_NAME "Pandora-GS GPU driver")
+set(_RES_DIR "${CWORK_SOLUTION_PATH}/_img/resources")
 
 if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
     if(CWORK_WINDOWS_VERSION AND CWORK_WINDOWS_VERSION STREQUAL "7")
@@ -33,11 +43,16 @@ if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
         set(_LIB_NAME "${_LIB_NAME} Win7")
     endif()
 
-    set(__OUTPUT_LIB_DEF "${CMAKE_CURRENT_SOURCE_DIR}/_generated/resources/${_LIB_FILE}.def")
-    file(REMOVE "${__OUTPUT_LIB_DEF}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/gpuPandoraGS.def.in" "${__OUTPUT_LIB_DEF}")
-    cwork_set_embedded_resource_dir("${CMAKE_CURRENT_SOURCE_DIR}/_generated/resources")
-    unset(__OUTPUT_LIB_DEF)
+    set(__OUTPUT_LIB_DEF_DIR "${CMAKE_CURRENT_SOURCE_DIR}/_generated")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/gpuPandoraGS.def.in" "${__OUTPUT_LIB_DEF_DIR}/${_LIB_FILE}.def")
+    configure_file("${CWORK_SOLUTION_PATH}/_img/templates/resources.rc.in" "${__OUTPUT_LIB_DEF_DIR}/${_LIB_FILE}.rc")
+    file(COPY "${CWORK_SOLUTION_PATH}/_img/templates/resources.h" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/include/_generated")
+    
+    cwork_set_embedded_resource_dir("${CWORK_SOLUTION_PATH}/_img/resources")
+    autodetect_source_files("${CMAKE_CURRENT_SOURCE_DIR}/src" "*.[hc]*")
+    cwork_set_source_files(${CWORK_AUTODETECTED_FILES} "${__OUTPUT_LIB_DEF_DIR}/${_LIB_FILE}.rc" "${__OUTPUT_LIB_DEF_DIR}/${_LIB_FILE}.def")
+    unset(CWORK_AUTODETECTED_FILES)
+    unset(__OUTPUT_LIB_DEF_DIR)
 endif()
 
 set(__OUTPUT_LIB_INFO "${CMAKE_CURRENT_SOURCE_DIR}/include/_generated/library_info.h")
@@ -45,15 +60,14 @@ file(REMOVE "${__OUTPUT_LIB_INFO}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/library_info.h.in" "${__OUTPUT_LIB_INFO}")
 unset(__OUTPUT_LIB_INFO)
 unset(_LIB_NAME)
+unset(_RES_DIR)
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │  Project settings                                                │
 # └──────────────────────────────────────────────────────────────────┘
 if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
-    cwork_set_embedded_resource_dir("${CMAKE_CURRENT_SOURCE_DIR}/_generated/resources")
     unset(CWORK_EXPORT_SYMBOLS CACHE)
 endif()
-
 cwork_create_project("dynamic" "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cmake" 
                      "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cmake/modules"
                      "include" "src" "test")

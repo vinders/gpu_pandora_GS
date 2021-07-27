@@ -1,0 +1,6 @@
+#include <system/api/windows_version.h>
+#include "_generated/resources.h"
+
+IDC_MENU_CURSOR    CURSOR  "${_RES_DIR}/menu_cursor.cur"
+IDR_MENU_FONT      RCDATA  "${_RES_DIR}/font_map.png"
+IDR_MENU_FONT_DESC RCDATA  "${_RES_DIR}/font_map.desc"

@@ -1,4 +1,0 @@
-#include <system/api/windows_version.h>
-#include "resources.h"
-
-IDI_LOGO_ICON      ICON    "pad.ico"
