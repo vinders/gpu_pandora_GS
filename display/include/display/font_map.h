@@ -61,7 +61,7 @@ namespace display {
     /// @param charDescriptors  Array of character location descriptors (must not be NULL)
     /// @param length           Length of array 'charDescriptors'
     FontMap(_RenderApiTexture2D&& spriteSheet, const CharDescriptor* charDescriptors, uint32_t length)
-      : _spriteSheet(spriteSheet) {
+      : _spriteSheet(std::move(spriteSheet)) {
       for (const CharDescriptor* it = charDescriptors; length; ++it, --length)
         this->_descriptors[it->id()] = *it;
     }
