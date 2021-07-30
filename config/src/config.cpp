@@ -37,3 +37,4 @@ void ActionsConfig::initDefaultMapping() noexcept {
 // -- other implementation files -- --------------------------------------------
 
 #include "./types.hpp" // include -> single object file (less overhead + smaller lib size)
+#include "./serializer.hpp"
