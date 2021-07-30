@@ -42,8 +42,13 @@ bool Serializer::createConfigDir(bool usePortableLocation) {
   }
   else {
     auto appDataDirs = pandora::io::FileSystemLocationFinder::standardLocation(pandora::io::FileSystemLocation::appData,
-                                                              __UNICODE_STR("Games" __ABS_PATH_SEP "PandoraGS"));
-    return (pandora::io::createDirectory(appDataDirs.front()) == 0);
+                                                                               __UNICODE_STR("Games"));
+    auto& targetDir = appDataDirs.front();
+    if (!pandora::io::verifyFileSystemAccessMode(targetDir.c_str(), pandora::io::FileSystemAccessMode::read))
+      pandora::io::createDirectory(targetDir);
+
+    targetDir += __UNICODE_STR(__ABS_PATH_SEP "gpuPandoraGS");
+    return (pandora::io::createDirectory(targetDir) == 0);
   }
 }
 // Find config directory
@@ -73,21 +78,17 @@ bool Serializer::isPortableLocationAvailable() {
 #define __GAME_ID_BUFFER_SIZE 32
 
 static UnicodeString __getGameProfileBindingPath(const UnicodeString& configDir, const char* gameId) {
-# ifdef _WINDOWS
-    wchar_t buffer[__GAME_ID_BUFFER_SIZE];
-    wchar_t* lastIndex = &buffer[__GAME_ID_BUFFER_SIZE - 1];
-    wchar_t* cur;
-    for (cur = &buffer[0]; *gameId && cur < lastIndex; ++cur, ++gameId)
-      *cur = (*gameId > '@' || (*gameId >= '0' && *gameId <= '9')) ? static_cast<wchar_t>(*gameId) : L'_';
-    *cur = L'\0';
-# else
-    char buffer[__GAME_ID_BUFFER_SIZE];
-    char* lastIndex = &buffer[__GAME_ID_BUFFER_SIZE - 1];
-    char* cur;
-    for (cur = &buffer[0]; *gameId && cur < lastIndex; ++cur, ++gameId)
-      *cur = (*gameId > '@' || (*gameId >= '0' && *gameId <= '9')) ? *gameId : '_';
-    *cur = '\0';
-# endif
+  __UNICODE_CHAR buffer[__GAME_ID_BUFFER_SIZE];
+  __UNICODE_CHAR* lastIndex = &buffer[__GAME_ID_BUFFER_SIZE - 1];
+  __UNICODE_CHAR* cur;
+  for (cur = &buffer[0]; *gameId && cur < lastIndex; ++cur, ++gameId) {
+    *cur = ((*gameId >= '@' && *gameId != '\\' && *gameId != '|')
+         || (*gameId <= '9' && *gameId >= '#' && *gameId != '*' && *gameId != '/'))
+         ? static_cast<__UNICODE_CHAR>(*gameId)
+         : L'_';
+  }
+  *cur = (__UNICODE_CHAR)0;
+
   return configDir + __UNICODE_STR(".") + buffer + Serializer::gameBindingFileSuffix();
 }
 
@@ -99,30 +100,32 @@ ProfileId Serializer::findGameProfileBinding(const UnicodeString& configDir, con
   if (gameId != nullptr) {
     auto filePath = __getGameProfileBindingPath(configDir, gameId);
     auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("rb"));
-    if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) >= sizeof(ProfileId))
+    if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) > 0)
       return profileId;
   }
 
   auto filePath = configDir + lastBindingFileName();
   auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("rb"));
-  if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) >= sizeof(ProfileId))
+  if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) > 0)
     return profileId;
   return 0;
 }
 
 // Associate profile with current game (for the next time) + save profile as "last used profile"
-void Serializer::saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept {
+bool Serializer::saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept {
   if (gameId != nullptr) {
     auto filePath = __getGameProfileBindingPath(configDir, gameId);
-    auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
-    if (input.isOpen())
-      fwrite(&profileId, sizeof(ProfileId), 1, input.handle());
+    auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
+    if (output.isOpen())
+      fwrite(&profileId, sizeof(ProfileId), 1, output.handle());
   }
 
+  bool isSuccess = false;
   auto filePath = configDir + lastBindingFileName();
-  auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
-  if (input.isOpen())
-    fwrite(&profileId, sizeof(ProfileId), 1, input.handle());
+  auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
+  if (output.isOpen())
+    isSuccess = (fwrite(&profileId, sizeof(ProfileId), 1, output.handle()) > 0);
+  return isSuccess;
 }
 
 

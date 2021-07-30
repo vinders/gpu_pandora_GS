@@ -200,10 +200,12 @@ namespace config {
 
 # ifdef _WINDOWS
     using UnicodeString = pandora::memory::LightWString;
+#   define __UNICODE_CHAR wchar_t
 #   define __UNICODE_STR(str) L"" str
 #   define __ABS_PATH_SEP "\\"
 # else
     using UnicodeString = pandora::memory::LightString;
+#   define __UNICODE_CHAR char
 #   define __UNICODE_STR(str) u8"" str
 #   define __ABS_PATH_SEP "/"
 # endif

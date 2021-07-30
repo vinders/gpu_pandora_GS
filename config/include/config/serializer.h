@@ -51,9 +51,9 @@ namespace config {
 
     /// @brief Find profile associated with current game (saved at the end of last execution)
     /// @returns ID of associated profile (if binding found) or last used profile ID (empty if no profile has ever been loaded).
-    ProfileId findGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept;
+    static ProfileId findGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept;
     /// @brief Associate profile with current game (for the next time) + save profile as "last used profile"
-    void saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept;
+    static bool saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept;
 
 
     // -- JSON SERIALIZATION -- ------------------------------------------------
