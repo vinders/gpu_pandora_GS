@@ -485,7 +485,12 @@ void Serializer::readProfileListFile(const UnicodeString& configDir, std::vector
       for (auto& p : *profiles) {
         auto* profile = p.getObject();
         if (profile != nullptr) {
-          auto& label = outProfiles.emplace_back();
+#         if !defined(_CPP_REVISION) || _CPP_REVISION != 14
+            ProfileLabel& label = outProfiles.emplace_back();
+#         else
+            outProfiles.emplace_back();
+            ProfileLabel& label = outProfiles.back();
+#         endif
 
           label.id = __readInteger<uint32_t>((*profile), profile::id(), 0);
           __readSystemString((*profile), profile::file(), label.file);
