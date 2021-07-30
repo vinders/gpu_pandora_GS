@@ -144,10 +144,10 @@ TEST_F(ConfigTest, profileLabelToMenuTile) {
   EXPECT_TRUE(tile1Moved.tileColor[1] >= 0.19999f && tile1Moved.tileColor[1] <= 0.20001f);
   EXPECT_TRUE(tile1Moved.tileColor[2] >= 0.19999f && tile1Moved.tileColor[2] <= 0.20001f);
 
-  ProfileLabel label2 = { 2, __UNICODE_STR("é#€*à"), __UNICODE_STR("_°(«ù»)}"), MenuTileColor::green };
+  ProfileLabel label2 = { 2, __UNICODE_STR("\x00E9#\x0080*\x00E0"), __UNICODE_STR("_\x00B0(\x00AB\x00F9\x00BB)}"), MenuTileColor::green };
   ProfileMenuTile tile2(label2);
   EXPECT_FALSE(tile2.file.empty());
-  EXPECT_STREQ(__UNICODE_STR("é#€*à"), tile2.file.c_str());
+  EXPECT_STREQ(__UNICODE_STR("\x00E9#\x0080*\x00E0"), tile2.file.c_str());
   EXPECT_FALSE(tile2.name.empty());
   ASSERT_EQ(size_t{ 8u }, tile2.name.size());
   EXPECT_EQ((uint32_t)'_', tile2.name.value()[0]);
@@ -163,7 +163,7 @@ TEST_F(ConfigTest, profileLabelToMenuTile) {
   EXPECT_TRUE(tile2.tileColor[2] >= 0.19999f && tile2.tileColor[2] <= 0.20001f);
   ProfileMenuTile tile2Moved(std::move(label2));
   EXPECT_FALSE(tile2Moved.file.empty());
-  EXPECT_STREQ(__UNICODE_STR("é#€*à"), tile2Moved.file.c_str());
+  EXPECT_STREQ(__UNICODE_STR("\x00E9#\x0080*\x00E0"), tile2Moved.file.c_str());
   EXPECT_FALSE(tile2Moved.name.empty());
   ASSERT_EQ(size_t{ 8u }, tile2Moved.name.size());
   EXPECT_EQ((uint32_t)'_', tile2Moved.name.value()[0]);
@@ -211,14 +211,14 @@ TEST_F(ConfigTest, charCodeArrayInit) {
   EXPECT_EQ((uint32_t)'b', val3.value()[1]);
   EXPECT_EQ((uint32_t)'c', val3.value()[2]);
 
-  const char* complexU8 = u8"é#€*à _°(«ù»)}";
+  const char* complexU8 = u8"\x00E9#\x0080*\x00E0 _\x00B0(\x00AB\x00F9\x00BB)}";
   CharCodeArray valComplex1(complexU8, strlen(complexU8));
   EXPECT_FALSE(valComplex1.empty());
   EXPECT_EQ(size_t{14}, valComplex1.size());
   ASSERT_TRUE(valComplex1.value() != nullptr);
   EXPECT_EQ((uint32_t)0xE9, valComplex1.value()[0]);
   EXPECT_EQ((uint32_t)0x23, valComplex1.value()[1]);
-  EXPECT_EQ((uint32_t)0x20AC, valComplex1.value()[2]);
+  EXPECT_EQ((uint32_t)0x80, valComplex1.value()[2]);
   EXPECT_EQ((uint32_t)0x2A, valComplex1.value()[3]);
   EXPECT_EQ((uint32_t)0xE0, valComplex1.value()[4]);
   EXPECT_EQ((uint32_t)' ', valComplex1.value()[5]);
@@ -231,14 +231,14 @@ TEST_F(ConfigTest, charCodeArrayInit) {
   EXPECT_EQ((uint32_t)')', valComplex1.value()[12]);
   EXPECT_EQ((uint32_t)'}', valComplex1.value()[13]);
 # ifdef _WINDOWS
-  const wchar_t* complexUW = L"é#€*à _°(«ù»)}";
+  const wchar_t* complexUW = L"\x00E9#\x0080*\x00E0 _\x00B0(\x00AB\x00F9\x00BB)}";
   CharCodeArray valComplex2(complexUW, wcslen(complexUW));
   EXPECT_FALSE(valComplex2.empty());
   EXPECT_EQ(size_t{14}, valComplex2.size());
   ASSERT_TRUE(valComplex2.value() != nullptr);
   EXPECT_EQ((uint32_t)0xE9, valComplex2.value()[0]);
   EXPECT_EQ((uint32_t)0x23, valComplex2.value()[1]);
-  EXPECT_EQ((uint32_t)0x20AC, valComplex2.value()[2]);
+  EXPECT_EQ((uint32_t)0x80, valComplex2.value()[2]);
   EXPECT_EQ((uint32_t)0x2A, valComplex2.value()[3]);
   EXPECT_EQ((uint32_t)0xE0, valComplex2.value()[4]);
   EXPECT_EQ((uint32_t)' ', valComplex2.value()[5]);
@@ -251,14 +251,14 @@ TEST_F(ConfigTest, charCodeArrayInit) {
   EXPECT_EQ((uint32_t)')', valComplex2.value()[12]);
   EXPECT_EQ((uint32_t)'}', valComplex2.value()[13]);
 # endif
-  const char16_t* complexU16 = u"é#€*à _°(«ù»)}";
+  const char16_t* complexU16 = u"\x00E9#\x0080*\x00E0 _\x00B0(\x00AB\x00F9\x00BB)}";
   CharCodeArray valComplex3(complexU16, 14);
   EXPECT_FALSE(valComplex3.empty());
   EXPECT_EQ(size_t{14}, valComplex3.size());
   ASSERT_TRUE(valComplex3.value() != nullptr);
   EXPECT_EQ((uint32_t)0xE9, valComplex3.value()[0]);
   EXPECT_EQ((uint32_t)0x23, valComplex3.value()[1]);
-  EXPECT_EQ((uint32_t)0x20AC, valComplex3.value()[2]);
+  EXPECT_EQ((uint32_t)0x80, valComplex3.value()[2]);
   EXPECT_EQ((uint32_t)0x2A, valComplex3.value()[3]);
   EXPECT_EQ((uint32_t)0xE0, valComplex3.value()[4]);
   EXPECT_EQ((uint32_t)' ', valComplex3.value()[5]);
