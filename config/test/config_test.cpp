@@ -211,25 +211,6 @@ TEST_F(ConfigTest, charCodeArrayInit) {
   EXPECT_EQ((uint32_t)'b', val3.value()[1]);
   EXPECT_EQ((uint32_t)'c', val3.value()[2]);
 
-  const char* complexU8 = u8"\x00E9#\x0080*\x00E0 _\x00B0(\x00AB\x00F9\x00BB)}";
-  CharCodeArray valComplex1(complexU8, strlen(complexU8));
-  EXPECT_FALSE(valComplex1.empty());
-  EXPECT_EQ(size_t{14}, valComplex1.size());
-  ASSERT_TRUE(valComplex1.value() != nullptr);
-  EXPECT_EQ((uint32_t)0xE9, valComplex1.value()[0]);
-  EXPECT_EQ((uint32_t)0x23, valComplex1.value()[1]);
-  EXPECT_EQ((uint32_t)0x80, valComplex1.value()[2]);
-  EXPECT_EQ((uint32_t)0x2A, valComplex1.value()[3]);
-  EXPECT_EQ((uint32_t)0xE0, valComplex1.value()[4]);
-  EXPECT_EQ((uint32_t)' ', valComplex1.value()[5]);
-  EXPECT_EQ((uint32_t)'_', valComplex1.value()[6]);
-  EXPECT_EQ((uint32_t)0xB0, valComplex1.value()[7]);
-  EXPECT_EQ((uint32_t)'(', valComplex1.value()[8]);
-  EXPECT_EQ((uint32_t)0xAB, valComplex1.value()[9]);
-  EXPECT_EQ((uint32_t)0xF9, valComplex1.value()[10]);
-  EXPECT_EQ((uint32_t)0xBB, valComplex1.value()[11]);
-  EXPECT_EQ((uint32_t)')', valComplex1.value()[12]);
-  EXPECT_EQ((uint32_t)'}', valComplex1.value()[13]);
 # ifdef _WINDOWS
   const wchar_t* complexUW = L"\x00E9#\x0080*\x00E0 _\x00B0(\x00AB\x00F9\x00BB)}";
   CharCodeArray valComplex2(complexUW, wcslen(complexUW));
