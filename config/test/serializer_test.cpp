@@ -25,16 +25,20 @@ protected:
   static void SetUpTestCase() {
     pluginDir = pandora::io::FileSystemLocationFinder::currentLocation() + __UNICODE_STR(__ABS_PATH_SEP "plugins");
     if (pandora::io::verifyFileSystemAccessMode(pluginDir.c_str(), pandora::io::FileSystemAccessMode::readWrite)) {
-      pandora::io::removeDirectory(pluginDir + __UNICODE_STR(".gpuPandoraGS"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(".MY_GAME.032.bind"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR("._Other-24.bind"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(".last.bind"));
+      pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP ".gpuPandoraGS"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP ".last.bind"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::mainConfigFileName());
+      pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory());
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     else
       ASSERT_TRUE(pandora::io::createDirectory(pluginDir) == 0);
+    pluginDir += __UNICODE_STR(__ABS_PATH_SEP);
   }
   static void TearDownTestCase() {
+    pluginDir.pop_back();
     pandora::io::removeDirectory(pluginDir);
   }
 
@@ -46,10 +50,12 @@ protected:
 pandora::io::SystemPath SerializerTest::pluginDir;
 
 
+// -- directory/file utils --
+
 TEST_F(SerializerTest, directoryCreateFind) {
   EXPECT_TRUE(Serializer::isPortableLocationAvailable());
   EXPECT_TRUE(Serializer::createConfigDir(true));
-  auto configDir = pluginDir + __UNICODE_STR(__ABS_PATH_SEP ".gpuPandoraGS" __ABS_PATH_SEP);
+  auto configDir = pluginDir + __UNICODE_STR(".gpuPandoraGS" __ABS_PATH_SEP);
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(configDir.c_str(), pandora::io::FileSystemAccessMode::readWrite));
 
   auto foundDir = Serializer::findConfigDir();
@@ -58,16 +64,18 @@ TEST_F(SerializerTest, directoryCreateFind) {
   pandora::io::removeDirectory(configDir);
 }
 
+
+// -- game/profile bindings --
+
 TEST_F(SerializerTest, gameBindingSaveFind) {
   UnicodeString configDir(pluginDir.c_str());
-  configDir += __UNICODE_STR(__ABS_PATH_SEP);
 
-  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "MY_GAME.032"));
-  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "_Other-24"));
+  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "MY_GAME.032")); // default
+  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "_Other-24")); // default
 
   EXPECT_TRUE(Serializer::saveGameProfileBinding(configDir, "MY_GAME.032", (ProfileId)32));
-  UnicodeString gameFile1 = configDir + __UNICODE_STR(".MY_GAME.032.bind");
-  UnicodeString lastUsedFile = configDir + __UNICODE_STR(".last.bind");
+  UnicodeString gameFile1 = configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind");
+  UnicodeString lastUsedFile = configDir + Serializer::lastBindingFileName();
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile1.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(lastUsedFile.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "MY_GAME.032"));
@@ -75,7 +83,7 @@ TEST_F(SerializerTest, gameBindingSaveFind) {
   EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "anything"));  // uses .last.bind
 
   EXPECT_TRUE(Serializer::saveGameProfileBinding(configDir, "_Other-24", (ProfileId)24));
-  UnicodeString gameFile2 = configDir + __UNICODE_STR("._Other-24.bind");
+  UnicodeString gameFile2 = configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind");
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile1.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile2.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(lastUsedFile.c_str(), pandora::io::FileSystemAccessMode::read));
@@ -93,4 +101,169 @@ TEST_F(SerializerTest, gameBindingSaveFind) {
   pandora::io::removeFileEntry(gameFile1.c_str());
   pandora::io::removeFileEntry(gameFile2.c_str());
   pandora::io::removeFileEntry(lastUsedFile.c_str());
+  pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory());
+}
+
+
+// -- serializer/deserializer --
+
+static void __compareCommonConfig(const RendererConfig& r1, const RendererConfig& r2,
+                                  const WindowConfig& w1, const WindowConfig& w2,
+                                  const ActionsConfig& a1, const ActionsConfig& a2) {
+  EXPECT_EQ(r1.api, r2.api);
+  EXPECT_EQ(r1.enableFramerateLimit, r2.enableFramerateLimit);
+  EXPECT_EQ(r1.enableVsync, r2.enableVsync);
+  EXPECT_EQ(r1.framerateLimit, r2.framerateLimit);
+  EXPECT_EQ(r1.frameSkip, r2.frameSkip);
+  EXPECT_EQ(r1.precision, r2.precision);
+  EXPECT_EQ(r1.osd, r2.osd);
+
+  EXPECT_EQ(w1.monitorId, w2.monitorId);
+  EXPECT_EQ(w1.windowMode, w2.windowMode);
+  EXPECT_EQ(w1.windowHeight, w2.windowHeight);
+  EXPECT_EQ(w1.fullscreen.width, w2.fullscreen.width);
+  EXPECT_EQ(w1.fullscreen.height, w2.fullscreen.height);
+  EXPECT_EQ(w1.fullscreen.refreshRate, w2.fullscreen.refreshRate);
+  EXPECT_EQ(w1.isWideSource, w2.isWideSource);
+
+  for (size_t i = 0; i < keyboardMap::length(); ++i) {
+    EXPECT_EQ(a1.keyboardMapping[i], a2.keyboardMapping[i]);
+  }
+  for (size_t i = 0; i < controllerMap::length(); ++i) {
+    EXPECT_EQ(a1.controllerMapping[i], a2.controllerMapping[i]);
+  }
+  EXPECT_EQ(a1.controllerHotkey, a2.controllerHotkey);
+}
+static void __compareProfileConfig(const RendererProfile& r1, const RendererProfile& r2,
+                                   const WindowProfile& w1, const WindowProfile& w2,
+                                   const EffectsProfile& e1, const EffectsProfile& e2) {
+  EXPECT_EQ(r1.internalResFactorX, r2.internalResFactorX);
+  EXPECT_EQ(r1.internalResFactorY, r2.internalResFactorY);
+  EXPECT_EQ(r1.colorMode, r2.colorMode);
+  EXPECT_EQ(r1.fillMode, r2.fillMode);
+  EXPECT_EQ(r1.antiAliasing, r2.antiAliasing);
+  EXPECT_EQ(r1.textureUpscaling, r2.textureUpscaling);
+  EXPECT_EQ(r1.useTextureBilinear, r2.useTextureBilinear);
+  EXPECT_EQ(r1.spriteUpscaling, r2.spriteUpscaling);
+  EXPECT_EQ(r1.useSpriteBilinear, r2.useSpriteBilinear);
+  EXPECT_EQ(r1.screenUpscaling, r2.screenUpscaling);
+  EXPECT_EQ(r1.mdecUpscaling, r2.mdecUpscaling);
+
+  EXPECT_EQ(w1.screenStretching, w2.screenStretching);
+  EXPECT_EQ(w1.screenCropping, w2.screenCropping);
+  EXPECT_EQ(w1.screenCurvature, w2.screenCurvature);
+  EXPECT_EQ(w1.isMirrored, w2.isMirrored);
+  EXPECT_EQ(w1.isPalRecentered, w2.isPalRecentered);
+  EXPECT_EQ(w1.isOverscanVisible, w2.isOverscanVisible);
+  for (size_t i = 0; i < 4; ++i) {
+    EXPECT_EQ(w1.blackBorderSizes[i], w2.blackBorderSizes[i]);
+  }
+
+  EXPECT_EQ(e1.screenGrain, e2.screenGrain);
+  EXPECT_EQ(e1.textureGrain, e2.textureGrain);
+  EXPECT_EQ(e1.dithering, e2.dithering);
+  EXPECT_EQ(e1.useTextureDithering, e2.useTextureDithering);
+  EXPECT_EQ(e1.useSpriteDithering, e2.useSpriteDithering);
+}
+
+// ---
+
+TEST_F(SerializerTest, writeReadCommonConfig) {
+  UnicodeString configDir(pluginDir.c_str());
+  std::unique_ptr<char[]> buffer = nullptr;
+  std::unique_ptr<char[]> verifier = std::unique_ptr<char[]>(new char[8192]);
+  long fileSize = 0;
+
+  RendererConfig inRendererCfg, outRendererCfg;
+  WindowConfig inWindowCfg, outWindowCfg;
+  ActionsConfig inActionsCfg, outActionsCfg;
+
+  inRendererCfg.enableFramerateLimit = false;
+  inRendererCfg.enableVsync = false;
+  memset(&inActionsCfg, 0, sizeof(ActionsConfig));
+  Serializer::writeMainConfigFile(configDir, inRendererCfg, inWindowCfg, inActionsCfg);
+  Serializer::readMainConfigFile(configDir, outRendererCfg, outWindowCfg, outActionsCfg);
+  __compareCommonConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
+
+  inRendererCfg.api = RenderingApi::openGL4;
+  inRendererCfg.enableFramerateLimit = true;
+  inRendererCfg.enableVsync = true;
+  inRendererCfg.framerateLimit = 59.94f;
+  inRendererCfg.frameSkip = FrameSkipping::adaptative;
+  inRendererCfg.precision = PrecisionMode::subprecision;
+  inRendererCfg.osd = OnScreenDisplay::framerate;
+  inWindowCfg.monitorId = __UNICODE_STR("\\Display_1 - Generic PnP");
+  inWindowCfg.windowMode = WindowMode::window;
+  inWindowCfg.windowHeight = 800;
+  inWindowCfg.fullscreen.width = 1280;
+  inWindowCfg.fullscreen.height = 800;
+  inWindowCfg.isWideSource = true;
+  for (size_t i = 0; i < keyboardMap::length(); ++i)
+    inActionsCfg.keyboardMapping[i] = i * 2;
+  for (size_t i = 0; i < controllerMap::length(); ++i)
+    inActionsCfg.controllerMapping[i] = i + 3;
+  inActionsCfg.controllerHotkey = 42;
+  Serializer::writeMainConfigFile(configDir, inRendererCfg, inWindowCfg, inActionsCfg);
+  Serializer::readMainConfigFile(configDir, outRendererCfg, outWindowCfg, outActionsCfg);
+  __compareCommonConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  auto filePath = configDir + Serializer::mainConfigFileName();
+  pandora::io::removeFileEntry(filePath.c_str());
+}
+
+TEST_F(SerializerTest, writeReadProfileList) {
+
+}
+
+TEST_F(SerializerTest, writeReadProfileConfig) {
+  UnicodeString configDir(pluginDir.c_str());
+  auto filePath1 = configDir + __UNICODE_STR("profile_test_1");
+  auto filePath2 = configDir + __UNICODE_STR("profile-02");
+  std::unique_ptr<char[]> buffer = nullptr;
+  std::unique_ptr<char[]> verifier = std::unique_ptr<char[]>(new char[8192]);
+  long fileSize = 0;
+
+  RendererProfile inRendererCfg, outRendererCfg;
+  WindowProfile inWindowCfg, outWindowCfg;
+  EffectsProfile inEffectsCfg, outEffectsCfg;
+
+  inRendererCfg.internalResFactorX = inRendererCfg.internalResFactorY = 1;
+  inRendererCfg.useTextureBilinear = false;
+  inWindowCfg.isPalRecentered = false;
+  Serializer::writeProfileConfigFile(filePath1, inRendererCfg, inWindowCfg, inEffectsCfg);
+  Serializer::readProfileConfigFile(filePath1, outRendererCfg, outWindowCfg, outEffectsCfg);
+  __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
+
+  inRendererCfg.internalResFactorX = 4;
+  inRendererCfg.internalResFactorY = 2;
+  inRendererCfg.colorMode = ColorOutput::rgb16;
+  inRendererCfg.fillMode = FillMode::wireframeOverlay;
+  inRendererCfg.antiAliasing = AntiAliasing::smaa4;
+  inRendererCfg.textureUpscaling = UpscalingFilter::lanczos;
+  inRendererCfg.useTextureBilinear = true;
+  inRendererCfg.spriteUpscaling = UpscalingFilter::xBR;
+  inRendererCfg.useSpriteBilinear = true;
+  inRendererCfg.screenUpscaling = UpscalingFilter::SABR;
+  inRendererCfg.mdecUpscaling = MdecFilter::bilinear;
+  inWindowCfg.screenStretching = 4;
+  inWindowCfg.screenCropping = 6;
+  inWindowCfg.screenCurvature = 2;
+  inWindowCfg.isMirrored = true;
+  inWindowCfg.isOverscanVisible = true;
+  inWindowCfg.isPalRecentered = true;
+  for (uint32_t i = 0; i < 4; ++i)
+    inWindowCfg.blackBorderSizes[i] = (uint8_t)i;
+  inEffectsCfg.textureGrain = NoiseFilter::grain;
+  inEffectsCfg.screenGrain = NoiseFilter::gauss;
+  inEffectsCfg.dithering = ColorDithering::ditherOutput;
+  inEffectsCfg.useTextureDithering = true;
+  inEffectsCfg.useSpriteDithering = true;
+  Serializer::writeProfileConfigFile(filePath1, inRendererCfg, inWindowCfg, inEffectsCfg);
+  Serializer::readProfileConfigFile(filePath1, outRendererCfg, outWindowCfg, outEffectsCfg);
+  __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  pandora::io::removeFileEntry(filePath1.c_str());
+  pandora::io::removeFileEntry(filePath2.c_str());
 }
