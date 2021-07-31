@@ -20,20 +20,20 @@ namespace config {
   namespace renderer {
     static constexpr const char* api() noexcept { return "api"; }
     static constexpr const char* enableVsync() noexcept { return "vsync"; }
-    static constexpr const char* enableFramerateLimit() noexcept { return "limit"; }
-    static constexpr const char* framerateLimit() noexcept { return "rate"; }
+    static constexpr const char* enableFramerateLimit() noexcept { return "limit_on"; }
+    static constexpr const char* framerateLimit() noexcept { return "framerate"; }
     static constexpr const char* frameSkip() noexcept { return "skip"; }
-    static constexpr const char* precision() noexcept { return "prec"; }
+    static constexpr const char* precision() noexcept { return "subprec"; }
     static constexpr const char* osd() noexcept { return "osd"; }
   }
   namespace window {
     static constexpr const char* monitorId() noexcept { return "screen"; }
     static constexpr const char* windowMode() noexcept { return "mode"; }
     static constexpr const char* windowHeight() noexcept { return "win_y"; }
-    static constexpr const char* fullscreenResX() noexcept { return "fs_x"; }
-    static constexpr const char* fullscreenResY() noexcept { return "fs_y"; }
-    static constexpr const char* fullscreenRate() noexcept { return "fs_r"; }
-    static constexpr const char* isWideSource() noexcept { return "wide"; }
+    static constexpr const char* fullscreenResX() noexcept { return "full_x"; }
+    static constexpr const char* fullscreenResY() noexcept { return "full_y"; }
+    static constexpr const char* fullscreenRate() noexcept { return "full_rate"; }
+    static constexpr const char* isWideSource() noexcept { return "wide_source"; }
   }
   namespace actions {
     static constexpr const char* keyboardMapping() noexcept { return "key"; }
@@ -48,22 +48,22 @@ namespace config {
     static constexpr const char* tileColor() noexcept { return "color"; }
 
     namespace renderer {
-      static constexpr const char* internalResFactorX() noexcept { return "iresx"; }
-      static constexpr const char* internalResFactorY() noexcept { return "iresy"; }
-      static constexpr const char* colorMode() noexcept { return "bits"; }
+      static constexpr const char* internalResFactorX() noexcept { return "ires_x"; }
+      static constexpr const char* internalResFactorY() noexcept { return "ires_y"; }
+      static constexpr const char* colorMode() noexcept { return "color"; }
       static constexpr const char* fillMode() noexcept { return "wireframe"; }
       static constexpr const char* antiAliasing() noexcept { return "aa"; }
-      static constexpr const char* textureUpscaling() noexcept { return "tx_up"; }
-      static constexpr const char* useTextureBilinear() noexcept { return "tx_bilin"; }
-      static constexpr const char* spriteUpscaling() noexcept { return "spr_up"; }
-      static constexpr const char* useSpriteBilinear() noexcept { return "spr_bilin"; }
-      static constexpr const char* screenUpscaling() noexcept { return "scr_up"; }
+      static constexpr const char* textureUpscaling() noexcept { return "tx_upscale"; }
+      static constexpr const char* useTextureBilinear() noexcept { return "tx_bilinear"; }
+      static constexpr const char* spriteUpscaling() noexcept { return "spr_upscale"; }
+      static constexpr const char* useSpriteBilinear() noexcept { return "spr_bilinear"; }
+      static constexpr const char* screenUpscaling() noexcept { return "dsp_upscale"; }
       static constexpr const char* mdecUpscaling() noexcept { return "mdec"; }
     }
     namespace window {
       static constexpr const char* screenStretching() noexcept { return "stretch"; }
       static constexpr const char* screenCropping() noexcept { return "crop"; }
-      static constexpr const char* screenCurvature() noexcept { return "curv"; }
+      static constexpr const char* screenCurvature() noexcept { return "curved"; }
       static constexpr const char* isMirrored() noexcept { return "mirror"; }
       static constexpr const char* isPalRecentered() noexcept { return "pal_pos"; }
       static constexpr const char* isOverscanVisible() noexcept { return "ovscan"; }
@@ -71,10 +71,10 @@ namespace config {
     }
     namespace effects {
       static constexpr const char* textureGrain() noexcept { return "tx_grain"; }
-      static constexpr const char* screenGrain() noexcept { return "scr_grain"; }
-      static constexpr const char* dithering() noexcept { return "dith"; }
-      static constexpr const char* useTextureDithering() noexcept { return "tx_dith"; }
-      static constexpr const char* useSpriteDithering() noexcept { return "spr_dith"; }
+      static constexpr const char* screenGrain() noexcept { return "dsp_grain"; }
+      static constexpr const char* dithering() noexcept { return "dither"; }
+      static constexpr const char* useTextureDithering() noexcept { return "tx_dither"; }
+      static constexpr const char* useSpriteDithering() noexcept { return "spr_dither"; }
 
     }
   }

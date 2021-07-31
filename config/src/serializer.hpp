@@ -89,7 +89,7 @@ static UnicodeString __getGameProfileBindingPath(const UnicodeString& configDir,
   }
   *cur = (__UNICODE_CHAR)0;
 
-  return configDir + __UNICODE_STR(".") + buffer + Serializer::gameBindingFileSuffix();
+  return configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP) + buffer + __UNICODE_STR(".bind");
 }
 
 // ---
@@ -114,12 +114,19 @@ ProfileId Serializer::findGameProfileBinding(const UnicodeString& configDir, con
 // Associate profile with current game (for the next time) + save profile as "last used profile"
 bool Serializer::saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept {
   if (gameId != nullptr) {
+    // create directory (if not existing)
+    auto dirPath = pandora::io::SystemPath(configDir.c_str()) + gameBindingDirectory();
+    if (!pandora::io::verifyFileSystemAccessMode(dirPath.c_str(), pandora::io::FileSystemAccessMode::readWrite))
+      pandora::io::createDirectory(dirPath);
+
+    // save game/profile association
     auto filePath = __getGameProfileBindingPath(configDir, gameId);
     auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
     if (output.isOpen())
       fwrite(&profileId, sizeof(ProfileId), 1, output.handle());
   }
 
+  // save "last used profile"
   bool isSuccess = false;
   auto filePath = configDir + lastBindingFileName();
   auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
@@ -547,7 +554,7 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.spriteUpscaling = __readInteger(jsonObject, profile::renderer::spriteUpscaling(), UpscalingFilter::none);
   outRendererCfg.useSpriteBilinear = __readInteger<bool>(jsonObject, profile::renderer::useSpriteBilinear(), false);
   outRendererCfg.screenUpscaling = __readInteger(jsonObject, profile::renderer::screenUpscaling(), UpscalingFilter::none);
-  outRendererCfg.mdecUpscaling = __readInteger(jsonObject, profile::renderer::mdecUpscaling(), MdecFilter::bilinear);
+  outRendererCfg.mdecUpscaling = __readInteger(jsonObject, profile::renderer::mdecUpscaling(), MdecFilter::none);
 
   // window params
   outWindowCfg.screenStretching = __readInteger(jsonObject, profile::window::screenStretching(), 0);

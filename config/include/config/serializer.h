@@ -39,7 +39,6 @@ namespace config {
     /// @brief Find config directory (ending with directory separator)
     /// @returns Config directory found (priority given to portable location) or empty string (if no directory or inaccessible)
     static UnicodeString findConfigDir();
-
     /// @brief Verify if portable directory ('plugins') has write access
     static bool isPortableLocationAvailable();
 
@@ -47,7 +46,7 @@ namespace config {
     // -- game/profile bindings --
 
     static constexpr inline auto lastBindingFileName() noexcept { return __UNICODE_STR(".last.bind"); } ///< last used profile file name
-    static constexpr inline auto gameBindingFileSuffix() noexcept { return __UNICODE_STR(".bind"); }    ///< game/profile bindings suffix
+    static constexpr inline auto gameBindingDirectory() noexcept { return __UNICODE_STR(".bind"); } ///< directory for game/profile bindings
 
     /// @brief Find profile associated with current game (saved at the end of last execution)
     /// @returns ID of associated profile (if binding found) or last used profile ID (empty if no profile has ever been loaded).
