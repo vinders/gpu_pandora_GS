@@ -54,10 +54,13 @@ namespace config {
       static constexpr const char* fillMode() noexcept { return "wireframe"; }
       static constexpr const char* antiAliasing() noexcept { return "aa"; }
       static constexpr const char* textureUpscaling() noexcept { return "tx_upscale"; }
+      static constexpr const char* textureUpscalingFactor() noexcept { return "tx_factor"; }
       static constexpr const char* useTextureBilinear() noexcept { return "tx_bilinear"; }
       static constexpr const char* spriteUpscaling() noexcept { return "spr_upscale"; }
+      static constexpr const char* spriteUpscalingFactor() noexcept { return "spr_factor"; }
       static constexpr const char* useSpriteBilinear() noexcept { return "spr_bilinear"; }
       static constexpr const char* screenUpscaling() noexcept { return "dsp_upscale"; }
+      static constexpr const char* screenUpscalingFactor() noexcept { return "dsp_factor"; }
       static constexpr const char* mdecUpscaling() noexcept { return "mdec"; }
     }
     namespace window {

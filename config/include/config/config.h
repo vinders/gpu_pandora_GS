@@ -83,10 +83,13 @@ namespace config {
     AntiAliasing antiAliasing = AntiAliasing::none;  ///< Anti-aliasing: to remove jagged edges
 
     UpscalingFilter textureUpscaling = UpscalingFilter::none;
-    bool useTextureBilinear = true;               ///< Enable bilinear interp. for texture sampler (after upscaling)
+    uint32_t textureUpscalingFactor = 1; ///< Texture upscaling factor (1x/2x/3x/4x/5x/8x)
+    bool useTextureBilinear = true;      ///< Enable bilinear interp. for texture sampler (after upscaling)
     UpscalingFilter spriteUpscaling = UpscalingFilter::none;
-    bool useSpriteBilinear = false;  ///< Enable bilinear interp. for sprite sampler (after upscaling)
+    uint32_t spriteUpscalingFactor = 1; ///< Sprite upscaling factor (1x/2x/3x/4x/5x/8x)
+    bool useSpriteBilinear = false;     ///< Enable bilinear interp. for sprite sampler (after upscaling)
     UpscalingFilter screenUpscaling = UpscalingFilter::none; ///< Screen upscaling mode (after internal resolution scaling)
+    uint32_t screenUpscalingFactor = 1; ///< Screen upscaling factor (1x/2x/3x/4x/5x/8x)
     MdecFilter mdecUpscaling = MdecFilter::bilinear; ///< MDEC video upscaling
   };
   

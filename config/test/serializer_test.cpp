@@ -166,10 +166,13 @@ static void __compareProfileConfig(const RendererProfile& r1, const RendererProf
   EXPECT_EQ(r1.fillMode, r2.fillMode);
   EXPECT_EQ(r1.antiAliasing, r2.antiAliasing);
   EXPECT_EQ(r1.textureUpscaling, r2.textureUpscaling);
+  EXPECT_EQ(r1.textureUpscalingFactor, r2.textureUpscalingFactor);
   EXPECT_EQ(r1.useTextureBilinear, r2.useTextureBilinear);
   EXPECT_EQ(r1.spriteUpscaling, r2.spriteUpscaling);
+  EXPECT_EQ(r1.spriteUpscalingFactor, r2.spriteUpscalingFactor);
   EXPECT_EQ(r1.useSpriteBilinear, r2.useSpriteBilinear);
   EXPECT_EQ(r1.screenUpscaling, r2.screenUpscaling);
+  EXPECT_EQ(r1.screenUpscalingFactor, r2.screenUpscalingFactor);
   EXPECT_EQ(r1.mdecUpscaling, r2.mdecUpscaling);
 
   EXPECT_EQ(w1.screenStretching, w2.screenStretching);

@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 #include <cstddef>
+#include <memory/light_string.h>
 
 namespace config {
   // -- window / renderer settings -- ----------------------------------

@@ -394,14 +394,20 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
 
   if (rendererCfg.textureUpscaling != UpscalingFilter::none)
     jsonObject.emplace(profile::renderer::textureUpscaling(), SerializableValue((int32_t)rendererCfg.textureUpscaling));
+  if (rendererCfg.textureUpscalingFactor > 1)
+    jsonObject.emplace(profile::renderer::textureUpscalingFactor(), SerializableValue((int32_t)rendererCfg.textureUpscalingFactor));
   if (rendererCfg.useTextureBilinear)
     jsonObject.emplace(profile::renderer::useTextureBilinear(), SerializableValue((int32_t)rendererCfg.useTextureBilinear));
   if (rendererCfg.spriteUpscaling != UpscalingFilter::none)
     jsonObject.emplace(profile::renderer::spriteUpscaling(), SerializableValue((int32_t)rendererCfg.spriteUpscaling));
+  if (rendererCfg.spriteUpscalingFactor > 1)
+    jsonObject.emplace(profile::renderer::spriteUpscalingFactor(), SerializableValue((int32_t)rendererCfg.spriteUpscalingFactor));
   if (rendererCfg.useSpriteBilinear)
     jsonObject.emplace(profile::renderer::useSpriteBilinear(), SerializableValue((int32_t)rendererCfg.useSpriteBilinear));
   if (rendererCfg.screenUpscaling != UpscalingFilter::none)
     jsonObject.emplace(profile::renderer::screenUpscaling(), SerializableValue((int32_t)rendererCfg.screenUpscaling));
+  if (rendererCfg.screenUpscalingFactor > 1)
+    jsonObject.emplace(profile::renderer::screenUpscalingFactor(), SerializableValue((int32_t)rendererCfg.screenUpscalingFactor));
   if (rendererCfg.mdecUpscaling != MdecFilter::none)
     jsonObject.emplace(profile::renderer::mdecUpscaling(), SerializableValue((int32_t)rendererCfg.mdecUpscaling));
 
@@ -547,10 +553,13 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.antiAliasing = __readInteger(jsonObject, profile::renderer::antiAliasing(), AntiAliasing::none);
 
   outRendererCfg.textureUpscaling = __readInteger(jsonObject, profile::renderer::textureUpscaling(), UpscalingFilter::none);
+  outRendererCfg.textureUpscalingFactor = __readInteger(jsonObject, profile::renderer::textureUpscalingFactor(), 1);
   outRendererCfg.useTextureBilinear = __readInteger<bool>(jsonObject, profile::renderer::useTextureBilinear(), false);
   outRendererCfg.spriteUpscaling = __readInteger(jsonObject, profile::renderer::spriteUpscaling(), UpscalingFilter::none);
+  outRendererCfg.spriteUpscalingFactor = __readInteger(jsonObject, profile::renderer::spriteUpscalingFactor(), 1);
   outRendererCfg.useSpriteBilinear = __readInteger<bool>(jsonObject, profile::renderer::useSpriteBilinear(), false);
   outRendererCfg.screenUpscaling = __readInteger(jsonObject, profile::renderer::screenUpscaling(), UpscalingFilter::none);
+  outRendererCfg.screenUpscalingFactor = __readInteger(jsonObject, profile::renderer::screenUpscalingFactor(), 1);
   outRendererCfg.mdecUpscaling = __readInteger(jsonObject, profile::renderer::mdecUpscaling(), MdecFilter::none);
 
   // window params
