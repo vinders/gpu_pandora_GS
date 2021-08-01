@@ -84,28 +84,28 @@ namespace config {
 
   // Keyboard control - key mapping
   namespace keyboardMap {
-    static constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
-    static constexpr inline uint32_t pause()            noexcept { return 1; } ///< Pause/resume game (ePSXe: F10)
-    static constexpr inline uint32_t turbo()            noexcept { return 2; } ///< Turbo game mode while pressed
+    constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
+    constexpr inline uint32_t pause()            noexcept { return 1; } ///< Pause/resume game (ePSXe: F10)
+    constexpr inline uint32_t turbo()            noexcept { return 2; } ///< Turbo game mode while pressed
                                                                                ///  (requires plugin's rate limit instead of emulator's (ePSXe2.0.5: F4))
-    static constexpr inline uint32_t toggleSlowMotion() noexcept { return 3; } ///< Enable/disable slow-motion game mode
-    static constexpr inline uint32_t toggleVsync()      noexcept { return 4; } ///< Enable/disable vsync in renderer
-    static constexpr inline uint32_t toggleWindowMode() noexcept { return 5; } ///< Toggle fullscreen/window mode
-    static constexpr inline uint32_t toggleWideSource() noexcept { return 6; } ///< Toggle widescreen mode
+    constexpr inline uint32_t toggleSlowMotion() noexcept { return 3; } ///< Enable/disable slow-motion game mode
+    constexpr inline uint32_t toggleVsync()      noexcept { return 4; } ///< Enable/disable vsync in renderer
+    constexpr inline uint32_t toggleWindowMode() noexcept { return 5; } ///< Toggle fullscreen/window mode
+    constexpr inline uint32_t toggleWideSource() noexcept { return 6; } ///< Toggle widescreen mode
                                                                                ///  (for widescreen hacks or games with 16:9 mode)
-    static constexpr inline uint32_t toggleOSD()        noexcept { return 7; } ///< Change on-screen-display info (FPS...)
-    static constexpr inline size_t length() noexcept { return 8; }
+    constexpr inline uint32_t toggleOSD()        noexcept { return 7; } ///< Change on-screen-display info (FPS...)
+    constexpr inline size_t length() noexcept { return 8; }
   }
   // Gamepad control - button mapping
   namespace controllerMap {
-    static constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
-    static constexpr inline uint32_t turbo()            noexcept { return 1; } ///< Turbo game mode while pressed
+    constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
+    constexpr inline uint32_t turbo()            noexcept { return 1; } ///< Turbo game mode while pressed
                                                                                ///  (requires plugin's rate limit instead of emulator's (ePSXe2.0.5: F4))
-    static constexpr inline uint32_t toggleSlowMotion() noexcept { return 2; } ///< Enable/disable slow-motion game mode
-    static constexpr inline uint32_t saveState()        noexcept { return 3; } ///< Send save-state command (ePSXe/PCSX: F1)
-    static constexpr inline uint32_t loadState()        noexcept { return 4; } ///< Send load-state command (ePSXe/PCSX: F3)
-    static constexpr inline uint32_t nextStateSlot()    noexcept { return 5; } ///< Move to next slot (ePSXe/PCSX: F2)
-    static constexpr inline size_t length() noexcept { return 6; }
+    constexpr inline uint32_t toggleSlowMotion() noexcept { return 2; } ///< Enable/disable slow-motion game mode
+    constexpr inline uint32_t saveState()        noexcept { return 3; } ///< Send save-state command (ePSXe/PCSX: F1)
+    constexpr inline uint32_t loadState()        noexcept { return 4; } ///< Send load-state command (ePSXe/PCSX: F3)
+    constexpr inline uint32_t nextStateSlot()    noexcept { return 5; } ///< Move to next slot (ePSXe/PCSX: F2)
+    constexpr inline size_t length() noexcept { return 6; }
   }
 
 
@@ -136,6 +136,8 @@ namespace config {
   };
 
   // ---
+
+  constexpr inline uint32_t maxInternalResFactor() noexcept { return 8; } ///< Max internal X/Y resolution factor
 
 # define __UPSCALER_ID(id,x2,x3,x4,x5,x6,x8) (id | (x2<<16) | (x3<<17) | (x4<<18) | (x5<<19) | (x6<<20) | (x8<<22))
 

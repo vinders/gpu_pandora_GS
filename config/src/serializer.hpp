@@ -543,11 +543,11 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
 
   // renderer params
   outRendererCfg.internalResFactorX = __readInteger<uint32_t>(jsonObject, profile::renderer::internalResFactorX(), 1u);
-  if (outRendererCfg.internalResFactorX > 8)
-    outRendererCfg.internalResFactorX = 8;
+  if (outRendererCfg.internalResFactorX > maxInternalResFactor())
+    outRendererCfg.internalResFactorX = maxInternalResFactor();
   outRendererCfg.internalResFactorY = __readInteger<uint32_t>(jsonObject, profile::renderer::internalResFactorY(), 1u);
-  if (outRendererCfg.internalResFactorY > 8)
-    outRendererCfg.internalResFactorY = 8;
+  if (outRendererCfg.internalResFactorY > maxInternalResFactor())
+    outRendererCfg.internalResFactorY = maxInternalResFactor();
   outRendererCfg.colorMode = __readInteger(jsonObject, profile::renderer::colorMode(), ColorOutput::rgb32);
   outRendererCfg.fillMode = __readInteger(jsonObject, profile::renderer::fillMode(), FillMode::normal);
   outRendererCfg.antiAliasing = __readInteger(jsonObject, profile::renderer::antiAliasing(), AntiAliasing::none);
