@@ -513,9 +513,6 @@ void Serializer::readProfileListFile(const UnicodeString& configDir, std::vector
           if (label.name.empty())
             __getDefaultProfileName(index, label.name);
           label.tileColor = __readInteger((*profile), profile::tileColor(), MenuTileColor::white);
-
-          if (++index >= maxProfileNumber())
-            break;
         }
       }
     }

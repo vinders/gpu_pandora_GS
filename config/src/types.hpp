@@ -81,7 +81,6 @@ CharCodeArray::CharCodeArray(const CharCodeArray& rhs) {
     _length = rhs._length;
   }
 }
-
 CharCodeArray& CharCodeArray::operator=(const CharCodeArray& rhs) {
   if (_array != nullptr) {
     free(_array);
@@ -102,4 +101,10 @@ CharCodeArray& CharCodeArray::operator=(const CharCodeArray& rhs) {
 CharCodeArray::~CharCodeArray() noexcept {
   if (_array != nullptr)
     free(_array);
+}
+
+// ---
+
+bool CharCodeArray::operator==(const CharCodeArray& rhs) const noexcept {
+  return (this->_length == rhs._length && (this->_array == nullptr || memcmp(this->_array, rhs._array, this->_length*sizeof(*_array)) == 0));
 }

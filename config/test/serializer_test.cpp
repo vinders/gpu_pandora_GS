@@ -134,6 +134,29 @@ static void __compareCommonConfig(const RendererConfig& r1, const RendererConfig
   }
   EXPECT_EQ(a1.controllerHotkey, a2.controllerHotkey);
 }
+static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std::vector<ProfileLabel>& p2_label,
+                                 const std::unordered_map<ProfileId,ProfileMenuTile>& p2_menu) {
+  ASSERT_EQ(p1.size(), p2_label.size());
+  ASSERT_EQ(p1.size(), p2_menu.size());
+  for (uint32_t i = 0; i < p1.size(); ++i) {
+    auto& src = p1[i];
+    auto& dest = p2_label[i];
+    auto& menu = p2_menu.at(src.id);
+
+    float color[3];
+    toColorComponents(src.tileColor, color);
+    CharCodeArray srcCharCodes(src.name.c_str(), src.name.size());
+
+    EXPECT_EQ(src.id, dest.id);
+    EXPECT_EQ(src.name, dest.name);
+    EXPECT_EQ(srcCharCodes, menu.name);
+    EXPECT_EQ(src.file, dest.file);
+    EXPECT_EQ(src.file, menu.file);
+    EXPECT_EQ(src.tileColor, dest.tileColor);
+    for (uint32_t c = 0; c < 3; ++c)
+      EXPECT_EQ(color[c], menu.tileColor[c]);
+  }
+}
 static void __compareProfileConfig(const RendererProfile& r1, const RendererProfile& r2,
                                    const WindowProfile& w1, const WindowProfile& w2,
                                    const EffectsProfile& e1, const EffectsProfile& e2) {
@@ -171,8 +194,6 @@ static void __compareProfileConfig(const RendererProfile& r1, const RendererProf
 TEST_F(SerializerTest, writeReadCommonConfig) {
   UnicodeString configDir(pluginDir.c_str());
   std::unique_ptr<char[]> buffer = nullptr;
-  std::unique_ptr<char[]> verifier = std::unique_ptr<char[]>(new char[8192]);
-  long fileSize = 0;
 
   RendererConfig inRendererCfg, outRendererCfg;
   WindowConfig inWindowCfg, outWindowCfg;
@@ -213,7 +234,27 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
 }
 
 TEST_F(SerializerTest, writeReadProfileList) {
+  UnicodeString configDir(pluginDir.c_str());
+  std::unique_ptr<char[]> buffer = nullptr;
 
+  std::vector<ProfileLabel> inList, outList;
+  std::unordered_map<ProfileId, ProfileMenuTile> outMap;
+  Serializer::writeProfileListFile(configDir, inList);
+  Serializer::readProfileListFile(configDir, outList);
+  Serializer::readProfileListFile(configDir, outMap);
+  __compareProfileList(inList, outList, outMap);
+
+  inList.push_back(ProfileLabel{ 42, UnicodeString(__UNICODE_STR("my_profile.cfg")), UnicodeString(__UNICODE_STR("My Profile")), MenuTileColor::violet });
+  inList.push_back(ProfileLabel{ 1, UnicodeString(__UNICODE_STR("-the_accurate_prf-.cfg")), UnicodeString(__UNICODE_STR("-the_accurate_PRF-")), MenuTileColor::red });
+  inList.push_back(ProfileLabel{ 0x7FFFFFFFu, UnicodeString(__UNICODE_STR("12345.cfg")), UnicodeString(__UNICODE_STR("12345")), MenuTileColor::teal });
+  Serializer::writeProfileListFile(configDir, inList);
+  Serializer::readProfileListFile(configDir, outList);
+  Serializer::readProfileListFile(configDir, outMap);
+  __compareProfileList(inList, outList, outMap);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  auto filePath = configDir + Serializer::profileListFileName();
+  pandora::io::removeFileEntry(filePath.c_str());
 }
 
 TEST_F(SerializerTest, writeReadProfileConfig) {
@@ -221,8 +262,6 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   auto filePath1 = configDir + __UNICODE_STR("profile_test_1");
   auto filePath2 = configDir + __UNICODE_STR("profile-02");
   std::unique_ptr<char[]> buffer = nullptr;
-  std::unique_ptr<char[]> verifier = std::unique_ptr<char[]>(new char[8192]);
-  long fileSize = 0;
 
   RendererProfile inRendererCfg, outRendererCfg;
   WindowProfile inWindowCfg, outWindowCfg;
@@ -259,8 +298,8 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   inEffectsCfg.dithering = ColorDithering::ditherOutput;
   inEffectsCfg.useTextureDithering = true;
   inEffectsCfg.useSpriteDithering = true;
-  Serializer::writeProfileConfigFile(filePath1, inRendererCfg, inWindowCfg, inEffectsCfg);
-  Serializer::readProfileConfigFile(filePath1, outRendererCfg, outWindowCfg, outEffectsCfg);
+  Serializer::writeProfileConfigFile(filePath2, inRendererCfg, inWindowCfg, inEffectsCfg);
+  Serializer::readProfileConfigFile(filePath2, outRendererCfg, outWindowCfg, outEffectsCfg);
   __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));

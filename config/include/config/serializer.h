@@ -29,8 +29,8 @@ namespace config {
 
     // -- directory/file utils --
 
-    static constexpr inline auto mainConfigFileName() noexcept { return __UNICODE_STR("common.cfg"); }    ///< common config file
-    static constexpr inline auto profileListFileName() noexcept { return __UNICODE_STR("profiles.cfg"); } ///< list of profile labels
+    static constexpr inline const __UNICODE_CHAR* mainConfigFileName() noexcept { return __UNICODE_STR("common.cfg"); }
+    static constexpr inline const __UNICODE_CHAR* profileListFileName() noexcept { return __UNICODE_STR("profiles.cfg"); }
 
     /// @brief Create config directory
     /// @param usePortableLocation  Use portable config ('plugins' directory) or local user config ('AppData/Roaming')
@@ -45,8 +45,8 @@ namespace config {
     
     // -- game/profile bindings --
 
-    static constexpr inline auto lastBindingFileName() noexcept { return __UNICODE_STR(".last.bind"); } ///< last used profile file name
-    static constexpr inline auto gameBindingDirectory() noexcept { return __UNICODE_STR(".bind"); } ///< directory for game/profile bindings
+    static constexpr inline const __UNICODE_CHAR* lastBindingFileName() noexcept { return __UNICODE_STR(".last.bind"); }
+    static constexpr inline const __UNICODE_CHAR* gameBindingDirectory() noexcept { return __UNICODE_STR(".bind"); }
 
     /// @brief Find profile associated with current game (saved at the end of last execution)
     /// @returns ID of associated profile (if binding found) or last used profile ID (empty if no profile has ever been loaded).

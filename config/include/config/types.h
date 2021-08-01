@@ -173,7 +173,6 @@ namespace config {
   // -- profile menu -- --------------------------------------------------------
 
   using ProfileId = uint32_t;
-  constexpr inline size_t maxProfileNumber() noexcept { return 70; } ///< Max number of profiles (that can be displayed in menu)
 
   /// @brief Profile tile color in menu
   enum class MenuTileColor : uint32_t {
@@ -236,6 +235,9 @@ namespace config {
 
     inline const uint32_t* value() const noexcept { return _array; } ///< Array of char-codes (no trailing zero) / NULL if empty
     inline size_t size() const noexcept { return _length; } ///< Array length (no trailing zero)
+
+    bool operator==(const CharCodeArray& rhs) const noexcept;
+    inline bool operator!=(const CharCodeArray& rhs) const noexcept { return !(this->operator==(rhs)); }
 
   private:
     uint32_t* _array = nullptr;
