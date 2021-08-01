@@ -44,13 +44,13 @@ static bool __isProfileConfigEqual(const RendererProfile& r1, const RendererProf
         && r1.screenUpscaling == r2.screenUpscaling
         && r1.screenUpscalingFactor == r2.screenUpscalingFactor
         && r1.mdecUpscaling == r2.mdecUpscaling
+        && r1.isPalRecentered == r2.isPalRecentered
+        && r1.isOverscanVisible == r2.isOverscanVisible
+        && r1.isMirrored == r2.isMirrored
+        && r1.screenCurvature == r2.screenCurvature
 
         && w1.screenStretching == w2.screenStretching
         && w1.screenCropping == w2.screenCropping
-        && w1.screenCurvature == w2.screenCurvature
-        && w1.isMirrored == w2.isMirrored
-        && w1.isPalRecentered == w2.isPalRecentered
-        && w1.isOverscanVisible == w2.isOverscanVisible
 
         && e1.screenGrain == e2.screenGrain
         && e1.textureGrain == e2.textureGrain

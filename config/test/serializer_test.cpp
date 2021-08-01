@@ -174,16 +174,16 @@ static void __compareProfileConfig(const RendererProfile& r1, const RendererProf
   EXPECT_EQ(r1.screenUpscaling, r2.screenUpscaling);
   EXPECT_EQ(r1.screenUpscalingFactor, r2.screenUpscalingFactor);
   EXPECT_EQ(r1.mdecUpscaling, r2.mdecUpscaling);
+  EXPECT_EQ(r1.isPalRecentered, r2.isPalRecentered);
+  EXPECT_EQ(r1.isOverscanVisible, r2.isOverscanVisible);
+  EXPECT_EQ(r1.isMirrored, r2.isMirrored);
+  EXPECT_EQ(r1.screenCurvature, r2.screenCurvature);
+  for (size_t i = 0; i < 4; ++i) {
+    EXPECT_EQ(r1.blackBorderSizes[i], r2.blackBorderSizes[i]);
+  }
 
   EXPECT_EQ(w1.screenStretching, w2.screenStretching);
   EXPECT_EQ(w1.screenCropping, w2.screenCropping);
-  EXPECT_EQ(w1.screenCurvature, w2.screenCurvature);
-  EXPECT_EQ(w1.isMirrored, w2.isMirrored);
-  EXPECT_EQ(w1.isPalRecentered, w2.isPalRecentered);
-  EXPECT_EQ(w1.isOverscanVisible, w2.isOverscanVisible);
-  for (size_t i = 0; i < 4; ++i) {
-    EXPECT_EQ(w1.blackBorderSizes[i], w2.blackBorderSizes[i]);
-  }
 
   EXPECT_EQ(e1.screenGrain, e2.screenGrain);
   EXPECT_EQ(e1.textureGrain, e2.textureGrain);
@@ -272,7 +272,7 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
 
   inRendererCfg.internalResFactorX = inRendererCfg.internalResFactorY = 1;
   inRendererCfg.useTextureBilinear = false;
-  inWindowCfg.isPalRecentered = false;
+  inRendererCfg.isPalRecentered = false;
   Serializer::writeProfileConfigFile(filePath1, inRendererCfg, inWindowCfg, inEffectsCfg);
   Serializer::readProfileConfigFile(filePath1, outRendererCfg, outWindowCfg, outEffectsCfg);
   __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
@@ -288,14 +288,14 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   inRendererCfg.useSpriteBilinear = true;
   inRendererCfg.screenUpscaling = UpscalingFilter::SABR;
   inRendererCfg.mdecUpscaling = MdecFilter::bilinear;
+  inRendererCfg.isOverscanVisible = true;
+  inRendererCfg.isPalRecentered = true;
+  inRendererCfg.isMirrored = true;
+  inRendererCfg.screenCurvature = 2;
+  for (uint32_t i = 0; i < 4; ++i)
+    inRendererCfg.blackBorderSizes[i] = (uint8_t)i;
   inWindowCfg.screenStretching = 4;
   inWindowCfg.screenCropping = 6;
-  inWindowCfg.screenCurvature = 2;
-  inWindowCfg.isMirrored = true;
-  inWindowCfg.isOverscanVisible = true;
-  inWindowCfg.isPalRecentered = true;
-  for (uint32_t i = 0; i < 4; ++i)
-    inWindowCfg.blackBorderSizes[i] = (uint8_t)i;
   inEffectsCfg.textureGrain = NoiseFilter::grain;
   inEffectsCfg.screenGrain = NoiseFilter::gauss;
   inEffectsCfg.dithering = ColorDithering::ditherOutput;

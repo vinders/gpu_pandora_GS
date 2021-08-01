@@ -62,15 +62,15 @@ namespace config {
       static constexpr const char* screenUpscaling() noexcept { return "dsp_upscale"; }
       static constexpr const char* screenUpscalingFactor() noexcept { return "dsp_factor"; }
       static constexpr const char* mdecUpscaling() noexcept { return "mdec"; }
+      static constexpr const char* isPalRecentered() noexcept { return "pal_pos"; }
+      static constexpr const char* isOverscanVisible() noexcept { return "ovscan"; }
+      static constexpr const char* isMirrored() noexcept { return "mirror"; }
+      static constexpr const char* screenCurvature() noexcept { return "curved"; }
+      static constexpr const char* blackBorderSizes() noexcept { return "border"; }
     }
     namespace window {
       static constexpr const char* screenStretching() noexcept { return "stretch"; }
       static constexpr const char* screenCropping() noexcept { return "crop"; }
-      static constexpr const char* screenCurvature() noexcept { return "curved"; }
-      static constexpr const char* isMirrored() noexcept { return "mirror"; }
-      static constexpr const char* isPalRecentered() noexcept { return "pal_pos"; }
-      static constexpr const char* isOverscanVisible() noexcept { return "ovscan"; }
-      static constexpr const char* blackBorderSizes() noexcept { return "border"; }
     }
     namespace effects {
       static constexpr const char* textureGrain() noexcept { return "tx_grain"; }

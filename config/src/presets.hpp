@@ -39,13 +39,14 @@ static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg, W
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::bilinear;
 
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+
   outWindowCfg.screenStretching = 0;
   outWindowCfg.screenCropping = 0;
-  outWindowCfg.screenCurvature = 0;
-  outWindowCfg.isMirrored = false;
-  outWindowCfg.isPalRecentered = true;
-  outWindowCfg.isOverscanVisible = false;
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
 
   outEffectsCfg.textureGrain = NoiseFilter::none;
   outEffectsCfg.screenGrain = NoiseFilter::none;
@@ -74,13 +75,14 @@ static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::none;
 
+  outRendererCfg.isPalRecentered = false;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+
   outWindowCfg.screenStretching = 0;
   outWindowCfg.screenCropping = 0;
-  outWindowCfg.screenCurvature = 0;
-  outWindowCfg.isMirrored = false;
-  outWindowCfg.isPalRecentered = false;
-  outWindowCfg.isOverscanVisible = false;
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
 
   outEffectsCfg.textureGrain = NoiseFilter::none;
   outEffectsCfg.screenGrain = NoiseFilter::none;
@@ -109,13 +111,14 @@ static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 4;
   outRendererCfg.mdecUpscaling = MdecFilter::jinc2;
 
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+
   outWindowCfg.screenStretching = 0;
   outWindowCfg.screenCropping = 2;
-  outWindowCfg.screenCurvature = 0;
-  outWindowCfg.isMirrored = false;
-  outWindowCfg.isPalRecentered = true;
-  outWindowCfg.isOverscanVisible = false;
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
 
   outEffectsCfg.textureGrain = NoiseFilter::none;
   outEffectsCfg.screenGrain = NoiseFilter::none;
@@ -144,13 +147,14 @@ static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 2;
   outRendererCfg.mdecUpscaling = MdecFilter::jinc2;
 
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+
   outWindowCfg.screenStretching = 4;
   outWindowCfg.screenCropping = 4;
-  outWindowCfg.screenCurvature = 0;
-  outWindowCfg.isMirrored = false;
-  outWindowCfg.isPalRecentered = true;
-  outWindowCfg.isOverscanVisible = false;
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
 
   outEffectsCfg.textureGrain = NoiseFilter::grain;
   outEffectsCfg.screenGrain = NoiseFilter::none;
@@ -179,13 +183,14 @@ static __forceinline void __loadCartoon(RendererProfile& outRendererCfg, WindowP
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::super_xBR;
 
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+
   outWindowCfg.screenStretching = 0;
   outWindowCfg.screenCropping = 2;
-  outWindowCfg.screenCurvature = 0;
-  outWindowCfg.isMirrored = false;
-  outWindowCfg.isPalRecentered = true;
-  outWindowCfg.isOverscanVisible = false;
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
 
   outEffectsCfg.textureGrain = NoiseFilter::none;
   outEffectsCfg.screenGrain = NoiseFilter::none;

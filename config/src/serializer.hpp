@@ -411,20 +411,21 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
   if (rendererCfg.mdecUpscaling != MdecFilter::none)
     jsonObject.emplace(profile::renderer::mdecUpscaling(), SerializableValue((int32_t)rendererCfg.mdecUpscaling));
 
+  if (rendererCfg.isPalRecentered)
+    jsonObject.emplace(profile::renderer::isPalRecentered(), SerializableValue((int32_t)rendererCfg.isPalRecentered));
+  if (rendererCfg.isOverscanVisible)
+    jsonObject.emplace(profile::renderer::isOverscanVisible(), SerializableValue((int32_t)rendererCfg.isOverscanVisible));
+  if (rendererCfg.isMirrored)
+    jsonObject.emplace(profile::renderer::isMirrored(), SerializableValue((int32_t)rendererCfg.isMirrored));
+  if (rendererCfg.screenCurvature)
+    jsonObject.emplace(profile::renderer::screenCurvature(), SerializableValue((int32_t)rendererCfg.screenCurvature));
+  __writeIntegerArray<uint8_t>(jsonObject, profile::renderer::blackBorderSizes(), &rendererCfg.blackBorderSizes[0], 4);
+
   // window params
   if (windowCfg.screenStretching)
     jsonObject.emplace(profile::window::screenStretching(), SerializableValue((int32_t)windowCfg.screenStretching));
   if (windowCfg.screenCropping)
     jsonObject.emplace(profile::window::screenCropping(), SerializableValue((int32_t)windowCfg.screenCropping));
-  if (windowCfg.screenCurvature)
-    jsonObject.emplace(profile::window::screenCurvature(), SerializableValue((int32_t)windowCfg.screenCurvature));
-  if (windowCfg.isMirrored)
-    jsonObject.emplace(profile::window::isMirrored(), SerializableValue((int32_t)windowCfg.isMirrored));
-  if (windowCfg.isPalRecentered)
-    jsonObject.emplace(profile::window::isPalRecentered(), SerializableValue((int32_t)windowCfg.isPalRecentered));
-  if (windowCfg.isOverscanVisible)
-    jsonObject.emplace(profile::window::isOverscanVisible(), SerializableValue((int32_t)windowCfg.isOverscanVisible));
-  __writeIntegerArray<uint8_t>(jsonObject, profile::window::blackBorderSizes(), &windowCfg.blackBorderSizes[0], 4);
 
   // effects params
   if (effectsCfg.textureGrain != NoiseFilter::none)
@@ -562,6 +563,15 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.screenUpscalingFactor = __readInteger(jsonObject, profile::renderer::screenUpscalingFactor(), 1);
   outRendererCfg.mdecUpscaling = __readInteger(jsonObject, profile::renderer::mdecUpscaling(), MdecFilter::none);
 
+  outRendererCfg.isPalRecentered = __readInteger<bool>(jsonObject, profile::renderer::isPalRecentered(), false);
+  outRendererCfg.isOverscanVisible = __readInteger<bool>(jsonObject, profile::renderer::isOverscanVisible(), false);
+  outRendererCfg.isMirrored = __readInteger<bool>(jsonObject, profile::renderer::isMirrored(), false);
+  outRendererCfg.screenCurvature = __readInteger(jsonObject, profile::renderer::screenCurvature(), 0);
+  if (outRendererCfg.screenCurvature > maxScreenFraming())
+    outRendererCfg.screenCurvature = maxScreenFraming();
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+  __readIntegerArray(jsonObject, profile::renderer::blackBorderSizes(), &outRendererCfg.blackBorderSizes[0], 4);
+
   // window params
   outWindowCfg.screenStretching = __readInteger(jsonObject, profile::window::screenStretching(), 0);
   if (outWindowCfg.screenStretching > maxScreenFraming())
@@ -569,15 +579,6 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outWindowCfg.screenCropping = __readInteger(jsonObject, profile::window::screenCropping(), 0);
   if (outWindowCfg.screenCropping > maxScreenFraming())
     outWindowCfg.screenCropping = maxScreenFraming();
-  outWindowCfg.screenCurvature = __readInteger(jsonObject, profile::window::screenCurvature(), 0);
-  if (outWindowCfg.screenCurvature > maxScreenFraming())
-    outWindowCfg.screenCurvature = maxScreenFraming();
-
-  outWindowCfg.isMirrored = __readInteger<bool>(jsonObject, profile::window::isMirrored(), false);
-  outWindowCfg.isPalRecentered = __readInteger<bool>(jsonObject, profile::window::isPalRecentered(), false);
-  outWindowCfg.isOverscanVisible = __readInteger<bool>(jsonObject, profile::window::isOverscanVisible(), false);
-  memset(outWindowCfg.blackBorderSizes, 0, 4*sizeof(*outWindowCfg.blackBorderSizes));
-  __readIntegerArray(jsonObject, profile::window::blackBorderSizes(), &outWindowCfg.blackBorderSizes[0], 4);
 
   // effects params
   outEffectsCfg.textureGrain = __readInteger(jsonObject, profile::effects::textureGrain(), NoiseFilter::none);

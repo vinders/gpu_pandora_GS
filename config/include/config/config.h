@@ -66,12 +66,6 @@ namespace config {
   struct WindowProfile final {
     uint32_t screenStretching = 0; ///< Stretch screen to fit (if output isn't 4:3): 0 - 8 (maxScreenFraming)
     uint32_t screenCropping = 0;   ///< Crop screen to fit (if output isn't 4:3): 0 - 8 (maxScreenFraming)
-    uint32_t screenCurvature = 0;  ///< Apply screen curvature effect (similar to CRT TV): 0 - 8 (maxScreenFraming)
-    bool isMirrored = false;       ///< Mirror display content
-
-    bool isPalRecentered = true;    ///< Recenter PAL: fix mis-centered screen positions used by many PAL games (usually NTSC ports)
-    bool isOverscanVisible = false; ///< Show pixels located outside of TV boundaries (frame wider than TV, e.g. in Capcom fighters)
-    uint8_t blackBorderSizes[4] = { '\0','\0','\0','\0' }; ///< Hide edge pixels with black borders (to fix flickering in some games)
   };
 
   /// @brief Additional renderer settings - per profile
@@ -91,6 +85,12 @@ namespace config {
     UpscalingFilter screenUpscaling = UpscalingFilter::none; ///< Screen upscaling mode (after internal resolution scaling)
     uint32_t screenUpscalingFactor = 1; ///< Screen upscaling factor (1x/2x/3x/4x/5x/8x)
     MdecFilter mdecUpscaling = MdecFilter::bilinear; ///< MDEC video upscaling
+
+    bool isPalRecentered = true;    ///< Recenter PAL: fix mis-centered screen positions used by many PAL games (usually NTSC ports)
+    bool isOverscanVisible = false; ///< Show pixels located outside of TV boundaries (frame wider than TV, e.g. in Capcom fighters)
+    bool isMirrored = false;        ///< Mirror display content
+    uint32_t screenCurvature = 0;   ///< Apply screen curvature effect (similar to CRT TV): 0 - 8 (maxScreenFraming)
+    uint8_t blackBorderSizes[4] = {'\0','\0','\0','\0'}; ///< Hide edge pixels with black borders (to fix flickering in some games)
   };
   
   /// @brief Filters and visual effects - per profile
