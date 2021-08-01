@@ -23,17 +23,17 @@ using namespace config;
 
 static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
                                               EffectsProfile& outEffectsCfg) noexcept {
-  outRendererCfg.internalResFactorX = 2;
+  outRendererCfg.internalResFactorX = 4;
   outRendererCfg.internalResFactorY = 4;
   outRendererCfg.colorMode = ColorOutput::rgb32;
   outRendererCfg.fillMode = FillMode::normal;
   outRendererCfg.antiAliasing = AntiAliasing::none;
 
-  outRendererCfg.textureUpscaling = UpscalingFilter::none;
-  outRendererCfg.textureUpscalingFactor = 1;
+  outRendererCfg.textureUpscaling = UpscalingFilter::lanczos;
+  outRendererCfg.textureUpscalingFactor = 4;
   outRendererCfg.useTextureBilinear = true;
-  outRendererCfg.spriteUpscaling = UpscalingFilter::none;
-  outRendererCfg.spriteUpscalingFactor = 1;
+  outRendererCfg.spriteUpscaling = UpscalingFilter::lanczos;
+  outRendererCfg.spriteUpscalingFactor = 4;
   outRendererCfg.useSpriteBilinear = false;
   outRendererCfg.screenUpscaling = UpscalingFilter::none;
   outRendererCfg.screenUpscalingFactor = 1;
@@ -99,7 +99,7 @@ static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg, Win
   outRendererCfg.fillMode = FillMode::normal;
   outRendererCfg.antiAliasing = AntiAliasing::nfaa;
 
-  outRendererCfg.textureUpscaling = UpscalingFilter::jinc2;
+  outRendererCfg.textureUpscaling = UpscalingFilter::lanczos;
   outRendererCfg.textureUpscalingFactor = 2;
   outRendererCfg.useTextureBilinear = false;
   outRendererCfg.spriteUpscaling = UpscalingFilter::jinc2;
@@ -134,8 +134,8 @@ static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg, Win
   outRendererCfg.fillMode = FillMode::normal;
   outRendererCfg.antiAliasing = AntiAliasing::fxaa;
 
-  outRendererCfg.textureUpscaling = UpscalingFilter::super_xBR;
-  outRendererCfg.textureUpscalingFactor = 2;
+  outRendererCfg.textureUpscaling = UpscalingFilter::lanczos;
+  outRendererCfg.textureUpscalingFactor = 4;
   outRendererCfg.useTextureBilinear = true;
   outRendererCfg.spriteUpscaling = UpscalingFilter::super_xBR;
   outRendererCfg.spriteUpscalingFactor = 4;

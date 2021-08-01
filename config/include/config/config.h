@@ -76,17 +76,17 @@ namespace config {
 
   /// @brief Additional renderer settings - per profile
   struct RendererProfile final {
-    uint32_t internalResFactorX = 2; ///< Internal resolution X factor
+    uint32_t internalResFactorX = 4; ///< Internal resolution X factor
     uint32_t internalResFactorY = 4; ///< Internal resolution Y factor
     ColorOutput colorMode = ColorOutput::rgb32;      ///< Color output mode (16/32-bit)
     FillMode fillMode = FillMode::normal;            ///< Normal rendering / wireframe / wireframe overlay
     AntiAliasing antiAliasing = AntiAliasing::none;  ///< Anti-aliasing: to remove jagged edges
 
-    UpscalingFilter textureUpscaling = UpscalingFilter::none;
-    uint32_t textureUpscalingFactor = 1; ///< Texture upscaling factor (1x/2x/3x/4x/5x/8x)
+    UpscalingFilter textureUpscaling = UpscalingFilter::lanczos;
+    uint32_t textureUpscalingFactor = 4; ///< Texture upscaling factor (1x/2x/3x/4x/5x/8x)
     bool useTextureBilinear = true;      ///< Enable bilinear interp. for texture sampler (after upscaling)
-    UpscalingFilter spriteUpscaling = UpscalingFilter::none;
-    uint32_t spriteUpscalingFactor = 1; ///< Sprite upscaling factor (1x/2x/3x/4x/5x/8x)
+    UpscalingFilter spriteUpscaling = UpscalingFilter::lanczos;
+    uint32_t spriteUpscalingFactor = 4; ///< Sprite upscaling factor (1x/2x/3x/4x/5x/8x)
     bool useSpriteBilinear = false;     ///< Enable bilinear interp. for sprite sampler (after upscaling)
     UpscalingFilter screenUpscaling = UpscalingFilter::none; ///< Screen upscaling mode (after internal resolution scaling)
     uint32_t screenUpscalingFactor = 1; ///< Screen upscaling factor (1x/2x/3x/4x/5x/8x)
