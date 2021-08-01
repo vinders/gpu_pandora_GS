@@ -38,3 +38,4 @@ void ActionsConfig::initDefaultMapping() noexcept {
 
 #include "./types.hpp" // include -> single object file (less overhead + smaller lib size)
 #include "./serializer.hpp"
+#include "./presets.hpp"
