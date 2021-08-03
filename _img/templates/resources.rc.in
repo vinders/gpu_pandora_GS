@@ -1,6 +1,8 @@
 #include <system/api/windows_version.h>
 #include "_generated/resources.h"
 
-IDC_MENU_CURSOR    CURSOR  "${_RES_DIR}/menu_cursor.cur"
-IDR_MENU_FONT      RCDATA  "${_RES_DIR}/font_map.png"
-IDR_MENU_FONT_DESC RCDATA  "${_RES_DIR}/font_map.desc"
+IDC_MENU_CURSOR          CURSOR  "${_RES_DIR}/menu_cursor.cur"
+IDR_MENU_TITLE_FONT      RCDATA  "${_RES_DIR}/title_font_map.png"
+IDR_MENU_TITLE_FONT_DESC RCDATA  "${_RES_DIR}/title_font_map.desc"
+IDR_MENU_TEXT_FONT       RCDATA  "${_RES_DIR}/text_font_map.png"
+IDR_MENU_TEXT_FONT_DESC  RCDATA  "${_RES_DIR}/text_font_map.desc"
