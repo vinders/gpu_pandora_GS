@@ -60,14 +60,15 @@ namespace display {
     /// @param spriteSheet      2D texture containing all character images
     /// @param charDescriptors  Array of character location descriptors (must not be NULL)
     /// @param length           Length of array 'charDescriptors'
-    FontMap(_RenderApiTexture2D&& spriteSheet, const CharDescriptor* charDescriptors, uint32_t length)
-      : _spriteSheet(std::move(spriteSheet)) {
+    FontMap(_RenderApiTexture2D&& spriteSheet, const CharDescriptor* charDescriptors, uint32_t length, uint32_t baseLineOffset)
+      : _spriteSheet(std::move(spriteSheet)), _baseLineOffset(baseLineOffset) {
       for (const CharDescriptor* it = charDescriptors; length; ++it, --length)
         this->_descriptors[it->id()] = *it;
     }
 
     inline const _RenderApiTexture2D& spriteSheet() const noexcept { return this->_spriteSheet; } ///< Get texture to bind to renderer
     inline size_t charCount() const noexcept { return _descriptors.size(); } ///< Number of character locations
+    inline uint32_t baseLineOffset() const noexcept { return _baseLineOffset; }      ///< Vertical offset of character base-line
 
     /// @brief Find character descriptor by ID/char-code (returns NULL if not found)
     inline const CharDescriptor* find(uint32_t charCode) const noexcept {
@@ -78,5 +79,6 @@ namespace display {
   private:
     _RenderApiTexture2D _spriteSheet;
     std::unordered_map<uint32_t,CharDescriptor> _descriptors;
+    uint32_t _baseLineOffset = 0;
   };
 }

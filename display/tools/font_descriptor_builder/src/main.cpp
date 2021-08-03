@@ -41,10 +41,11 @@ static void __buildFile(const char* sourcePath, const char* outPath) {
     exit(-2);
   }
 
-  uint8_t lineHeight;
   srcFile.getline(buffer, __BUFFER_SIZE); // skip global prop title row
+  srcFile.getline(buffer, __BUFFER_SIZE, ',');
+  uint8_t lineHeight = (uint8_t)atoi(buffer);
   srcFile.getline(buffer, __BUFFER_SIZE);
-  lineHeight = (uint8_t)atoi(buffer);
+  uint32_t base = (uint32_t)atoi(buffer);
 
   // characters
   std::map<uint32_t, display::CharDescriptor> descriptors; // ordered
@@ -91,6 +92,7 @@ static void __buildFile(const char* sourcePath, const char* outPath) {
   }
 
   uint32_t length = descriptorVec.size();
+  outFile.write((char*)&base, sizeof(uint32_t));
   outFile.write((char*)&length, sizeof(uint32_t));
   outFile.write((char*)&descriptorVec[0], sizeof(display::CharDescriptor)*descriptorVec.size());
   
@@ -108,10 +110,14 @@ int main() {
          "\n FONT CSV TO DESCRIPTOR BUILDER\n"
          "____________________________________________________________\n\n");
 
-  const char* fontDescPath = __P_RESOURCE_DIR_PATH "/font_map.csv";
-  const char* fontOutPath = __P_OUTPUT_DIR_PATH "/font_map.desc";
+  const char* fontDescPath = __P_RESOURCE_DIR_PATH "/text_font_map.csv";
+  const char* fontOutPath = __P_OUTPUT_DIR_PATH "/text_font_map.desc";
   printf("Source: %s\nOutput: %s\n", fontDescPath, fontOutPath);
-
   __buildFile(fontDescPath, fontOutPath);
+  
+  const char* fontDescPath2 = __P_RESOURCE_DIR_PATH "/title_font_map.csv";
+  const char* fontOutPath2 = __P_OUTPUT_DIR_PATH "/title_font_map.desc";
+  printf("\nSource: %s\nOutput: %s\n", fontDescPath2, fontOutPath2);
+  __buildFile(fontDescPath2, fontOutPath2);
   return 0;
 }
