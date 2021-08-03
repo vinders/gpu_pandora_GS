@@ -61,24 +61,18 @@ TEST_F(FontMapTest, descriptorAccessors) {
   EXPECT_EQ((uint8_t)'\x40', desc2.advanceY());
 }
 
-struct FakeTexture final {
-  uint32_t handle = 0;
-};
-
 TEST_F(FontMapTest, createFontMap) {
-  FontMap<FakeTexture> defaultCtor;
-  EXPECT_EQ((uint32_t)0, defaultCtor.spriteSheet().handle);
+  FontMap defaultCtor;
   EXPECT_EQ((size_t)0, defaultCtor.charCount());
   EXPECT_EQ((uint32_t)0, defaultCtor.baseLineOffset());
   EXPECT_TRUE(defaultCtor.find(0) == nullptr);
 
-  FontMap<FakeTexture> initCtor1(FakeTexture{ 1 }, nullptr, 0, 0);
-  EXPECT_EQ((uint32_t)1, initCtor1.spriteSheet().handle);
+  FontMap initCtor1(nullptr, 0, 0);
   EXPECT_EQ((size_t)0, initCtor1.charCount());
   EXPECT_EQ((uint32_t)0, initCtor1.baseLineOffset());
   EXPECT_TRUE(initCtor1.find(0) == nullptr);
 
-  CharDescriptor descArray[3];
+  CharDescriptor descArray[3]{ { 0 } };
   descArray[0].id(125u);
   descArray[0].x('\x10');
   descArray[0].y(20u);
@@ -107,8 +101,7 @@ TEST_F(FontMapTest, createFontMap) {
   descArray[2].advanceX('\x25');
   descArray[2].advanceY('\x60');
 
-  FontMap<FakeTexture> initCtor2(FakeTexture{ 2 }, descArray, 3, 20);
-  EXPECT_EQ((uint32_t)2, initCtor2.spriteSheet().handle);
+  FontMap initCtor2(descArray, 3, 20);
   EXPECT_EQ((size_t)3, initCtor2.charCount());
   EXPECT_EQ((uint32_t)20, initCtor2.baseLineOffset());
   EXPECT_TRUE(initCtor2.find(0) == nullptr);

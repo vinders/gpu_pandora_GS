@@ -14,8 +14,15 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <unordered_map>
 #include <system/align.h>
+
+#ifdef _WINDOWS
+# define __RES_PATH_CHAR wchar_t
+#else
+# define __RES_PATH_CHAR char
+#endif
 
 namespace display {
   /// @brief Font-map character descriptor (used with font-map spritesheet)
@@ -45,30 +52,46 @@ namespace display {
 
   // ---
 
-  /// @brief Font-map spritesheet + character descriptors
-  template <typename _RenderApiTexture2D>
+  /// @brief Font-map character descriptors
+  /// @remarks This should be combined with a spritesheet (texture) containing all the characters
   class FontMap final {
   public:
     FontMap() = default;
-    FontMap(const FontMap<_RenderApiTexture2D>&) = delete;
-    FontMap(FontMap<_RenderApiTexture2D>&&) noexcept = default;
-    FontMap& operator=(const FontMap<_RenderApiTexture2D>&) = delete;
-    FontMap& operator=(FontMap<_RenderApiTexture2D>&&) noexcept = default;
+    FontMap(const FontMap&) = delete;
+    FontMap(FontMap&&) noexcept = default;
+    FontMap& operator=(const FontMap&) = delete;
+    FontMap& operator=(FontMap&&) noexcept = default;
     ~FontMap() noexcept {}
 
-    /// @brief Initialize font-map
-    /// @param spriteSheet      2D texture containing all character images
+    /// @brief Initialize font-map descriptors
     /// @param charDescriptors  Array of character location descriptors (must not be NULL)
     /// @param length           Length of array 'charDescriptors'
-    FontMap(_RenderApiTexture2D&& spriteSheet, const CharDescriptor* charDescriptors, uint32_t length, uint32_t baseLineOffset)
-      : _spriteSheet(std::move(spriteSheet)), _baseLineOffset(baseLineOffset) {
+    FontMap(const CharDescriptor* charDescriptors, uint32_t length, uint32_t baseLineOffset)
+      : _baseLineOffset(baseLineOffset) {
       for (const CharDescriptor* it = charDescriptors; length; ++it, --length)
         this->_descriptors[it->id()] = *it;
     }
+    
+    // -- builders --
+    
+    /// @brief Load font-map character descriptors from binary file
+    /// @param descriptorPath  Resource path (file path on linux/mac, resource name on windows)
+    /// @param moduleInstance  Library/DLL module instance (required on Windows)
+    /// @throws runtime_error or bad_alloc on failure
+    static FontMap loadDescriptorFile(const __RES_PATH_CHAR* descriptorPath, void* moduleInstance);
+    /// @brief Load font-map spritesheet from image file
+    /// @param imagePath       Resource path (file path on linux/mac, resource name on windows)
+    /// @param moduleInstance  Library/DLL module instance (required on Windows)
+    /// @param textureLoader   Lambda/function creating Texture2D from image data
+    ///                        (ex: with D3D11, call CreateWICTextureFromMemoryEx in lambda)
+    /// @throws runtime_error or bad_alloc on failure
+    static void loadSpritesheet(const __RES_PATH_CHAR* imagePath, void* moduleInstance,
+                                const std::function<void(const char*,size_t)>& textureLoader);
+    
+    // -- accessors --
 
-    inline const _RenderApiTexture2D& spriteSheet() const noexcept { return this->_spriteSheet; } ///< Get texture to bind to renderer
-    inline size_t charCount() const noexcept { return _descriptors.size(); } ///< Number of character locations
-    inline uint32_t baseLineOffset() const noexcept { return _baseLineOffset; }      ///< Vertical offset of character base-line
+    inline size_t charCount() const noexcept { return _descriptors.size(); }    ///< Number of character locations
+    inline uint32_t baseLineOffset() const noexcept { return _baseLineOffset; } ///< Vertical offset of character base-line
 
     /// @brief Find character descriptor by ID/char-code (returns NULL if not found)
     inline const CharDescriptor* find(uint32_t charCode) const noexcept {
@@ -77,7 +100,6 @@ namespace display {
     }
 
   private:
-    _RenderApiTexture2D _spriteSheet;
     std::unordered_map<uint32_t,CharDescriptor> _descriptors;
     uint32_t _baseLineOffset = 0;
   };
