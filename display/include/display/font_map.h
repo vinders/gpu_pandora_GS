@@ -57,9 +57,9 @@ namespace display {
   class FontMap final {
   public:
     FontMap() = default;
-    FontMap(const FontMap&) = delete;
+    FontMap(const FontMap&) = default;
     FontMap(FontMap&&) noexcept = default;
-    FontMap& operator=(const FontMap&) = delete;
+    FontMap& operator=(const FontMap&) = default;
     FontMap& operator=(FontMap&&) noexcept = default;
     ~FontMap() noexcept {}
 
