@@ -21,11 +21,11 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 // -- entry point -- -----------------------------------------------------------
 
 #ifdef _WINDOWS
-  HINSTANCE g_libraryInstance = (HINSTANCE)nullptr;
+# include <system/api/windows_app.h>
 
   // Main library entry point (Windows)
   BOOL APIENTRY DllMain(HANDLE module, DWORD reason, LPVOID) {
-    g_libraryInstance = (reason != DLL_PROCESS_DETACH) ? (HINSTANCE)module : nullptr; // attach / detach
+    pandora::system::WindowsApp::instance().init((reason != DLL_PROCESS_DETACH) ? (HINSTANCE)module : nullptr); // attach / detach
     return TRUE;
   }
 #endif
