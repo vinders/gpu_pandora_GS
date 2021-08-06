@@ -41,6 +41,5 @@ namespace config {
 
   // ---
 
-  void loadPreset(PresetId id, RendererProfile& outRendererCfg,
-                  WindowProfile& outWindowCfg, EffectsProfile& outEffectsCfg) noexcept;
+  void loadPreset(PresetId id, RendererProfile& outRendererCfg) noexcept;
 }

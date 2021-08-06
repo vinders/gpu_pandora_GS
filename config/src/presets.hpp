@@ -21,8 +21,15 @@ using namespace config;
 
 // -- presets --
 
-static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
-                                              EffectsProfile& outEffectsCfg) noexcept {
+static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg) noexcept {
+  outRendererCfg.screenStretching = 0;
+  outRendererCfg.screenCropping = 0;
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+  
   outRendererCfg.internalResFactorX = 4;
   outRendererCfg.internalResFactorY = 4;
   outRendererCfg.colorMode = ColorOutput::rgb32;
@@ -39,26 +46,24 @@ static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg, W
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::bilinear;
 
-  outRendererCfg.isPalRecentered = true;
-  outRendererCfg.isOverscanVisible = false;
-  outRendererCfg.isMirrored = false;
-  outRendererCfg.screenCurvature = 0;
-  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
-
-  outWindowCfg.screenStretching = 0;
-  outWindowCfg.screenCropping = 0;
-
-  outEffectsCfg.textureGrain = NoiseFilter::none;
-  outEffectsCfg.screenGrain = NoiseFilter::none;
-  outEffectsCfg.dithering = ColorDithering::none;
-  outEffectsCfg.useTextureDithering = false;
-  outEffectsCfg.useSpriteDithering = false;
+  outRendererCfg.textureGrain = NoiseFilter::none;
+  outRendererCfg.screenGrain = NoiseFilter::none;
+  outRendererCfg.dithering = ColorDithering::none;
+  outRendererCfg.useTextureDithering = false;
+  outRendererCfg.useSpriteDithering = false;
 }
 
 // ---
 
-static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
-                                            EffectsProfile& outEffectsCfg) noexcept {
+static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg) noexcept {
+  outRendererCfg.screenStretching = 0;
+  outRendererCfg.screenCropping = 0;
+  outRendererCfg.isPalRecentered = false;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+  
   outRendererCfg.internalResFactorX = 1;
   outRendererCfg.internalResFactorY = 1;
   outRendererCfg.colorMode = ColorOutput::rgb16;
@@ -75,26 +80,24 @@ static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::none;
 
-  outRendererCfg.isPalRecentered = false;
-  outRendererCfg.isOverscanVisible = false;
-  outRendererCfg.isMirrored = false;
-  outRendererCfg.screenCurvature = 0;
-  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
-
-  outWindowCfg.screenStretching = 0;
-  outWindowCfg.screenCropping = 0;
-
-  outEffectsCfg.textureGrain = NoiseFilter::none;
-  outEffectsCfg.screenGrain = NoiseFilter::none;
-  outEffectsCfg.dithering = ColorDithering::none;
-  outEffectsCfg.useTextureDithering = false;
-  outEffectsCfg.useSpriteDithering = false;
+  outRendererCfg.textureGrain = NoiseFilter::none;
+  outRendererCfg.screenGrain = NoiseFilter::none;
+  outRendererCfg.dithering = ColorDithering::none;
+  outRendererCfg.useTextureDithering = false;
+  outRendererCfg.useSpriteDithering = false;
 }
 
 // ---
 
-static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
-                                            EffectsProfile& outEffectsCfg) noexcept {
+static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg) noexcept {
+  outRendererCfg.screenStretching = 0;
+  outRendererCfg.screenCropping = 2;
+  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isOverscanVisible = false;
+  outRendererCfg.isMirrored = false;
+  outRendererCfg.screenCurvature = 0;
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+  
   outRendererCfg.internalResFactorX = 2;
   outRendererCfg.internalResFactorY = 2;
   outRendererCfg.colorMode = ColorOutput::rgb32;
@@ -111,26 +114,24 @@ static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 4;
   outRendererCfg.mdecUpscaling = MdecFilter::jinc2;
 
+  outRendererCfg.textureGrain = NoiseFilter::none;
+  outRendererCfg.screenGrain = NoiseFilter::none;
+  outRendererCfg.dithering = ColorDithering::none;
+  outRendererCfg.useTextureDithering = false;
+  outRendererCfg.useSpriteDithering = false;
+}
+
+// ---
+
+static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg) noexcept {
+  outRendererCfg.screenStretching = 4;
+  outRendererCfg.screenCropping = 4;
   outRendererCfg.isPalRecentered = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
   memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
 
-  outWindowCfg.screenStretching = 0;
-  outWindowCfg.screenCropping = 2;
-
-  outEffectsCfg.textureGrain = NoiseFilter::none;
-  outEffectsCfg.screenGrain = NoiseFilter::none;
-  outEffectsCfg.dithering = ColorDithering::none;
-  outEffectsCfg.useTextureDithering = false;
-  outEffectsCfg.useSpriteDithering = false;
-}
-
-// ---
-
-static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
-                                            EffectsProfile& outEffectsCfg) noexcept {
   outRendererCfg.internalResFactorX = 4;
   outRendererCfg.internalResFactorY = 4;
   outRendererCfg.colorMode = ColorOutput::rgb32;
@@ -147,26 +148,24 @@ static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg, Win
   outRendererCfg.screenUpscalingFactor = 2;
   outRendererCfg.mdecUpscaling = MdecFilter::jinc2;
 
+  outRendererCfg.textureGrain = NoiseFilter::grain;
+  outRendererCfg.screenGrain = NoiseFilter::none;
+  outRendererCfg.dithering = ColorDithering::none;
+  outRendererCfg.useTextureDithering = false;
+  outRendererCfg.useSpriteDithering = false;
+}
+
+// ---
+
+static __forceinline void __loadCartoon(RendererProfile& outRendererCfg) noexcept {
+  outRendererCfg.screenStretching = 0;
+  outRendererCfg.screenCropping = 2;
   outRendererCfg.isPalRecentered = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
   memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
 
-  outWindowCfg.screenStretching = 4;
-  outWindowCfg.screenCropping = 4;
-
-  outEffectsCfg.textureGrain = NoiseFilter::grain;
-  outEffectsCfg.screenGrain = NoiseFilter::none;
-  outEffectsCfg.dithering = ColorDithering::none;
-  outEffectsCfg.useTextureDithering = false;
-  outEffectsCfg.useSpriteDithering = false;
-}
-
-// ---
-
-static __forceinline void __loadCartoon(RendererProfile& outRendererCfg, WindowProfile& outWindowCfg,
-                                          EffectsProfile& outEffectsCfg) noexcept {
   outRendererCfg.internalResFactorX = 4;
   outRendererCfg.internalResFactorY = 4;
   outRendererCfg.colorMode = ColorOutput::rgb32;
@@ -183,33 +182,23 @@ static __forceinline void __loadCartoon(RendererProfile& outRendererCfg, WindowP
   outRendererCfg.screenUpscalingFactor = 1;
   outRendererCfg.mdecUpscaling = MdecFilter::super_xBR;
 
-  outRendererCfg.isPalRecentered = true;
-  outRendererCfg.isOverscanVisible = false;
-  outRendererCfg.isMirrored = false;
-  outRendererCfg.screenCurvature = 0;
-  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
-
-  outWindowCfg.screenStretching = 0;
-  outWindowCfg.screenCropping = 2;
-
-  outEffectsCfg.textureGrain = NoiseFilter::none;
-  outEffectsCfg.screenGrain = NoiseFilter::none;
-  outEffectsCfg.dithering = ColorDithering::none;
-  outEffectsCfg.useTextureDithering = false;
-  outEffectsCfg.useSpriteDithering = true;
+  outRendererCfg.textureGrain = NoiseFilter::none;
+  outRendererCfg.screenGrain = NoiseFilter::none;
+  outRendererCfg.dithering = ColorDithering::none;
+  outRendererCfg.useTextureDithering = false;
+  outRendererCfg.useSpriteDithering = true;
 }
 
 
 // -- preset selection --
 
-void config::loadPreset(PresetId id, RendererProfile& outRendererCfg,
-                        WindowProfile& outWindowCfg, EffectsProfile& outEffectsCfg) noexcept {
+void config::loadPreset(PresetId id, RendererProfile& outRendererCfg) noexcept {
   switch (id) {
-    case PresetId::psxAccurate:   __loadPsxAccurate(outRendererCfg, outWindowCfg, outEffectsCfg); break;
-    case PresetId::realistic2D:   __loadRealistic2D(outRendererCfg, outWindowCfg, outEffectsCfg); break;
-    case PresetId::realistic3D:   __loadRealistic3D(outRendererCfg, outWindowCfg, outEffectsCfg); break;
-    case PresetId::cartoon:       __loadCartoon(outRendererCfg, outWindowCfg, outEffectsCfg); break;
+    case PresetId::psxAccurate:   __loadPsxAccurate(outRendererCfg); break;
+    case PresetId::realistic2D:   __loadRealistic2D(outRendererCfg); break;
+    case PresetId::realistic3D:   __loadRealistic3D(outRendererCfg); break;
+    case PresetId::cartoon:       __loadCartoon(outRendererCfg); break;
     case PresetId::defaultConfig:
-    default: __loadDefaultConfig(outRendererCfg, outWindowCfg, outEffectsCfg); break;
+    default: __loadDefaultConfig(outRendererCfg); break;
   }
 }

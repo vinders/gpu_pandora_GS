@@ -27,10 +27,15 @@ protected:
 };
 
 
-static bool __isProfileConfigEqual(const RendererProfile& r1, const RendererProfile& r2,
-                                   const WindowProfile& w1, const WindowProfile& w2,
-                                   const EffectsProfile& e1, const EffectsProfile& e2) {
-  return  (r1.internalResFactorX == r2.internalResFactorX
+static bool __isProfileConfigEqual(const RendererProfile& r1, const RendererProfile& r2) {
+  return  (r1.screenStretching == r2.screenStretching
+        && r1.screenCropping == r2.screenCropping
+        && r1.isPalRecentered == r2.isPalRecentered
+        && r1.isOverscanVisible == r2.isOverscanVisible
+        && r1.isMirrored == r2.isMirrored
+        && r1.screenCurvature == r2.screenCurvature
+        
+        && r1.internalResFactorX == r2.internalResFactorX
         && r1.internalResFactorY == r2.internalResFactorY
         && r1.colorMode == r2.colorMode
         && r1.fillMode == r2.fillMode
@@ -44,33 +49,23 @@ static bool __isProfileConfigEqual(const RendererProfile& r1, const RendererProf
         && r1.screenUpscaling == r2.screenUpscaling
         && r1.screenUpscalingFactor == r2.screenUpscalingFactor
         && r1.mdecUpscaling == r2.mdecUpscaling
-        && r1.isPalRecentered == r2.isPalRecentered
-        && r1.isOverscanVisible == r2.isOverscanVisible
-        && r1.isMirrored == r2.isMirrored
-        && r1.screenCurvature == r2.screenCurvature
-
-        && w1.screenStretching == w2.screenStretching
-        && w1.screenCropping == w2.screenCropping
-
-        && e1.screenGrain == e2.screenGrain
-        && e1.textureGrain == e2.textureGrain
-        && e1.dithering == e2.dithering
-        && e1.useTextureDithering == e2.useTextureDithering
-        && e1.useSpriteDithering == e2.useSpriteDithering);
+        
+        && r1.screenGrain == r2.screenGrain
+        && r1.textureGrain == r2.textureGrain
+        && r1.dithering == r2.dithering
+        && r1.useTextureDithering == r2.useTextureDithering
+        && r1.useSpriteDithering == r2.useSpriteDithering);
 }
 
 // ---
 
 TEST_F(PresetsTest, applyPresets) {
   RendererProfile defRendererCfg, rendererCfg;
-  WindowProfile defWindowCfg, windowCfg;
-  EffectsProfile defEffectsCfg, effectsCfg;
-  
-  loadPreset(PresetId::defaultConfig, rendererCfg, windowCfg, effectsCfg);
-  EXPECT_TRUE(__isProfileConfigEqual(defRendererCfg, rendererCfg, defWindowCfg, windowCfg, defEffectsCfg, effectsCfg));
+  loadPreset(PresetId::defaultConfig, rendererCfg);
+  EXPECT_TRUE(__isProfileConfigEqual(defRendererCfg, rendererCfg));
   
   for (int i = ((int)PresetId::defaultConfig) + 1; i < (int)__CONFIG_LAST_PRESET_ID; ++i) {
-    loadPreset((PresetId)i, rendererCfg, windowCfg, effectsCfg);
-    EXPECT_FALSE(__isProfileConfigEqual(defRendererCfg, rendererCfg, defWindowCfg, windowCfg, defEffectsCfg, effectsCfg));
+    loadPreset((PresetId)i, rendererCfg);
+    EXPECT_FALSE(__isProfileConfigEqual(defRendererCfg, rendererCfg));
   }
 }

@@ -376,11 +376,25 @@ void Serializer::writeProfileListFile(const UnicodeString& configDir, const std:
 }
 
 // Serialize config profile to JSON file
-void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, const RendererProfile& rendererCfg,
-                                        const WindowProfile& windowCfg, const EffectsProfile& effectsCfg) {
+void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, const RendererProfile& rendererCfg) {
   SerializableValue::Object jsonObject;
 
-  // renderer params
+  // viewport
+  if (rendererCfg.screenStretching)
+    jsonObject.emplace(profile::renderer::screenStretching(), SerializableValue((int32_t)rendererCfg.screenStretching));
+  if (rendererCfg.screenCropping)
+    jsonObject.emplace(profile::renderer::screenCropping(), SerializableValue((int32_t)rendererCfg.screenCropping));
+  if (rendererCfg.isPalRecentered)
+    jsonObject.emplace(profile::renderer::isPalRecentered(), SerializableValue((int32_t)rendererCfg.isPalRecentered));
+  if (rendererCfg.isOverscanVisible)
+    jsonObject.emplace(profile::renderer::isOverscanVisible(), SerializableValue((int32_t)rendererCfg.isOverscanVisible));
+  if (rendererCfg.isMirrored)
+    jsonObject.emplace(profile::renderer::isMirrored(), SerializableValue((int32_t)rendererCfg.isMirrored));
+  if (rendererCfg.screenCurvature)
+    jsonObject.emplace(profile::renderer::screenCurvature(), SerializableValue((int32_t)rendererCfg.screenCurvature));
+  __writeIntegerArray<uint8_t>(jsonObject, profile::renderer::blackBorderSizes(), &rendererCfg.blackBorderSizes[0], 4);
+  
+  // rendering
   if (rendererCfg.internalResFactorX > 1u)
     jsonObject.emplace(profile::renderer::internalResFactorX(), SerializableValue((int32_t)rendererCfg.internalResFactorX));
   if (rendererCfg.internalResFactorY > 1u)
@@ -392,6 +406,7 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
   if (rendererCfg.antiAliasing != AntiAliasing::none)
     jsonObject.emplace(profile::renderer::antiAliasing(), SerializableValue((int32_t)rendererCfg.antiAliasing));
 
+  // upscaling
   if (rendererCfg.textureUpscaling != UpscalingFilter::none)
     jsonObject.emplace(profile::renderer::textureUpscaling(), SerializableValue((int32_t)rendererCfg.textureUpscaling));
   if (rendererCfg.textureUpscalingFactor > 1)
@@ -411,33 +426,18 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
   if (rendererCfg.mdecUpscaling != MdecFilter::none)
     jsonObject.emplace(profile::renderer::mdecUpscaling(), SerializableValue((int32_t)rendererCfg.mdecUpscaling));
 
-  if (rendererCfg.isPalRecentered)
-    jsonObject.emplace(profile::renderer::isPalRecentered(), SerializableValue((int32_t)rendererCfg.isPalRecentered));
-  if (rendererCfg.isOverscanVisible)
-    jsonObject.emplace(profile::renderer::isOverscanVisible(), SerializableValue((int32_t)rendererCfg.isOverscanVisible));
-  if (rendererCfg.isMirrored)
-    jsonObject.emplace(profile::renderer::isMirrored(), SerializableValue((int32_t)rendererCfg.isMirrored));
-  if (rendererCfg.screenCurvature)
-    jsonObject.emplace(profile::renderer::screenCurvature(), SerializableValue((int32_t)rendererCfg.screenCurvature));
-  __writeIntegerArray<uint8_t>(jsonObject, profile::renderer::blackBorderSizes(), &rendererCfg.blackBorderSizes[0], 4);
-
-  // window params
-  if (windowCfg.screenStretching)
-    jsonObject.emplace(profile::window::screenStretching(), SerializableValue((int32_t)windowCfg.screenStretching));
-  if (windowCfg.screenCropping)
-    jsonObject.emplace(profile::window::screenCropping(), SerializableValue((int32_t)windowCfg.screenCropping));
-
-  // effects params
-  if (effectsCfg.textureGrain != NoiseFilter::none)
-    jsonObject.emplace(profile::effects::textureGrain(), SerializableValue((int32_t)effectsCfg.textureGrain));
-  if (effectsCfg.screenGrain != NoiseFilter::none)
-    jsonObject.emplace(profile::effects::screenGrain(), SerializableValue((int32_t)effectsCfg.screenGrain));
-  if (effectsCfg.dithering != ColorDithering::none)
-    jsonObject.emplace(profile::effects::dithering(), SerializableValue((int32_t)effectsCfg.dithering));
-  if (effectsCfg.useTextureDithering)
-    jsonObject.emplace(profile::effects::useTextureDithering(), SerializableValue((int32_t)effectsCfg.useTextureDithering));
-  if (effectsCfg.useSpriteDithering)
-    jsonObject.emplace(profile::effects::useSpriteDithering(), SerializableValue((int32_t)effectsCfg.useSpriteDithering));
+  // noise effects
+  if (rendererCfg.textureGrain != NoiseFilter::none)
+    jsonObject.emplace(profile::renderer::textureGrain(), SerializableValue((int32_t)rendererCfg.textureGrain));
+  if (rendererCfg.screenGrain != NoiseFilter::none)
+    jsonObject.emplace(profile::renderer::screenGrain(), SerializableValue((int32_t)rendererCfg.screenGrain));
+  if (rendererCfg.dithering != ColorDithering::none)
+    jsonObject.emplace(profile::renderer::dithering(), SerializableValue((int32_t)rendererCfg.dithering));
+  if (rendererCfg.useTextureDithering)
+    jsonObject.emplace(profile::renderer::useTextureDithering(), SerializableValue((int32_t)rendererCfg.useTextureDithering));
+  if (rendererCfg.useSpriteDithering)
+    jsonObject.emplace(profile::renderer::useSpriteDithering(), SerializableValue((int32_t)rendererCfg.useSpriteDithering));
+  
   //...
 
   uint32_t retryCount = 0;
@@ -538,11 +538,26 @@ void Serializer::readProfileListFile(const UnicodeString& configDir, std::unorde
 }
 
 // Deserialize config profile from JSON file
-void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, RendererProfile& outRendererCfg,
-                                       WindowProfile& outWindowCfg, EffectsProfile& outEffectsCfg) {
+void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, RendererProfile& outRendererCfg) {
   auto jsonObject = __readJsonFile(sourceFilePath); // throws
 
-  // renderer params
+  // viewport
+  outRendererCfg.screenStretching = __readInteger(jsonObject, profile::renderer::screenStretching(), 0);
+  if (outRendererCfg.screenStretching > maxScreenFraming())
+    outRendererCfg.screenStretching = maxScreenFraming();
+  outRendererCfg.screenCropping = __readInteger(jsonObject, profile::renderer::screenCropping(), 0);
+  if (outRendererCfg.screenCropping > maxScreenFraming())
+    outRendererCfg.screenCropping = maxScreenFraming();
+  outRendererCfg.isPalRecentered = __readInteger<bool>(jsonObject, profile::renderer::isPalRecentered(), false);
+  outRendererCfg.isOverscanVisible = __readInteger<bool>(jsonObject, profile::renderer::isOverscanVisible(), false);
+  outRendererCfg.isMirrored = __readInteger<bool>(jsonObject, profile::renderer::isMirrored(), false);
+  outRendererCfg.screenCurvature = __readInteger(jsonObject, profile::renderer::screenCurvature(), 0);
+  if (outRendererCfg.screenCurvature > maxScreenFraming())
+    outRendererCfg.screenCurvature = maxScreenFraming();
+  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
+  __readIntegerArray(jsonObject, profile::renderer::blackBorderSizes(), &outRendererCfg.blackBorderSizes[0], 4);
+  
+  // rendering
   outRendererCfg.internalResFactorX = __readInteger<uint32_t>(jsonObject, profile::renderer::internalResFactorX(), 1u);
   if (outRendererCfg.internalResFactorX > maxInternalResFactor())
     outRendererCfg.internalResFactorX = maxInternalResFactor();
@@ -553,6 +568,7 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.fillMode = __readInteger(jsonObject, profile::renderer::fillMode(), FillMode::normal);
   outRendererCfg.antiAliasing = __readInteger(jsonObject, profile::renderer::antiAliasing(), AntiAliasing::none);
 
+  // upscaling
   outRendererCfg.textureUpscaling = __readInteger(jsonObject, profile::renderer::textureUpscaling(), UpscalingFilter::none);
   outRendererCfg.textureUpscalingFactor = __readInteger(jsonObject, profile::renderer::textureUpscalingFactor(), 1);
   outRendererCfg.useTextureBilinear = __readInteger<bool>(jsonObject, profile::renderer::useTextureBilinear(), false);
@@ -563,28 +579,12 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.screenUpscalingFactor = __readInteger(jsonObject, profile::renderer::screenUpscalingFactor(), 1);
   outRendererCfg.mdecUpscaling = __readInteger(jsonObject, profile::renderer::mdecUpscaling(), MdecFilter::none);
 
-  outRendererCfg.isPalRecentered = __readInteger<bool>(jsonObject, profile::renderer::isPalRecentered(), false);
-  outRendererCfg.isOverscanVisible = __readInteger<bool>(jsonObject, profile::renderer::isOverscanVisible(), false);
-  outRendererCfg.isMirrored = __readInteger<bool>(jsonObject, profile::renderer::isMirrored(), false);
-  outRendererCfg.screenCurvature = __readInteger(jsonObject, profile::renderer::screenCurvature(), 0);
-  if (outRendererCfg.screenCurvature > maxScreenFraming())
-    outRendererCfg.screenCurvature = maxScreenFraming();
-  memset(outRendererCfg.blackBorderSizes, 0, 4*sizeof(*outRendererCfg.blackBorderSizes));
-  __readIntegerArray(jsonObject, profile::renderer::blackBorderSizes(), &outRendererCfg.blackBorderSizes[0], 4);
-
-  // window params
-  outWindowCfg.screenStretching = __readInteger(jsonObject, profile::window::screenStretching(), 0);
-  if (outWindowCfg.screenStretching > maxScreenFraming())
-    outWindowCfg.screenStretching = maxScreenFraming();
-  outWindowCfg.screenCropping = __readInteger(jsonObject, profile::window::screenCropping(), 0);
-  if (outWindowCfg.screenCropping > maxScreenFraming())
-    outWindowCfg.screenCropping = maxScreenFraming();
-
-  // effects params
-  outEffectsCfg.textureGrain = __readInteger(jsonObject, profile::effects::textureGrain(), NoiseFilter::none);
-  outEffectsCfg.screenGrain = __readInteger(jsonObject, profile::effects::screenGrain(), NoiseFilter::none);
-  outEffectsCfg.dithering = __readInteger(jsonObject, profile::effects::dithering(), ColorDithering::none);
-  outEffectsCfg.useTextureDithering = __readInteger<bool>(jsonObject, profile::effects::useTextureDithering(), false);
-  outEffectsCfg.useSpriteDithering = __readInteger<bool>(jsonObject, profile::effects::useSpriteDithering(), false);
+  // noise effects
+  outRendererCfg.textureGrain = __readInteger(jsonObject, profile::renderer::textureGrain(), NoiseFilter::none);
+  outRendererCfg.screenGrain = __readInteger(jsonObject, profile::renderer::screenGrain(), NoiseFilter::none);
+  outRendererCfg.dithering = __readInteger(jsonObject, profile::renderer::dithering(), ColorDithering::none);
+  outRendererCfg.useTextureDithering = __readInteger<bool>(jsonObject, profile::renderer::useTextureDithering(), false);
+  outRendererCfg.useSpriteDithering = __readInteger<bool>(jsonObject, profile::renderer::useSpriteDithering(), false);
+  
   //...
 }

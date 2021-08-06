@@ -157,9 +157,17 @@ static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std:
       EXPECT_EQ(color[c], menu.tileColor[c]);
   }
 }
-static void __compareProfileConfig(const RendererProfile& r1, const RendererProfile& r2,
-                                   const WindowProfile& w1, const WindowProfile& w2,
-                                   const EffectsProfile& e1, const EffectsProfile& e2) {
+static void __compareProfileConfig(const RendererProfile& r1, const RendererProfile& r2) {
+  EXPECT_EQ(r1.screenStretching, r2.screenStretching);
+  EXPECT_EQ(r1.screenCropping, r2.screenCropping);
+  EXPECT_EQ(r1.isPalRecentered, r2.isPalRecentered);
+  EXPECT_EQ(r1.isOverscanVisible, r2.isOverscanVisible);
+  EXPECT_EQ(r1.isMirrored, r2.isMirrored);
+  EXPECT_EQ(r1.screenCurvature, r2.screenCurvature);
+  for (size_t i = 0; i < 4; ++i) {
+    EXPECT_EQ(r1.blackBorderSizes[i], r2.blackBorderSizes[i]);
+  }
+  
   EXPECT_EQ(r1.internalResFactorX, r2.internalResFactorX);
   EXPECT_EQ(r1.internalResFactorY, r2.internalResFactorY);
   EXPECT_EQ(r1.colorMode, r2.colorMode);
@@ -174,22 +182,12 @@ static void __compareProfileConfig(const RendererProfile& r1, const RendererProf
   EXPECT_EQ(r1.screenUpscaling, r2.screenUpscaling);
   EXPECT_EQ(r1.screenUpscalingFactor, r2.screenUpscalingFactor);
   EXPECT_EQ(r1.mdecUpscaling, r2.mdecUpscaling);
-  EXPECT_EQ(r1.isPalRecentered, r2.isPalRecentered);
-  EXPECT_EQ(r1.isOverscanVisible, r2.isOverscanVisible);
-  EXPECT_EQ(r1.isMirrored, r2.isMirrored);
-  EXPECT_EQ(r1.screenCurvature, r2.screenCurvature);
-  for (size_t i = 0; i < 4; ++i) {
-    EXPECT_EQ(r1.blackBorderSizes[i], r2.blackBorderSizes[i]);
-  }
 
-  EXPECT_EQ(w1.screenStretching, w2.screenStretching);
-  EXPECT_EQ(w1.screenCropping, w2.screenCropping);
-
-  EXPECT_EQ(e1.screenGrain, e2.screenGrain);
-  EXPECT_EQ(e1.textureGrain, e2.textureGrain);
-  EXPECT_EQ(e1.dithering, e2.dithering);
-  EXPECT_EQ(e1.useTextureDithering, e2.useTextureDithering);
-  EXPECT_EQ(e1.useSpriteDithering, e2.useSpriteDithering);
+  EXPECT_EQ(r1.screenGrain, r2.screenGrain);
+  EXPECT_EQ(r1.textureGrain, r2.textureGrain);
+  EXPECT_EQ(r1.dithering, r2.dithering);
+  EXPECT_EQ(r1.useTextureDithering, r2.useTextureDithering);
+  EXPECT_EQ(r1.useSpriteDithering, r2.useSpriteDithering);
 }
 
 // ---
@@ -267,15 +265,12 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   std::unique_ptr<char[]> buffer = nullptr;
 
   RendererProfile inRendererCfg, outRendererCfg;
-  WindowProfile inWindowCfg, outWindowCfg;
-  EffectsProfile inEffectsCfg, outEffectsCfg;
-
   inRendererCfg.internalResFactorX = inRendererCfg.internalResFactorY = 1;
   inRendererCfg.useTextureBilinear = false;
   inRendererCfg.isPalRecentered = false;
-  Serializer::writeProfileConfigFile(filePath1, inRendererCfg, inWindowCfg, inEffectsCfg);
-  Serializer::readProfileConfigFile(filePath1, outRendererCfg, outWindowCfg, outEffectsCfg);
-  __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
+  Serializer::writeProfileConfigFile(filePath1, inRendererCfg);
+  Serializer::readProfileConfigFile(filePath1, outRendererCfg);
+  __compareProfileConfig(inRendererCfg, outRendererCfg);
 
   inRendererCfg.internalResFactorX = 4;
   inRendererCfg.internalResFactorY = 2;
@@ -294,16 +289,16 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   inRendererCfg.screenCurvature = 2;
   for (uint32_t i = 0; i < 4; ++i)
     inRendererCfg.blackBorderSizes[i] = (uint8_t)i;
-  inWindowCfg.screenStretching = 4;
-  inWindowCfg.screenCropping = 6;
-  inEffectsCfg.textureGrain = NoiseFilter::grain;
-  inEffectsCfg.screenGrain = NoiseFilter::gauss;
-  inEffectsCfg.dithering = ColorDithering::ditherOutput;
-  inEffectsCfg.useTextureDithering = true;
-  inEffectsCfg.useSpriteDithering = true;
-  Serializer::writeProfileConfigFile(filePath2, inRendererCfg, inWindowCfg, inEffectsCfg);
-  Serializer::readProfileConfigFile(filePath2, outRendererCfg, outWindowCfg, outEffectsCfg);
-  __compareProfileConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inEffectsCfg, outEffectsCfg);
+  inRendererCfg.screenStretching = 4;
+  inRendererCfg.screenCropping = 6;
+  inRendererCfg.textureGrain = NoiseFilter::grain;
+  inRendererCfg.screenGrain = NoiseFilter::gauss;
+  inRendererCfg.dithering = ColorDithering::ditherOutput;
+  inRendererCfg.useTextureDithering = true;
+  inRendererCfg.useSpriteDithering = true;
+  Serializer::writeProfileConfigFile(filePath2, inRendererCfg);
+  Serializer::readProfileConfigFile(filePath2, outRendererCfg);
+  __compareProfileConfig(inRendererCfg, outRendererCfg);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   pandora::io::removeFileEntry(filePath1.c_str());

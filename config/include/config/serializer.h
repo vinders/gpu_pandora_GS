@@ -73,8 +73,7 @@ namespace config {
     /// @brief Serialize config profile to JSON file
     /// @throws - runtime_error if the file was could not be written
     ///         - bad_alloc on allocation failure
-    static void writeProfileConfigFile(const UnicodeString& outputFilePath, const RendererProfile& rendererCfg,
-                                       const WindowProfile& windowCfg, const EffectsProfile& effectsCfg);
+    static void writeProfileConfigFile(const UnicodeString& outputFilePath, const RendererProfile& rendererCfg);
 
     // -- config deserialization --
 
@@ -101,7 +100,6 @@ namespace config {
     /// @throws - runtime_error if the file was not found or not readable
     ///         - invalid_argument if the JSON syntax is invalid
     ///         - bad_alloc on allocation failure
-    static void readProfileConfigFile(const UnicodeString& sourceFilePath, RendererProfile& outRendererCfg,
-                                      WindowProfile& outWindowCfg, EffectsProfile& outEffectsCfg);
+    static void readProfileConfigFile(const UnicodeString& sourceFilePath, RendererProfile& outRendererCfg);
   };
 }
