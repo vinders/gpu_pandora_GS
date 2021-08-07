@@ -107,7 +107,7 @@ TEST_F(SerializerTest, gameBindingSaveFind) {
 
 // -- serializer/deserializer --
 
-static void __compareCommonConfig(const RendererConfig& r1, const RendererConfig& r2,
+static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
                                   const WindowConfig& w1, const WindowConfig& w2,
                                   const ActionsConfig& a1, const ActionsConfig& a2) {
   EXPECT_EQ(r1.api, r2.api);
@@ -196,24 +196,24 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   UnicodeString configDir(pluginDir.c_str());
   std::unique_ptr<char[]> buffer = nullptr;
 
-  RendererConfig inRendererCfg, outRendererCfg;
+  VideoConfig inVideoCfg, outVideoCfg;
   WindowConfig inWindowCfg, outWindowCfg;
   ActionsConfig inActionsCfg, outActionsCfg;
 
-  inRendererCfg.enableFramerateLimit = false;
-  inRendererCfg.enableVsync = false;
+  inVideoCfg.enableFramerateLimit = false;
+  inVideoCfg.enableVsync = false;
   memset(&inActionsCfg, 0, sizeof(ActionsConfig));
-  Serializer::writeMainConfigFile(configDir, inRendererCfg, inWindowCfg, inActionsCfg);
-  Serializer::readMainConfigFile(configDir, outRendererCfg, outWindowCfg, outActionsCfg);
-  __compareCommonConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
+  Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
+  Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
+  __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
 
-  inRendererCfg.api = RenderingApi::openGL4;
-  inRendererCfg.enableFramerateLimit = true;
-  inRendererCfg.enableVsync = true;
-  inRendererCfg.framerateLimit = 59.94f;
-  inRendererCfg.frameSkip = FrameSkipping::adaptative;
-  inRendererCfg.precision = PrecisionMode::subprecision;
-  inRendererCfg.osd = OnScreenDisplay::framerate;
+  inVideoCfg.api = RenderingApi::openGL4;
+  inVideoCfg.enableFramerateLimit = true;
+  inVideoCfg.enableVsync = true;
+  inVideoCfg.framerateLimit = 59.94f;
+  inVideoCfg.frameSkip = FrameSkipping::adaptative;
+  inVideoCfg.precision = PrecisionMode::subprecision;
+  inVideoCfg.osd = OnScreenDisplay::framerate;
   inWindowCfg.monitorId = __UNICODE_STR("\\Display_1 - Generic PnP");
   inWindowCfg.windowMode = WindowMode::window;
   inWindowCfg.windowHeight = 800;
@@ -225,9 +225,9 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   for (size_t i = 0; i < controllerMap::length(); ++i)
     inActionsCfg.controllerMapping[i] = i + 3;
   inActionsCfg.controllerHotkey = 42;
-  Serializer::writeMainConfigFile(configDir, inRendererCfg, inWindowCfg, inActionsCfg);
-  Serializer::readMainConfigFile(configDir, outRendererCfg, outWindowCfg, outActionsCfg);
-  __compareCommonConfig(inRendererCfg, outRendererCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
+  Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
+  Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
+  __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   auto filePath = configDir + Serializer::mainConfigFileName();

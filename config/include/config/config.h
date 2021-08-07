@@ -22,7 +22,7 @@ GNU General Public License for more details (LICENSE file).
 namespace config {
   // -- common config -- -------------------------------------------------------
 
-  /// @brief General display window settings
+  /// @brief General output window settings
   struct WindowConfig final {
     pandora::hardware::DisplayMonitor::DeviceId monitorId; ///< ID of display monitor to use (empty to use primary)
     WindowMode windowMode = WindowMode::fullscreenWindow;  ///< Display mode: window / fullscreen-window / fullscreen
@@ -34,8 +34,8 @@ namespace config {
     bool isWideSource = false; ///< 16:9 source data (emulator with widescreen hack or games with 16:9 mode)
   };
 
-  /// @brief General renderer settings
-  struct RendererConfig final {
+  /// @brief General renderer & timer settings
+  struct VideoConfig final {
     RenderingApi api = defaultRenderingApi();          ///< Rendering API used for display (Direct3D11, Vulkan...)
     PrecisionMode precision = PrecisionMode::standard; ///< Geometry precision/subprecision mode for coordinates
     bool enableVsync = false;                          ///< Vertical sync (no tearing, lower power consump., but higher input delay)

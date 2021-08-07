@@ -290,25 +290,25 @@ static void __getDefaultProfileName(uint32_t index, UnicodeString& outValue) {
 // -- serialization -- ---------------------------------------------------------
 
 // Serialize common config to JSON file
-void Serializer::writeMainConfigFile(const UnicodeString& configDir, const RendererConfig& rendererCfg,
+void Serializer::writeMainConfigFile(const UnicodeString& configDir, const VideoConfig& rendererCfg,
                                      const WindowConfig& windowCfg, const ActionsConfig& actionsCfg) {
   SerializableValue::Object jsonObject;
 
-  // renderer params
+  // video params
   if (rendererCfg.api != defaultRenderingApi()) // no need to store empty values (reader sets same empty values if not in file)
-    jsonObject.emplace(renderer::api(), SerializableValue((int32_t)rendererCfg.api));
+    jsonObject.emplace(video::api(), SerializableValue((int32_t)rendererCfg.api));
   if (rendererCfg.enableVsync)
-    jsonObject.emplace(renderer::enableVsync(), SerializableValue((int32_t)rendererCfg.enableVsync)); // store bool as int (faster)
+    jsonObject.emplace(video::enableVsync(), SerializableValue((int32_t)rendererCfg.enableVsync)); // store bool as int (faster)
   if (rendererCfg.enableFramerateLimit)
-    jsonObject.emplace(renderer::enableFramerateLimit(), SerializableValue((int32_t)rendererCfg.enableFramerateLimit));
+    jsonObject.emplace(video::enableFramerateLimit(), SerializableValue((int32_t)rendererCfg.enableFramerateLimit));
   if (rendererCfg.framerateLimit != autodetectFramerate())
-    jsonObject.emplace(renderer::framerateLimit(), SerializableValue(rendererCfg.framerateLimit));
+    jsonObject.emplace(video::framerateLimit(), SerializableValue(rendererCfg.framerateLimit));
   if (rendererCfg.frameSkip != FrameSkipping::none)
-    jsonObject.emplace(renderer::frameSkip(), SerializableValue((int32_t)rendererCfg.frameSkip));
+    jsonObject.emplace(video::frameSkip(), SerializableValue((int32_t)rendererCfg.frameSkip));
   if (rendererCfg.precision != PrecisionMode::standard)
-    jsonObject.emplace(renderer::precision(), SerializableValue((int32_t)rendererCfg.precision));
+    jsonObject.emplace(video::precision(), SerializableValue((int32_t)rendererCfg.precision));
   if (rendererCfg.osd != OnScreenDisplay::none)
-    jsonObject.emplace(renderer::osd(), SerializableValue((int32_t)rendererCfg.osd));
+    jsonObject.emplace(video::osd(), SerializableValue((int32_t)rendererCfg.osd));
 
   // window params
   __writeSystemString(jsonObject, window::monitorId(), windowCfg.monitorId);
@@ -458,18 +458,18 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
 // -- deserialization -- -------------------------------------------------------
 
 // Deserialize common config from JSON file
-void Serializer::readMainConfigFile(const UnicodeString& configDir, RendererConfig& outRendererCfg,
+void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig& outRendererCfg,
                                     WindowConfig& outWindowCfg, ActionsConfig& outActionsCfg) {
   auto jsonObject = __readJsonFile(configDir + mainConfigFileName()); // throws
 
-  // renderer params
-  outRendererCfg.api = __readInteger(jsonObject, renderer::api(), defaultRenderingApi());
-  outRendererCfg.enableVsync = __readInteger<bool>(jsonObject, renderer::enableVsync(), false);
-  outRendererCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, renderer::enableFramerateLimit(), false);
-  outRendererCfg.framerateLimit = __readFloat(jsonObject, renderer::framerateLimit(), autodetectFramerate());
-  outRendererCfg.frameSkip = __readInteger(jsonObject, renderer::frameSkip(), FrameSkipping::none);
-  outRendererCfg.precision = __readInteger(jsonObject, renderer::precision(), PrecisionMode::standard);
-  outRendererCfg.osd = __readInteger(jsonObject, renderer::osd(), OnScreenDisplay::none);
+  // video params
+  outRendererCfg.api = __readInteger(jsonObject, video::api(), defaultRenderingApi());
+  outRendererCfg.enableVsync = __readInteger<bool>(jsonObject, video::enableVsync(), false);
+  outRendererCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, video::enableFramerateLimit(), false);
+  outRendererCfg.framerateLimit = __readFloat(jsonObject, video::framerateLimit(), autodetectFramerate());
+  outRendererCfg.frameSkip = __readInteger(jsonObject, video::frameSkip(), FrameSkipping::none);
+  outRendererCfg.precision = __readInteger(jsonObject, video::precision(), PrecisionMode::standard);
+  outRendererCfg.osd = __readInteger(jsonObject, video::osd(), OnScreenDisplay::none);
 
   // window params
   __readSystemString(jsonObject, window::monitorId(), outWindowCfg.monitorId);

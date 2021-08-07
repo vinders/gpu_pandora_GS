@@ -63,7 +63,7 @@ namespace config {
     /// @param configDir  Path to config directory (must include a directory separator at the end)
     /// @throws - runtime_error if the file was could not be written
     ///         - bad_alloc on allocation failure
-    static void writeMainConfigFile(const UnicodeString& configDir, const RendererConfig& rendererCfg,
+    static void writeMainConfigFile(const UnicodeString& configDir, const VideoConfig& rendererCfg,
                                     const WindowConfig& windowCfg, const ActionsConfig& actionsCfg);
     /// @brief Serialize list of profile labels to JSON file
     /// @param configDir  Path to config directory (must include a directory separator at the end)
@@ -82,7 +82,7 @@ namespace config {
     /// @throws - runtime_error if the file was not found or not readable
     ///         - invalid_argument if the JSON syntax is invalid
     ///         - bad_alloc on allocation failure
-    static void readMainConfigFile(const UnicodeString& configDir, RendererConfig& outRendererCfg,
+    static void readMainConfigFile(const UnicodeString& configDir, VideoConfig& outRendererCfg,
                                    WindowConfig& outWindowCfg, ActionsConfig& outActionsCfg);
     /// @brief Deserialize list of profile labels from JSON file - config dialog
     /// @param configDir  Path to config directory (must include a directory separator at the end)

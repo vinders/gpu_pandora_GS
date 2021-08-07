@@ -17,7 +17,7 @@ GNU General Public License for more details (LICENSE file).
 // -- JSON key values -- -------------------------------------------------------
 
 namespace config {
-  namespace renderer {
+  namespace video {
     constexpr const char* api() noexcept { return "api"; }
     constexpr const char* enableVsync() noexcept { return "vsync"; }
     constexpr const char* enableFramerateLimit() noexcept { return "limit_on"; }
