@@ -19,7 +19,8 @@ using namespace pandora::hardware;
 using namespace pandora::video;
 
 
-std::unique_ptr<Window> WindowBuilder::build(pandora::video::WindowHandle parentWindow, void* moduleInstance) {
+std::unique_ptr<Window> WindowBuilder::build(pandora::video::WindowHandle parentWindow, void* moduleInstance,
+                                             pandora::hardware::DisplayMode& outDisplayMode) {
   // identify target monitor
   auto monitor = std::make_shared<DisplayMonitor>(this->_windowConfig.monitorId, true);
   pandora::hardware::DisplayMode displayMode = monitor->getDisplayMode(); // get desktop resolution + rate
@@ -28,7 +29,8 @@ std::unique_ptr<Window> WindowBuilder::build(pandora::video::WindowHandle parent
   Window::Builder builder;
   if (this->_windowConfig.windowMode != WindowMode::window) {
     if (this->_windowConfig.windowMode == WindowMode::fullscreen) { // fullscreen
-      if (_windowConfig.fullscreen.width <= displayMode.width) { // supported mode
+      if (_windowConfig.fullscreen.width != desktopResolution() && _windowConfig.fullscreen.height != desktopResolution()
+      &&  _windowConfig.fullscreen.width <= displayMode.width) { // not desktop resolution + supported mode -> set size
         displayMode.width = this->_windowConfig.fullscreen.width;
         displayMode.height = this->_windowConfig.fullscreen.height;
         displayMode.refreshRate = this->_windowConfig.fullscreen.refreshRate;
@@ -49,6 +51,7 @@ std::unique_ptr<Window> WindowBuilder::build(pandora::video::WindowHandle parent
     builder.setDisplayMode(WindowType::window, WindowBehavior::globalContext, ResizeMode::resizable | ResizeMode::homothety)
            .setPosition(Window::Builder::centeredPosition(), Window::Builder::centeredPosition());
   }
+  outDisplayMode = displayMode;
 
   // create window (from emulator handle)
   builder.setParentMonitor(monitor)

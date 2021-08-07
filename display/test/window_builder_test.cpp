@@ -39,7 +39,8 @@ protected:
 
 TEST_F(WindowBuilderTest, windowBuild) {
   WindowBuilder builder;
-  EXPECT_ANY_THROW(builder.build((pandora::video::WindowHandle)0, nullptr));
+  pandora::hardware::DisplayMode mode;
+  EXPECT_ANY_THROW(builder.build((pandora::video::WindowHandle)0, nullptr, mode));
   auto moduleInstance = __GET_MODULE;
 
   // parent window
@@ -64,21 +65,30 @@ TEST_F(WindowBuilderTest, windowBuild) {
 
   // fullscreen
   builder.windowConfig().windowMode = config::WindowMode::fullscreen;
-  auto outputWindow = builder.build(parentHandle, moduleInstance);
+  auto outputWindow = builder.build(parentHandle, moduleInstance, mode);
+  ASSERT_TRUE(outputWindow != nullptr);
   outputWindow->pollEvents();
+  EXPECT_EQ(mode.width, outputWindow->getClientSize().width);
+  EXPECT_EQ(mode.height, outputWindow->getClientSize().height);
   outputWindow.reset();
 
   // fullscreen-window
   builder.windowConfig().windowMode = config::WindowMode::fullscreenWindow;
-  outputWindow = builder.build(parentHandle, moduleInstance);
+  outputWindow = builder.build(parentHandle, moduleInstance, mode);
+  ASSERT_TRUE(outputWindow != nullptr);
   outputWindow->pollEvents();
+  EXPECT_EQ(mode.width, outputWindow->getClientSize().width);
+  EXPECT_EQ(mode.height, outputWindow->getClientSize().height);
   outputWindow.reset();
 
   // window
   builder.windowConfig().windowMode = config::WindowMode::window;
   builder.windowConfig().windowHeight = 720;
-  outputWindow = builder.build(parentHandle, moduleInstance);
+  outputWindow = builder.build(parentHandle, moduleInstance, mode);
+  ASSERT_TRUE(outputWindow != nullptr);
   outputWindow->pollEvents();
+  EXPECT_EQ(mode.width, outputWindow->getClientSize().width);
+  EXPECT_EQ(mode.height, outputWindow->getClientSize().height);
   outputWindow.reset();
 
 # ifdef _WINDOWS

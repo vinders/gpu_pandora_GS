@@ -49,7 +49,8 @@ namespace display {
     /// @param parentWindow    Handle to emulator window (turned into output window)
     /// @param moduleInstance  DLL/library module instance (required on Windows)
     /// @throws invalid_argument/runtime_error on failure.
-    std::unique_ptr<pandora::video::Window> build(pandora::video::WindowHandle parentWindow, void* moduleInstance);
+    std::unique_ptr<pandora::video::Window> build(pandora::video::WindowHandle parentWindow, void* moduleInstance,
+                                                  pandora::hardware::DisplayMode& outDisplayMode);
     
   private:
     config::WindowConfig _windowConfig;
