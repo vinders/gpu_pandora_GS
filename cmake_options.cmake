@@ -79,4 +79,16 @@ if(NOT DEFINED _PANDORAGS_OPTIONS_FOUND)
             set(CWORK_VIDEO_VULKAN ON CACHE BOOL "")
         endif()
     endif()
+    
+    
+    #<TMP>: openGL/vulkan not yet implemented -> disable
+    if(CWORK_VIDEO_OPENGL4)
+        unset(CWORK_VIDEO_OPENGL4 CACHE)
+    endif()
+    if(CWORK_VIDEO_VULKAN)
+        unset(CWORK_VIDEO_VULKAN CACHE)
+    endif()
+    set(CWORK_VIDEO_OPENGL4 OFF CACHE BOOL "")
+    set(CWORK_VIDEO_VULKAN OFF CACHE BOOL "")
+    #</TMP>
 endif()
