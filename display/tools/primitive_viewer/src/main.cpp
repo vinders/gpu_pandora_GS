@@ -53,17 +53,17 @@ std::unique_ptr<Window> createWindow() { // throws on failure
 // -- handlers -- --------------------------------------------------------------
 
 // window/hardware event handler
-bool onWindowEvent(Window* sender, WindowEvent event, uint32_t status, int32_t posX, int32_t posY, void* data) {
+bool onWindowEvent(Window*, WindowEvent, uint32_t, int32_t, int32_t, void*) {
   return false;
 }
 
 // size/position event handler
-bool onPositionEvent(Window* sender, PositionEvent event, int32_t posX, int32_t posY, uint32_t sizeX, uint32_t sizeY) {
+bool onPositionEvent(Window*, PositionEvent, int32_t, int32_t, uint32_t, uint32_t) {
   return false;
 }
 
 // keyboard event handler
-bool onKeyboardEvent(Window* sender, KeyboardEvent event, uint32_t keyCode, uint32_t change) {
+bool onKeyboardEvent(Window* sender, KeyboardEvent event, uint32_t keyCode, uint32_t) {
   switch (event) {
     case KeyboardEvent::keyDown: {
       if (keyCode == _P_VK_ESC)
@@ -76,7 +76,7 @@ bool onKeyboardEvent(Window* sender, KeyboardEvent event, uint32_t keyCode, uint
 }
 
 // mouse event handler
-bool onMouseEvent(Window* sender, MouseEvent event, int32_t x, int32_t y, int32_t index, uint8_t activeKeys) {
+bool onMouseEvent(Window*, MouseEvent, int32_t, int32_t, int32_t, uint8_t) {
   return false;
 }
 
@@ -109,7 +109,7 @@ inline void mainAppLoop() {
 // -- entry point -- -----------------------------------------------------------
 
 #if defined(_WINDOWS)
-  int APIENTRY WinMain(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE, _In_ LPSTR cmdLine, _In_ int cmdShow) {
+  int APIENTRY WinMain(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     pandora::system::WindowsApp::instance().init((pandora::system::AppInstanceHandle)appInstance);
     mainAppLoop();
     return 0;
