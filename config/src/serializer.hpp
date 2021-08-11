@@ -290,25 +290,25 @@ static void __getDefaultProfileName(uint32_t index, UnicodeString& outValue) {
 // -- serialization -- ---------------------------------------------------------
 
 // Serialize common config to JSON file
-void Serializer::writeMainConfigFile(const UnicodeString& configDir, const VideoConfig& rendererCfg,
+void Serializer::writeMainConfigFile(const UnicodeString& configDir, const VideoConfig& videoCfg,
                                      const WindowConfig& windowCfg, const ActionsConfig& actionsCfg) {
   SerializableValue::Object jsonObject;
 
   // video params
-  if (rendererCfg.api != defaultRenderingApi()) // no need to store empty values (reader sets same empty values if not in file)
-    jsonObject.emplace(video::api(), SerializableValue((int32_t)rendererCfg.api));
-  if (rendererCfg.enableVsync)
-    jsonObject.emplace(video::enableVsync(), SerializableValue((int32_t)rendererCfg.enableVsync)); // store bool as int (faster)
-  if (rendererCfg.enableFramerateLimit)
-    jsonObject.emplace(video::enableFramerateLimit(), SerializableValue((int32_t)rendererCfg.enableFramerateLimit));
-  if (rendererCfg.framerateLimit != autodetectFramerate())
-    jsonObject.emplace(video::framerateLimit(), SerializableValue(rendererCfg.framerateLimit));
-  if (rendererCfg.frameSkip != FrameSkipping::none)
-    jsonObject.emplace(video::frameSkip(), SerializableValue((int32_t)rendererCfg.frameSkip));
-  if (rendererCfg.precision != PrecisionMode::standard)
-    jsonObject.emplace(video::precision(), SerializableValue((int32_t)rendererCfg.precision));
-  if (rendererCfg.osd != OnScreenDisplay::none)
-    jsonObject.emplace(video::osd(), SerializableValue((int32_t)rendererCfg.osd));
+  if (videoCfg.api != defaultRenderingApi()) // no need to store empty values (reader sets same empty values if not in file)
+    jsonObject.emplace(video::api(), SerializableValue((int32_t)videoCfg.api));
+  if (videoCfg.enableVsync)
+    jsonObject.emplace(video::enableVsync(), SerializableValue((int32_t)videoCfg.enableVsync)); // store bool as int (faster)
+  if (videoCfg.enableFramerateLimit)
+    jsonObject.emplace(video::enableFramerateLimit(), SerializableValue((int32_t)videoCfg.enableFramerateLimit));
+  if (videoCfg.framerateLimit != autodetectFramerate())
+    jsonObject.emplace(video::framerateLimit(), SerializableValue(videoCfg.framerateLimit));
+  if (videoCfg.frameSkip != FrameSkipping::none)
+    jsonObject.emplace(video::frameSkip(), SerializableValue((int32_t)videoCfg.frameSkip));
+  if (videoCfg.precision != PrecisionMode::standard)
+    jsonObject.emplace(video::precision(), SerializableValue((int32_t)videoCfg.precision));
+  if (videoCfg.osd != OnScreenDisplay::none)
+    jsonObject.emplace(video::osd(), SerializableValue((int32_t)videoCfg.osd));
 
   // window params
   __writeSystemString(jsonObject, window::monitorId(), windowCfg.monitorId);
@@ -458,18 +458,18 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
 // -- deserialization -- -------------------------------------------------------
 
 // Deserialize common config from JSON file
-void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig& outRendererCfg,
+void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig& outVideoCfg,
                                     WindowConfig& outWindowCfg, ActionsConfig& outActionsCfg) {
   auto jsonObject = __readJsonFile(configDir + mainConfigFileName()); // throws
 
   // video params
-  outRendererCfg.api = __readInteger(jsonObject, video::api(), defaultRenderingApi());
-  outRendererCfg.enableVsync = __readInteger<bool>(jsonObject, video::enableVsync(), false);
-  outRendererCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, video::enableFramerateLimit(), false);
-  outRendererCfg.framerateLimit = __readFloat(jsonObject, video::framerateLimit(), autodetectFramerate());
-  outRendererCfg.frameSkip = __readInteger(jsonObject, video::frameSkip(), FrameSkipping::none);
-  outRendererCfg.precision = __readInteger(jsonObject, video::precision(), PrecisionMode::standard);
-  outRendererCfg.osd = __readInteger(jsonObject, video::osd(), OnScreenDisplay::none);
+  outVideoCfg.api = __readInteger(jsonObject, video::api(), defaultRenderingApi());
+  outVideoCfg.enableVsync = __readInteger<bool>(jsonObject, video::enableVsync(), false);
+  outVideoCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, video::enableFramerateLimit(), false);
+  outVideoCfg.framerateLimit = __readFloat(jsonObject, video::framerateLimit(), autodetectFramerate());
+  outVideoCfg.frameSkip = __readInteger(jsonObject, video::frameSkip(), FrameSkipping::none);
+  outVideoCfg.precision = __readInteger(jsonObject, video::precision(), PrecisionMode::standard);
+  outVideoCfg.osd = __readInteger(jsonObject, video::osd(), OnScreenDisplay::none);
 
   // window params
   __readSystemString(jsonObject, window::monitorId(), outWindowCfg.monitorId);
