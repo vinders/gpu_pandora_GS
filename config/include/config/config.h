@@ -133,13 +133,16 @@ namespace config {
     ProfileMenuTile& operator=(ProfileMenuTile&&) noexcept = default;
     ~ProfileMenuTile() noexcept = default;
 
-    ProfileMenuTile(const ProfileLabel& label) : file(label.file), name(label.name.c_str(), label.name.size()) {
+    ProfileMenuTile(const ProfileLabel& label)
+      : id(label.id), file(label.file), name(label.name.c_str(), label.name.size()) {
       toColorComponents(label.tileColor, tileColor);
     }
-    ProfileMenuTile(ProfileLabel&& label) : file(std::move(label.file)), name(label.name.c_str(), label.name.size()) {
+    ProfileMenuTile(ProfileLabel&& label)
+      : id(label.id), file(std::move(label.file)), name(label.name.c_str(), label.name.size()) {
       toColorComponents(label.tileColor, tileColor);
     }
 
+    ProfileId id = 0;   ///< Unique profile identifier
     UnicodeString file; ///< Name of file containing profile settings
     CharCodeArray name; ///< Profile name: unicode char-codes (!= Profile.name, which is the UTF-8/16 encoded version)
     float tileColor[3] = { 1.f,1.f,1.f }; ///< RGB color of profile item in menu

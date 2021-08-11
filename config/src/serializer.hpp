@@ -526,14 +526,14 @@ void Serializer::readProfileListFile(const UnicodeString& configDir, std::vector
   }
 }
 // Deserialize list of profile menu tiles from JSON file
-void Serializer::readProfileListFile(const UnicodeString& configDir, std::unordered_map<ProfileId,ProfileMenuTile>& outProfiles) {
+void Serializer::readProfileListFile(const UnicodeString& configDir, std::vector<ProfileMenuTile>& outProfiles) {
   std::vector<ProfileLabel> labels;
   readProfileListFile(configDir, labels);
   outProfiles.clear();
 
   if (!labels.empty()) {
     for (auto& it : labels)
-      outProfiles.emplace(it.id, std::move(it));
+      outProfiles.emplace_back(std::move(it));
   }
 }
 

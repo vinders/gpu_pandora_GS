@@ -135,13 +135,13 @@ static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
   EXPECT_EQ(a1.controllerHotkey, a2.controllerHotkey);
 }
 static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std::vector<ProfileLabel>& p2_label,
-                                 const std::unordered_map<ProfileId,ProfileMenuTile>& p2_menu) {
+                                 const std::vector<ProfileMenuTile>& p2_menu) {
   ASSERT_EQ(p1.size(), p2_label.size());
   ASSERT_EQ(p1.size(), p2_menu.size());
   for (uint32_t i = 0; i < p1.size(); ++i) {
     auto& src = p1[i];
     auto& dest = p2_label[i];
-    auto& menu = p2_menu.at(src.id);
+    auto& menu = p2_menu[i];
 
     float color[3];
     toColorComponents(src.tileColor, color);
@@ -239,19 +239,19 @@ TEST_F(SerializerTest, writeReadProfileList) {
   std::unique_ptr<char[]> buffer = nullptr;
 
   std::vector<ProfileLabel> inList, outList;
-  std::unordered_map<ProfileId, ProfileMenuTile> outMap;
+  std::vector<ProfileMenuTile> outTiles;
   Serializer::writeProfileListFile(configDir, inList);
   Serializer::readProfileListFile(configDir, outList);
-  Serializer::readProfileListFile(configDir, outMap);
-  __compareProfileList(inList, outList, outMap);
+  Serializer::readProfileListFile(configDir, outTiles);
+  __compareProfileList(inList, outList, outTiles);
 
   inList.push_back(ProfileLabel{ 42, UnicodeString(__UNICODE_STR("my_profile.cfg")), UnicodeString(__UNICODE_STR("My Profile")), MenuTileColor::violet });
   inList.push_back(ProfileLabel{ 1, UnicodeString(__UNICODE_STR("-the_accurate_prf-.cfg")), UnicodeString(__UNICODE_STR("-the_accurate_PRF-")), MenuTileColor::red });
   inList.push_back(ProfileLabel{ 0x7FFFFFFFu, UnicodeString(__UNICODE_STR("12345.cfg")), UnicodeString(__UNICODE_STR("12345")), MenuTileColor::teal });
   Serializer::writeProfileListFile(configDir, inList);
   Serializer::readProfileListFile(configDir, outList);
-  Serializer::readProfileListFile(configDir, outMap);
-  __compareProfileList(inList, outList, outMap);
+  Serializer::readProfileListFile(configDir, outTiles);
+  __compareProfileList(inList, outList, outTiles);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   auto filePath = configDir + Serializer::profileListFileName();

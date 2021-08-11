@@ -95,7 +95,7 @@ namespace config {
     /// @throws - runtime_error if the file was not found or not readable
     ///         - invalid_argument if the JSON syntax is invalid
     ///         - bad_alloc on allocation failure
-    static void readProfileListFile(const UnicodeString& configDir, std::unordered_map<ProfileId,ProfileMenuTile>& outProfiles);
+    static void readProfileListFile(const UnicodeString& configDir, std::vector<ProfileMenuTile>& outProfiles);
     /// @brief Deserialize config profile from JSON file
     /// @throws - runtime_error if the file was not found or not readable
     ///         - invalid_argument if the JSON syntax is invalid
