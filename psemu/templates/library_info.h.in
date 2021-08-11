@@ -15,12 +15,13 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 
-#define LIBRARY_NAME "${_LIB_NAME}"
+#define LIBRARY_NAME    "${_LIB_NAME}"
+#define LIBRARY_VERSION "${PROJECT_VERSION}"
 
 namespace psemu {
   inline constexpr const char* libName() noexcept           { return LIBRARY_NAME; }
-  inline constexpr const char* libShortVersion() noexcept { return "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"; }
-  inline constexpr const char* libVersion() noexcept      { return "${PROJECT_VERSION}"; }
+  inline constexpr const char* libShortVersion() noexcept   { return "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"; }
+  inline constexpr const char* libVersion() noexcept        { return "${PROJECT_VERSION}"; }
   inline constexpr unsigned long libVersionMajor() noexcept { return ${PROJECT_VERSION_MAJOR}; }
   inline constexpr unsigned long libVersionMinor() noexcept { return ${PROJECT_VERSION_MINOR}; }
 }
