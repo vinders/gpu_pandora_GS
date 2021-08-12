@@ -12,8 +12,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
-#include <memory>
 #include <system/logger.h>
+#include <memory>
 #include "_generated/library_info.h"
 #include "psemu/syslog.h"
 

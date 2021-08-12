@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #pragma once
+
 #include <cstdint>
 #include <memory/light_string.h>
 #include <system/trace.h>
