@@ -16,16 +16,14 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 *******************************************************************************/
 #pragma once
 
-extern "C" {
-# ifdef _WINDOWS
-#   include <system/api/windows_api.h>
-#   ifndef CALLBACK
-#     define CALLBACK __stdcall
-#   endif
-# else
-#   define CALLBACK
+#ifdef _WINDOWS
+# include <system/api/windows_api.h>
+# ifndef CALLBACK
+#   define CALLBACK __stdcall
 # endif
-
+#else
+# define CALLBACK
+#endif
 
 # define  _PPDK_HEADER_VERSION       1uL // PSEmu 1.x
 
@@ -62,6 +60,7 @@ extern "C" {
 # define  PSE_CDR_WARN_LAMECD         PSE_CDR_WARN + 0
 
 
+extern "C" {
   // -- plugin library info -- -------------------------------------------------
 
   /// @brief Get library name
