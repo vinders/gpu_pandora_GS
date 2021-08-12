@@ -233,3 +233,4 @@ extern "C" void CALLBACK GPUvisualVibration(unsigned long smallRumble, unsigned 
 // -- other implementation files -- --------------------------------------------
 
 #include "./psemu_zinc.hpp" // include -> single object file (less overhead + smaller lib size)
+#include "./timer.hpp"
