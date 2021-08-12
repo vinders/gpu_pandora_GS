@@ -31,7 +31,7 @@ namespace display {
     /// @brief Create window builder (window config + resource container)
     /// @param cursorResource  Custom cursor resource ID/path (or NULL to keep default cursor)
     WindowBuilder(const __PACKAGE_RES_ID cursorResource = nullptr)
-      : _cursor((cursorResource != nullptr) ? pandora::video::WindowResource::buildIconFromPackage(cursorResource) : nullptr) {}
+      : _cursor((cursorResource != nullptr) ? pandora::video::WindowResource::buildCursorFromPackage(cursorResource) : nullptr) {}
 
     WindowBuilder(const WindowBuilder&) = default;
     WindowBuilder(WindowBuilder&&) = default;
