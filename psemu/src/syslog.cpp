@@ -54,6 +54,10 @@ static bool __createLogger() noexcept {
   catch (...) { return false; }
 }
 
+void SysLog::close() {
+  g_logger.reset();
+}
+
 
 // -- messages -- --------------------------------------------------------------
 

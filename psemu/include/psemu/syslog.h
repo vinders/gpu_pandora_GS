@@ -33,6 +33,8 @@ namespace psemu {
     /// @brief Initialize log file directory path (with trailing slash/backslash)
     /// @remarks Has no effect if some messages have already been logged (logger is created with first message log)
     static void init(const LoggerPath& logDir);
+    /// @brief Flush and shutdown logger
+    static void close();
 
     // -- messages --
 
