@@ -16,7 +16,6 @@ GNU General Public License for more details (LICENSE file).
 
 #include <memory>
 #include <vector>
-#include <unordered_map>
 #include "config/config.h"
 
 namespace config {
@@ -25,32 +24,11 @@ namespace config {
   public:
     Serializer() = delete;
 
-    // -- DIRECTORY & BINDING -- -----------------------------------------------
-
-    // -- directory/file utils --
-
-    static constexpr inline const __UNICODE_CHAR* mainConfigFileName() noexcept { return __UNICODE_STR("common.cfg"); }
-    static constexpr inline const __UNICODE_CHAR* profileListFileName() noexcept { return __UNICODE_STR("profiles.cfg"); }
-
-    /// @brief Create config directory
-    /// @param usePortableLocation  Use portable config ('plugins' directory) or local user config ('AppData/Roaming')
-    /// @returns Success
-    static bool createConfigDir(bool usePortableLocation);
-    /// @brief Find config directory (ending with directory separator)
-    /// @returns Config directory found (priority given to portable location) or empty string (if no directory or inaccessible)
-    static UnicodeString findConfigDir();
-    /// @brief Verify if portable directory ('plugins') has write access
-    static bool isPortableLocationAvailable();
-
-    
-    // -- game/profile bindings --
-
-    static constexpr inline const __UNICODE_CHAR* lastBindingFileName() noexcept { return __UNICODE_STR(".last.bind"); }
-    static constexpr inline const __UNICODE_CHAR* gameBindingDirectory() noexcept { return __UNICODE_STR(".bind"); }
+    // -- GAME/PROFILE BINDINGS -- ---------------------------------------------
 
     /// @brief Find profile associated with current game (saved at the end of last execution)
     /// @returns ID of associated profile (if binding found) or last used profile ID (empty if no profile has ever been loaded).
-    static ProfileId findGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept;
+    static ProfileId readGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept;
     /// @brief Associate profile with current game (for the next time) + save profile as "last used profile"
     static bool saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept;
 

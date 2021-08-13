@@ -246,4 +246,22 @@ namespace config {
     uint32_t* _array = nullptr;
     size_t _length = 0;
   };
+
+
+  // -- emulator information --
+
+  /// @brief PlayStation emulator type
+  enum class EmulatorType : int {
+    unknown    = 0,
+    epsxe      = 1, ///< Standard emulator (ePSXe)
+    pcsxr      = 2, ///< Standard emulator (PCSX-R / PCSX-PGXP)
+    zinc       = 3, ///< Arcade machine emulator (ZiNc) -> adapt VRAM access + system status
+    pluginTest = 4  ///< psxtest_gpu -> use accurate config (no effects or upscaling)
+  };
+
+  /// @brief PlayStation emulator description
+  struct EmulatorInfo {
+    EmulatorType type = EmulatorType::unknown; ///< Emulator type
+    UnicodeString pluginDir; ///< Directory path for emulator plugins
+  };
 }

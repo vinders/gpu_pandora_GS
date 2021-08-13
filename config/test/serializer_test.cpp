@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 #include <thread>
 #include <io/file_system_io.h>
 #include <io/file_system_locations.h>
+#include <config/file_path_utils.h>
 #include <config/serializer.h>
 
 using namespace config;
@@ -26,11 +27,11 @@ protected:
     pluginDir = pandora::io::FileSystemLocationFinder::currentLocation() + __UNICODE_STR(__ABS_PATH_SEP "plugins");
     if (pandora::io::verifyFileSystemAccessMode(pluginDir.c_str(), pandora::io::FileSystemAccessMode::readWrite)) {
       pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP ".gpuPandoraGS"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP ".last.bind"));
-      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::mainConfigFileName());
-      pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory());
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::gameBindingsDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::gameBindingsDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind"));
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::latestBindingFileName());
+      pandora::io::removeFileEntry(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::globalConfigFileName());
+      pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::gameBindingsDirectory());
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     else
@@ -50,58 +51,43 @@ protected:
 pandora::io::SystemPath SerializerTest::pluginDir;
 
 
-// -- directory/file utils --
-
-TEST_F(SerializerTest, directoryCreateFind) {
-  EXPECT_TRUE(Serializer::isPortableLocationAvailable());
-  EXPECT_TRUE(Serializer::createConfigDir(true));
-  auto configDir = pluginDir + __UNICODE_STR(".gpuPandoraGS" __ABS_PATH_SEP);
-  EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(configDir.c_str(), pandora::io::FileSystemAccessMode::readWrite));
-
-  auto foundDir = Serializer::findConfigDir();
-  EXPECT_STREQ(configDir.c_str(), foundDir.c_str());
-
-  pandora::io::removeDirectory(configDir);
-}
-
-
 // -- game/profile bindings --
 
 TEST_F(SerializerTest, gameBindingSaveFind) {
   UnicodeString configDir(pluginDir.c_str());
 
-  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "MY_GAME.032")); // default
-  EXPECT_EQ((ProfileId)0, Serializer::findGameProfileBinding(configDir, "_Other-24")); // default
+  EXPECT_EQ((ProfileId)0, Serializer::readGameProfileBinding(configDir, "MY_GAME.032")); // default
+  EXPECT_EQ((ProfileId)0, Serializer::readGameProfileBinding(configDir, "_Other-24")); // default
 
   EXPECT_TRUE(Serializer::saveGameProfileBinding(configDir, "MY_GAME.032", (ProfileId)32));
-  UnicodeString gameFile1 = configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind");
-  UnicodeString lastUsedFile = configDir + Serializer::lastBindingFileName();
+  UnicodeString gameFile1 = configDir + config::gameBindingsDirectory() + __UNICODE_STR(__ABS_PATH_SEP "MY_GAME.032.bind");
+  UnicodeString lastUsedFile = configDir + config::latestBindingFileName();
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile1.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(lastUsedFile.c_str(), pandora::io::FileSystemAccessMode::read));
-  EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "MY_GAME.032"));
-  EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "_Other-24")); // uses .last.bind
-  EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "anything"));  // uses .last.bind
+  EXPECT_EQ((ProfileId)32, Serializer::readGameProfileBinding(configDir, "MY_GAME.032"));
+  EXPECT_EQ((ProfileId)32, Serializer::readGameProfileBinding(configDir, "_Other-24")); // uses .last.bind
+  EXPECT_EQ((ProfileId)32, Serializer::readGameProfileBinding(configDir, "anything"));  // uses .last.bind
 
   EXPECT_TRUE(Serializer::saveGameProfileBinding(configDir, "_Other-24", (ProfileId)24));
-  UnicodeString gameFile2 = configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind");
+  UnicodeString gameFile2 = configDir + config::gameBindingsDirectory() + __UNICODE_STR(__ABS_PATH_SEP "_Other-24.bind");
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile1.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile2.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(lastUsedFile.c_str(), pandora::io::FileSystemAccessMode::read));
-  EXPECT_EQ((ProfileId)32, Serializer::findGameProfileBinding(configDir, "MY_GAME.032"));
-  EXPECT_EQ((ProfileId)24, Serializer::findGameProfileBinding(configDir, "_Other-24"));
+  EXPECT_EQ((ProfileId)32, Serializer::readGameProfileBinding(configDir, "MY_GAME.032"));
+  EXPECT_EQ((ProfileId)24, Serializer::readGameProfileBinding(configDir, "_Other-24"));
 
   EXPECT_TRUE(Serializer::saveGameProfileBinding(configDir, "MY_GAME.032", (ProfileId)64));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile1.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(gameFile2.c_str(), pandora::io::FileSystemAccessMode::read));
   EXPECT_TRUE(pandora::io::verifyFileSystemAccessMode(lastUsedFile.c_str(), pandora::io::FileSystemAccessMode::read));
-  EXPECT_EQ((ProfileId)64, Serializer::findGameProfileBinding(configDir, "MY_GAME.032"));
-  EXPECT_EQ((ProfileId)24, Serializer::findGameProfileBinding(configDir, "_Other-24"));
+  EXPECT_EQ((ProfileId)64, Serializer::readGameProfileBinding(configDir, "MY_GAME.032"));
+  EXPECT_EQ((ProfileId)24, Serializer::readGameProfileBinding(configDir, "_Other-24"));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   pandora::io::removeFileEntry(gameFile1.c_str());
   pandora::io::removeFileEntry(gameFile2.c_str());
   pandora::io::removeFileEntry(lastUsedFile.c_str());
-  pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + Serializer::gameBindingDirectory());
+  pandora::io::removeDirectory(pluginDir + __UNICODE_STR(__ABS_PATH_SEP) + config::gameBindingsDirectory());
 }
 
 
@@ -233,7 +219,7 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  auto filePath = configDir + Serializer::mainConfigFileName();
+  auto filePath = configDir + config::globalConfigFileName();
   pandora::io::removeFileEntry(filePath.c_str());
 }
 
@@ -257,7 +243,7 @@ TEST_F(SerializerTest, writeReadProfileList) {
   __compareProfileList(inList, outList, outTiles);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  auto filePath = configDir + Serializer::profileListFileName();
+  auto filePath = configDir + config::profileListFileName();
   pandora::io::removeFileEntry(filePath.c_str());
 }
 

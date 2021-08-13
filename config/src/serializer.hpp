@@ -13,14 +13,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 // this implementation is included in config.cpp -> single object file (less overhead + smaller lib size)
-#include <cstdlib>
+#include <cstring>
 #include <thread>
 #include <stdexcept>
 #include <io/encoder.h>
 #include <io/json_serializer.h>
-#include <io/file_system_io.h>
-#include <io/file_system_locations.h>
 #include "config/_private/_serializer_keys.h"
+#include "config/file_path_utils.h"
 #include "config/serializer.h"
 
 using namespace config;
@@ -29,110 +28,45 @@ using pandora::io::SerializableValue;
 
 
 // -----------------------------------------------------------------------------
-// DIRECTORY & PROFILE BINDING
+// GAME/PROFILE BINDINGS
 // -----------------------------------------------------------------------------
 
-// -- directory/file utils -- --------------------------------------------------
-
-// Create config directory
-bool Serializer::createConfigDir(bool usePortableLocation) {
-  if (usePortableLocation) {
-    return (pandora::io::createDirectory(pandora::io::FileSystemLocationFinder::currentLocation()
-                                         + __UNICODE_STR(__ABS_PATH_SEP "plugins" __ABS_PATH_SEP ".gpuPandoraGS")) == 0);
-  }
-  else {
-    auto appDataDirs = pandora::io::FileSystemLocationFinder::standardLocation(pandora::io::FileSystemLocation::appData,
-                                                                               __UNICODE_STR("Games"));
-    auto& targetDir = appDataDirs.front();
-    if (!pandora::io::verifyFileSystemAccessMode(targetDir.c_str(), pandora::io::FileSystemAccessMode::read))
-      pandora::io::createDirectory(targetDir);
-
-    targetDir += __UNICODE_STR(__ABS_PATH_SEP "gpuPandoraGS");
-    return (pandora::io::createDirectory(targetDir) == 0);
-  }
-}
-// Find config directory
-UnicodeString Serializer::findConfigDir() {
-  auto currentLocation = pandora::io::FileSystemLocationFinder::currentLocation();
-
-  auto configDir = currentLocation + __UNICODE_STR(__ABS_PATH_SEP "plugins" __ABS_PATH_SEP ".gpuPandoraGS" __ABS_PATH_SEP);
-  if (!pandora::io::verifyFileSystemAccessMode(configDir.c_str(), pandora::io::FileSystemAccessMode::readWrite)) {
-    auto appDataDirs = pandora::io::FileSystemLocationFinder::standardLocation(pandora::io::FileSystemLocation::appData,
-                                                                __UNICODE_STR("Games" __ABS_PATH_SEP "gpuPandoraGS" __ABS_PATH_SEP));
-    configDir = appDataDirs.front();
-    if (!pandora::io::verifyFileSystemAccessMode(configDir.c_str(), pandora::io::FileSystemAccessMode::readWrite))
-      return UnicodeString{};
-  }
-  return UnicodeString(configDir.c_str());
-}
-
-/// @brief Verify if portable directory ('plugins') has write access
-bool Serializer::isPortableLocationAvailable() {
-  auto portableDir = pandora::io::FileSystemLocationFinder::currentLocation() + __UNICODE_STR(__ABS_PATH_SEP "plugins" __ABS_PATH_SEP);
-  return pandora::io::verifyFileSystemAccessMode(portableDir.c_str(), pandora::io::FileSystemAccessMode::readWrite);
-}
-
-
-// -- game/profile bindings -- -------------------------------------------------
-
-#define __GAME_ID_BUFFER_SIZE 32
-
-static UnicodeString __getGameProfileBindingPath(const UnicodeString& configDir, const char* gameId) {
-  __UNICODE_CHAR buffer[__GAME_ID_BUFFER_SIZE];
-  __UNICODE_CHAR* lastIndex = &buffer[__GAME_ID_BUFFER_SIZE - 1];
-  __UNICODE_CHAR* cur;
-  for (cur = &buffer[0]; *gameId && cur < lastIndex; ++cur, ++gameId) {
-    *cur = ((*gameId >= '@' && *gameId != '\\' && *gameId != '|')
-         || (*gameId <= '9' && *gameId >= '#' && *gameId != '*' && *gameId != '/'))
-         ? static_cast<__UNICODE_CHAR>(*gameId)
-         : L'_';
-  }
-  *cur = (__UNICODE_CHAR)0;
-
-  return configDir + Serializer::gameBindingDirectory() + __UNICODE_STR(__ABS_PATH_SEP) + buffer + __UNICODE_STR(".bind");
-}
-
-// ---
-
 // Find profile associated with current game (saved at the end of last execution)
-ProfileId Serializer::findGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept {
+ProfileId Serializer::readGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept {
   ProfileId profileId;
   if (gameId != nullptr) {
-    auto filePath = __getGameProfileBindingPath(configDir, gameId);
-    auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("rb"));
-    if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) > 0)
+    auto filePath = getGameBindingPath(configDir, gameId);
+    auto reader = openFile(filePath.c_str(), __UNICODE_STR("rb"));
+    if (reader.isOpen() && fread(&profileId, sizeof(ProfileId), 1, reader.handle()) > 0)
       return profileId;
   }
 
-  auto filePath = configDir + lastBindingFileName();
-  auto input = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("rb"));
-  if (input.isOpen() && fread(&profileId, sizeof(ProfileId), 1, input.handle()) > 0)
+  auto filePath = configDir + latestBindingFileName();
+  auto reader = openFile(filePath.c_str(), __UNICODE_STR("rb"));
+  if (reader.isOpen() && fread(&profileId, sizeof(ProfileId), 1, reader.handle()) > 0)
     return profileId;
   return 0;
 }
 
 // Associate profile with current game (for the next time) + save profile as "last used profile"
 bool Serializer::saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept {
-  if (gameId != nullptr) {
-    // create directory (if not existing)
-    auto dirPath = pandora::io::SystemPath(configDir.c_str()) + gameBindingDirectory();
-    if (!pandora::io::verifyFileSystemAccessMode(dirPath.c_str(), pandora::io::FileSystemAccessMode::readWrite))
-      pandora::io::createDirectory(dirPath);
+  // create directory (if not existing)
+  auto dirPath = getGameBindingsDir(configDir);
+  if (!isPathReadable(dirPath.c_str()) && !config::createDirectory(dirPath.c_str()))
+    return false;
 
-    // save game/profile association
-    auto filePath = __getGameProfileBindingPath(configDir, gameId);
-    auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
-    if (output.isOpen())
-      fwrite(&profileId, sizeof(ProfileId), 1, output.handle());
+  // save game/profile association (if supported by emulator)
+  if (gameId != nullptr) {
+    auto filePath = getGameBindingPath(configDir, gameId);
+    auto writer = openFile(filePath.c_str(), __UNICODE_STR("wb"));
+    if (writer.isOpen())
+      fwrite(&profileId, sizeof(ProfileId), 1, writer.handle());
   }
 
-  // save "last used profile"
-  bool isSuccess = false;
-  auto filePath = configDir + lastBindingFileName();
-  auto output = pandora::io::openFileEntry(filePath.c_str(), __UNICODE_STR("wb"));
-  if (output.isOpen())
-    isSuccess = (fwrite(&profileId, sizeof(ProfileId), 1, output.handle()) > 0);
-  return isSuccess;
+  // save latest profile
+  auto filePath = configDir + latestBindingFileName();
+  auto writer = openFile(filePath.c_str(), __UNICODE_STR("wb"));
+  return (writer.isOpen() && fwrite(&profileId, sizeof(ProfileId), 1, writer.handle()) > 0);
 }
 
 
@@ -150,53 +84,57 @@ static void __writeJsonFile(const UnicodeString& outputFile, const SerializableV
   auto serialized = serializer.toString(data);
   size_t length = serialized.size();
 
-  bool prevFileExists = pandora::io::verifyFileSystemAccessMode(outputFile.c_str(), pandora::io::FileSystemAccessMode::read);
-  UnicodeString tmpFile = prevFileExists ? outputFile + __UNICODE_STR("_tmp") : outputFile;
-  auto output = pandora::io::openFileEntry(tmpFile.c_str(), __UNICODE_STR("wt"));
-  if (!output.isOpen())
-    throw std::runtime_error("Config file could not be created");
+  bool prevFileExists = isPathReadable(outputFile.c_str());
+  UnicodeString newFile = prevFileExists ? outputFile + __UNICODE_STR("_tmp") : outputFile; // if file exists, use temp file
+  auto writer = openFile(newFile.c_str(), __UNICODE_STR("wt"));
+  if (!writer.isOpen())
+    throw std::runtime_error("Could not create config file");
 
-  size_t bytesWritten = fwrite(serialized.c_str(), 1, length, output.handle());
-  output.close();
-
+  size_t bytesWritten = fwrite(serialized.c_str(), 1, length, writer.handle());
+  writer.close(); // close file before trying to rename it (if previous file existed)
   if (bytesWritten < length) {
-    pandora::io::removeFileEntry(tmpFile.c_str());
+    removeFile(newFile.c_str());
     throw std::runtime_error("Failed to write config file data");
   }
+
+  // if previous file existed, replace it with new file (successfully created)
   if (prevFileExists) {
-    if (pandora::io::removeFileEntry(outputFile.c_str()) != 0)
+    if (!removeFile(outputFile.c_str()))
       throw std::runtime_error("Failed to replace previous data file");
 
-    uint32_t retryCount = 0;
-#   ifdef _WINDOWS
-    while (_wrename(tmpFile.c_str(), outputFile.c_str()) < 0)
-#   else
-    while (rename(tmpFile.c_str(), outputFile.c_str()) < 0)
-#   endif
-    {
-      if (++retryCount > __MAX_RETRIES)
-        throw std::runtime_error("Failed to rename temporary file");
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    bool isReplaced = false;
+    for (uint32_t retryCount = 0; !isReplaced; ++retryCount) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1)); // delay after file close and between retries
+
+#     ifdef _WINDOWS
+        isReplaced = (_wrename(newFile.c_str(), outputFile.c_str()) < 0);
+#     else
+        isReplaced = (rename(newFile.c_str(), outputFile.c_str()) < 0);
+#     endif
+    }
+    if (!isReplaced) {
+      removeFile(newFile.c_str());
+      throw std::runtime_error("Failed to rename temporary file");
     }
   }
 }
 
 // Read JSON from config file
 static SerializableValue::Object __readJsonFile(const UnicodeString& sourceFilePath) {
-  auto input = pandora::io::openFileEntry(sourceFilePath.c_str(), __UNICODE_STR("rt"));
-  if (!input.isOpen())
+  auto reader = openFile(sourceFilePath.c_str(), __UNICODE_STR("rt"));
+  if (!reader.isOpen())
     throw std::runtime_error("Config file not found or not readable");
 
-  fseek(input.handle(), 0, SEEK_END);
-  long fileSize = ftell(input.handle());
-  fseek(input.handle(), 0, SEEK_SET);
+  fseek(reader.handle(), 0, SEEK_END);
+  long fileSize = ftell(reader.handle());
+  fseek(reader.handle(), 0, SEEK_SET);
   if (fileSize <= 0)
     throw std::runtime_error("Config file empty or not readable");
 
   auto fileData = std::unique_ptr<char[]>(new char[fileSize + 1]);
-  fread(&fileData[0], 1, fileSize, input.handle());
+  fread(&fileData[0], 1, fileSize, reader.handle());
   fileData[fileSize] = 0;
-  input.close();
+  reader.close();
 
   pandora::io::JsonSerializer deserializer;
   return deserializer.fromString(&fileData[0]); // throws if invalid syntax
@@ -335,7 +273,7 @@ void Serializer::writeMainConfigFile(const UnicodeString& configDir, const Video
   bool isSuccess = false;
   do {
     try {
-      __writeJsonFile(configDir + mainConfigFileName(), jsonObject);
+      __writeJsonFile(getGlobalConfigPath(configDir), jsonObject);
       isSuccess = true;
     }
     catch (...) {
@@ -367,7 +305,7 @@ void Serializer::writeProfileListFile(const UnicodeString& configDir, const std:
   bool isSuccess = false;
   do {
     try {
-      __writeJsonFile(configDir + profileListFileName(), jsonObject);
+      __writeJsonFile(getProfileListPath(configDir), jsonObject);
       isSuccess = true;
     }
     catch (...) {
@@ -462,7 +400,7 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
 // Deserialize common config from JSON file
 void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig& outVideoCfg,
                                     WindowConfig& outWindowCfg, ActionsConfig& outActionsCfg) {
-  auto jsonObject = __readJsonFile(configDir + mainConfigFileName()); // throws
+  auto jsonObject = __readJsonFile(getGlobalConfigPath(configDir)); // throws
 
   // video params
   outVideoCfg.api = __readInteger(jsonObject, video::api(), defaultRenderingApi());
@@ -493,7 +431,7 @@ void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig&
 
 // Deserialize list of profile labels from JSON file
 void Serializer::readProfileListFile(const UnicodeString& configDir, std::vector<ProfileLabel>& outProfiles) {
-  auto jsonObject = __readJsonFile(configDir + profileListFileName()); // throws
+  auto jsonObject = __readJsonFile(getProfileListPath(configDir)); // throws
 
   outProfiles.clear();
   auto profileListIt = jsonObject.find(profile::_array());
