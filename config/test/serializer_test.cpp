@@ -133,6 +133,7 @@ static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
     EXPECT_EQ(a1.controllerMapping[i], a2.controllerMapping[i]);
   }
   EXPECT_EQ(a1.controllerHotkey, a2.controllerHotkey);
+  EXPECT_EQ(a1.hintMenuOnMouseMove, a2.hintMenuOnMouseMove);
 }
 static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std::vector<ProfileLabel>& p2_label,
                                  const std::vector<ProfileMenuTile>& p2_menu) {
@@ -202,6 +203,7 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
 
   inVideoCfg.enableFramerateLimit = false;
   inVideoCfg.enableVsync = false;
+  inActionsCfg.hintMenuOnMouseMove = false;
   memset(&inActionsCfg, 0, sizeof(ActionsConfig));
   Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
   Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
@@ -225,6 +227,7 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   for (size_t i = 0; i < controllerMap::length(); ++i)
     inActionsCfg.controllerMapping[i] = i + 3;
   inActionsCfg.controllerHotkey = 42;
+  inActionsCfg.hintMenuOnMouseMove = true;
   Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
   Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
   __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);

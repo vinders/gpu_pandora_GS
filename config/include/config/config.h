@@ -57,6 +57,7 @@ namespace config {
     /// @brief Gamepad control: button mapping (index access with controllerMap::<name_of_action>)
     uint32_t controllerMapping[controllerMap::length()]{ disabledKey() };
     uint32_t controllerHotkey = disabledKey(); ///< Gamepad hotkey (combined with mapped buttons to trigger actions)
+    bool hintMenuOnMouseMove = true; ///< Show menubar and cursor when the mouse moves
   };
 
 

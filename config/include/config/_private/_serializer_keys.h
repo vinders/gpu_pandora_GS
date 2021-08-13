@@ -39,6 +39,7 @@ namespace config {
     constexpr const char* keyboardMapping() noexcept { return "key"; }
     constexpr const char* controllerMapping() noexcept { return "ctl"; }
     constexpr const char* controllerHotkey() noexcept { return "ctl_hk"; }
+    constexpr const char* hintMenuOnMouseMove() noexcept { return "menu_hint"; }
   }
   namespace profile {
     constexpr const char* _array() noexcept { return "profiles"; }

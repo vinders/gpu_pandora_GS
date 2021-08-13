@@ -328,6 +328,8 @@ void Serializer::writeMainConfigFile(const UnicodeString& configDir, const Video
   __writeIntegerArray(jsonObject, actions::controllerMapping(), &actionsCfg.controllerMapping[0], controllerMap::length());
   if (actionsCfg.controllerHotkey)
     jsonObject.emplace(actions::controllerHotkey(), SerializableValue((int32_t)actionsCfg.controllerHotkey));
+  if (actionsCfg.hintMenuOnMouseMove)
+    jsonObject.emplace(actions::hintMenuOnMouseMove(), SerializableValue((int32_t)actionsCfg.hintMenuOnMouseMove));
 
   uint32_t retryCount = 0;
   bool isSuccess = false;
@@ -486,6 +488,7 @@ void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig&
   memset(outActionsCfg.controllerMapping, disabledKey(), controllerMap::length()*sizeof(*outActionsCfg.controllerMapping));
   __readIntegerArray(jsonObject, actions::controllerMapping(), &outActionsCfg.controllerMapping[0], controllerMap::length());
   outActionsCfg.controllerHotkey = __readInteger(jsonObject, actions::controllerHotkey(), disabledKey());
+  outActionsCfg.hintMenuOnMouseMove = __readInteger<bool>(jsonObject, actions::hintMenuOnMouseMove(), false);
 }
 
 // Deserialize list of profile labels from JSON file
