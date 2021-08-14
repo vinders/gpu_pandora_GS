@@ -15,14 +15,21 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
+#include <cstring>
 #include <memory/light_string.h>
-#include <system/trace.h>
 
-# ifdef _WINDOWS
-    using LoggerPath = pandora::memory::LightWString;
-# else
-    using LoggerPath = pandora::memory::LightString;
+#ifdef _WINDOWS
+  using LoggerPath = pandora::memory::LightWString;
+# ifndef __FILE_NAME__
+#   define __FILE_NAME__ strrchr("\\" __FILE__, '\\') + 1
 # endif
+#else
+  using LoggerPath = pandora::memory::LightString;
+# ifndef __FILE_NAME__
+#   define __FILE_NAME__ strrchr("/" __FILE__, '/') + 1
+# endif
+#endif
 
 namespace psemu {
   /// @brief System logger (for warnings, errors, debugging...)
