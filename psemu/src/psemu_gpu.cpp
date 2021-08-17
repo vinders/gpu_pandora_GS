@@ -19,6 +19,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "_generated/library_info.h"
 #include "config/file_path_utils.h"
 #include "config/serializer.h"
+#include "config/presets.h"
 #include "display/window_builder.h"
 #include "psemu/syslog.h"
 #include "psemu/timer.h"
@@ -32,6 +33,7 @@ config::EmulatorInfo g_emulator;
 config::UnicodeString g_configDir;
 config::VideoConfig   g_videoConfig;
 config::ActionsConfig g_inputConfig;
+pandora::memory::LightString g_gameId;
 
 display::WindowBuilder g_windowConfigurator = nullptr;
 std::unique_ptr<pandora::video::Window> g_window = nullptr;
@@ -116,35 +118,37 @@ static config::UnicodeString createConfigDirectory(const config::UnicodeString& 
 // Driver init (called once)
 extern "C" long CALLBACK GPUinit() {
   try {
+    // identify emulator
     config::readEmulatorInfo(g_emulator);
 #   ifdef _WINDOWS
       if (g_emulator.type == config::EmulatorType::epsxe)
         ShowCursor(TRUE);
 #   endif
 
+    // identify config directory (or ask for location + create it)
     g_windowConfigurator = display::WindowBuilder(__MENU_CURSOR_ID);
-    if (g_emulator.type != config::EmulatorType::pluginTest) {
-      try {
-        g_configDir = config::findConfigDir(g_emulator.pluginDir);
-        if (g_configDir.empty())
-          g_configDir = createConfigDirectory(g_emulator.pluginDir);
-        
-        SysLog::init(g_configDir); // redirect default log path to config dir
-        SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUinit");
-
-        config::Serializer::readMainConfigFile(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
-      }
-      catch (const std::exception& exc) { // config file not found or corrupted
-        SysLog::logWarning(__FILE_NAME__, __LINE__, exc.what());
-      }
+    try {
+      g_configDir = config::findConfigDir(g_emulator.pluginDir);
+      if (g_configDir.empty())
+        g_configDir = createConfigDirectory(g_emulator.pluginDir);
     }
+    catch (const std::exception& exc) { SysLog::logError(__FILE_NAME__, __LINE__, exc.what()); }
 
-    g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? psemu::SpeedMode::normal : psemu::SpeedMode::none);
-    g_timer.setFrameSkipping(g_videoConfig.frameSkip == config::FrameSkipping::adaptative);
-    if (g_videoConfig.framerateLimit != config::autodetectFramerate())
-      g_timer.setFrequency(g_videoConfig.framerateLimit);
+    SysLog::init(g_configDir); // redirect default log path to config dir
+    SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUinit");
 
-    //...
+    // try to load global config (on failure, use default config)
+    try {
+      config::Serializer::readGlobalConfigFile(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
+    }
+    catch (const std::exception& exc) {
+      if (!g_configDir.empty() && !config::isPathReadable(g_configDir + config::globalConfigFileName())) { // not found -> create it
+        g_inputConfig.initDefaultMapping();
+        config::Serializer::writeGlobalConfigFile(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
+      }
+      else // file corrupted or alloc failure
+        SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
+    }
     return PSE_INIT_SUCCESS;
   }
   catch (const std::exception& exc) {
@@ -163,30 +167,78 @@ extern "C" long CALLBACK GPUshutdown() {
 
 // ---
 
+// Open driver (game started)
 #ifdef _WINDOWS
-  // Open driver (game started) - win32
-  extern "C" long CALLBACK GPUopen(HWND window) {
-    SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUopen");
+extern "C" long CALLBACK GPUopen(HWND window) {
+#else
+extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* configFile) {
+#endif
+  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUopen");
+  try {
+    // load list of renderer config profiles
+    std::vector<config::ProfileMenuTile> profiles;
     try {
-      pandora::video::disableScreenSaver();
-
-      pandora::hardware::DisplayMode displayMode;
-      g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), displayMode);
-
-      //...
-      return PSE_GPU_SUCCESS;
+      config::Serializer::readProfileListFile(g_configDir, profiles);
     }
     catch (const std::exception& exc) {
-      SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
-      return PSE_ERR_FATAL;
+      if (!g_configDir.empty() && !config::isPathReadable(g_configDir + config::profileListFileName())) // not found -> create it
+        config::Serializer::writeProfileListFile(g_configDir, std::vector<config::ProfileLabel>{});
+      else // file corrupted
+        SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
     }
-  }
-#else
-  // Open driver (game started) - linux / unix
-  extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* configFile) {
+
+    // try to load profile (associated with game ID, if available)
+    config::RendererProfile rendererConfig;
+    if (g_gameId == "DEMO_999.99") { // psxtest_gpu -> use accurate settings
+      config::loadPreset(config::PresetId::psxAccurate, rendererConfig);
+      g_windowConfigurator.windowConfig().windowMode = config::WindowMode::window;
+    }
+    else if (!profiles.empty()) { // normal game -> load profile associated with game
+      try {
+        config::ProfileMenuTile* targetProfile = &profiles[0]; // default to first profile (if target not found)
+        auto targetId = config::Serializer::readGameProfileBinding(g_configDir, g_gameId.c_str());
+        for (auto& it : profiles) {
+          if (it.id == targetId) {
+            targetProfile = &it;
+            break;
+          }
+        }
+        config::Serializer::readProfileConfigFile(targetProfile->file, rendererConfig);
+      }
+      catch (const std::exception& exc) {
+        if (!profiles.empty()) // corrupted profile or alloc failure
+          SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
+      }
+    }
+
+    // create output window
+    pandora::hardware::DisplayMode displayMode;
+#   ifdef _WINDOWS
+      g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), displayMode);
+#   else
+      g_window = pandora::video::Window::Builder{}.create("PGS_WINDOW", caption);
+#   endif
+    g_window->clearClientArea();
+    pandora::video::disableScreenSaver();
+
+    // configure sync timer
+    g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? psemu::SpeedMode::normal : psemu::SpeedMode::none);
+    g_timer.setFrameSkipping(g_videoConfig.frameSkip == config::FrameSkipping::adaptative);
+    if (g_videoConfig.framerateLimit != config::autodetectFramerate())
+      g_timer.setFrequency(g_videoConfig.framerateLimit);
+
+    // set event handlers
+    /*g_window->setWindowHandler(...);
+    g_window->setPositionHandler(...);
+    g_window->setKeyboardHandler(...);
+    g_window->setMouseHandler(...);*/
     return PSE_GPU_SUCCESS;
   }
-#endif
+  catch (const std::exception& exc) {
+    SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
+    return PSE_ERR_FATAL;
+  }
+}
 
 // Close driver (game stopped)
 extern "C" long CALLBACK GPUclose() {
@@ -209,10 +261,10 @@ extern "C" void CALLBACK GPUupdateLace() {
 
 // Read data from GPU status register
 extern "C" unsigned long CALLBACK GPUreadStatus() {
-  return 0;
+  return 0x14802000;
 }
 
-// Process data sent to GPU status register
+// Process data sent to GPU status register - GP1 commands
 extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
 
 }
@@ -249,7 +301,7 @@ extern "C" void CALLBACK GPUwriteData(unsigned long gdata) {
 
 }
 
-// Process and send chunk of data to video data register
+// Process and send chunk of data to video data register - GP0/DMA commands
 extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
 
 }
@@ -310,7 +362,7 @@ extern "C" void CALLBACK GPUsetfix(unsigned long fixBits) {
 // Set game executable ID (for config profiles associations)
 extern "C" void CALLBACK GPUsetExeName(char* gameId) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetExeName: %s", gameId);
-
+  g_gameId = pandora::memory::LightString(gameId);
 }
 
 
@@ -318,19 +370,19 @@ extern "C" void CALLBACK GPUsetExeName(char* gameId) {
 
 // Request snapshot (on next display)
 extern "C" void CALLBACK GPUmakeSnapshot() {
-  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUmakeSnapshot");
+
 
 }
 
 // Get screen picture
 extern "C" void CALLBACK GPUgetScreenPic(unsigned char* image) {
-  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUgetScreenPic");
+
 
 }
 
 // Store and display screen picture
 extern "C" void CALLBACK GPUshowScreenPic(unsigned char* image) {
-  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUshowScreenPic");
+
 }
 
 

@@ -21,20 +21,6 @@ GNU General Public License for more details (LICENSE file).
 namespace config {
   // -- window / renderer settings -- ----------------------------------
   
-  /// @brief 3D rendering API to use
-  enum class RenderingApi : int {
-    d3d11   = 0, ///< Direct3D 11
-    openGL4 = 1, ///< OpenGL 4.5/4.6 (4.1 on macOS)
-    vulkan  = 2  ///< Vulkan 1.2+
-  };
-# if defined(_VIDEO_D3D11_SUPPORT)
-    constexpr inline RenderingApi defaultRenderingApi() noexcept { return RenderingApi::d3d11; }
-# elif defined(_VIDEO_VULKAN_SUPPORT)
-#   constexpr inline RenderingApi defaultRenderingApi() noexcept { return RenderingApi::vulkan; }
-# else
-#   constexpr inline RenderingApi defaultRenderingApi() noexcept { return RenderingApi::openGL4; }
-# endif
-  
   /// @brief Geometry subprecision mode
   enum class PrecisionMode : int {
     standard     = 0, ///< Original integer coordinates
@@ -255,8 +241,7 @@ namespace config {
     unknown    = 0,
     epsxe      = 1, ///< Standard emulator (ePSXe)
     pcsxr      = 2, ///< Standard emulator (PCSX-R / PCSX-PGXP)
-    zinc       = 3, ///< Arcade machine emulator (ZiNc) -> adapt VRAM access + system status
-    pluginTest = 4  ///< psxtest_gpu -> use accurate config (no effects or upscaling)
+    zinc       = 3  ///< Arcade machine emulator (ZiNc) -> adapt VRAM access + system status
   };
 
   /// @brief PlayStation emulator description

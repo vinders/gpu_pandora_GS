@@ -29,6 +29,7 @@ namespace config {
   // ---
 
   bool isPathReadable(const __UNICODE_CHAR* path) noexcept; ///< Verify if a path exists and is readable
+  inline bool isPathReadable(const UnicodeString& path) noexcept { return isPathReadable(path.c_str()); }
   bool isPathWritable(const __UNICODE_CHAR* path) noexcept; ///< Verify if a path exists and is writable
 
   UnicodeString getCurrentDir();  ///< Read current execution directory path (no trailing separator)

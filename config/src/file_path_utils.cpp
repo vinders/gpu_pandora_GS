@@ -161,12 +161,7 @@ void config::readEmulatorInfo(EmulatorInfo& outInfo) {
   // detect emulator type based on name
   switch (*fileName) {
     case (__UNICODE_CHAR)'p':
-    case (__UNICODE_CHAR)'P':
-      if (nameLength >= 7 && memcmp(fileName, __UNICODE_STR("psxtest"), 7*sizeof(__UNICODE_CHAR)) == 0)
-        outInfo.type = EmulatorType::pluginTest;
-      else
-        outInfo.type = EmulatorType::pcsxr;
-      break;
+    case (__UNICODE_CHAR)'P': outInfo.type = EmulatorType::pcsxr; break;
     case (__UNICODE_CHAR)'e':
     case (__UNICODE_CHAR)'E': outInfo.type = EmulatorType::epsxe; break;
     case (__UNICODE_CHAR)'z':
