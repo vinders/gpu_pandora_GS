@@ -228,14 +228,12 @@ static void __getDefaultProfileName(uint32_t index, UnicodeString& outValue) {
 // -- serialization -- ---------------------------------------------------------
 
 // Serialize common config to JSON file
-void Serializer::writeMainConfigFile(const UnicodeString& configDir, const VideoConfig& videoCfg,
+void Serializer::writeGlobalConfigFile(const UnicodeString& configDir, const VideoConfig& videoCfg,
                                      const WindowConfig& windowCfg, const ActionsConfig& actionsCfg) {
   SerializableValue::Object jsonObject;
 
   // video params
-  if (videoCfg.api != defaultRenderingApi()) // no need to store empty values (reader sets same empty values if not in file)
-    jsonObject.emplace(video::api(), SerializableValue((int32_t)videoCfg.api));
-  if (videoCfg.enableVsync)
+  if (videoCfg.enableVsync) // no need to store empty values (reader sets same empty values if not in file)
     jsonObject.emplace(video::enableVsync(), SerializableValue((int32_t)videoCfg.enableVsync)); // store bool as int (faster)
   if (videoCfg.enableFramerateLimit)
     jsonObject.emplace(video::enableFramerateLimit(), SerializableValue((int32_t)videoCfg.enableFramerateLimit));
@@ -398,12 +396,11 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
 // -- deserialization -- -------------------------------------------------------
 
 // Deserialize common config from JSON file
-void Serializer::readMainConfigFile(const UnicodeString& configDir, VideoConfig& outVideoCfg,
+void Serializer::readGlobalConfigFile(const UnicodeString& configDir, VideoConfig& outVideoCfg,
                                     WindowConfig& outWindowCfg, ActionsConfig& outActionsCfg) {
   auto jsonObject = __readJsonFile(getGlobalConfigPath(configDir)); // throws
 
   // video params
-  outVideoCfg.api = __readInteger(jsonObject, video::api(), defaultRenderingApi());
   outVideoCfg.enableVsync = __readInteger<bool>(jsonObject, video::enableVsync(), false);
   outVideoCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, video::enableFramerateLimit(), false);
   outVideoCfg.framerateLimit = __readFloat(jsonObject, video::framerateLimit(), autodetectFramerate());

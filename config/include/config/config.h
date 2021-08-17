@@ -36,7 +36,6 @@ namespace config {
 
   /// @brief General renderer & timer settings
   struct VideoConfig final {
-    RenderingApi api = defaultRenderingApi();          ///< Rendering API used for display (Direct3D11, Vulkan...)
     PrecisionMode precision = PrecisionMode::standard; ///< Geometry precision/subprecision mode for coordinates
     bool enableVsync = false;                          ///< Vertical sync (no tearing, lower power consump., but higher input delay)
     bool enableFramerateLimit = true;                  ///< Enable framerate limiter (with 'framerateLimit')

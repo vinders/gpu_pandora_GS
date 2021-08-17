@@ -18,7 +18,6 @@ GNU General Public License for more details (LICENSE file).
 
 namespace config {
   namespace video {
-    constexpr const char* api() noexcept { return "api"; }
     constexpr const char* enableVsync() noexcept { return "vsync"; }
     constexpr const char* enableFramerateLimit() noexcept { return "limit_on"; }
     constexpr const char* framerateLimit() noexcept { return "framerate"; }

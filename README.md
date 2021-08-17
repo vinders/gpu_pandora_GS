@@ -4,7 +4,7 @@
 ![project - Cmake](_img/badges/project_cmake.svg)
 ![lang - C++17](_img/badges/lang_cpp17.svg)
 ![tests - Gtest](_img/badges/tests_gtest.svg)<br>
-![Direct3D11](https://img.shields.io/badge/Direct3D_11-supported-6c4.svg) ![OpenGL4](https://img.shields.io/badge/OpenGL_4-planned-28b.svg) ![Vulkan](https://img.shields.io/badge/Vulkan_1.2-planned-28b.svg)
+![Direct3D11](https://img.shields.io/badge/Direct3D_11-supported-6c4.svg) ![Vulkan](https://img.shields.io/badge/Vulkan_1.2-planned-28b.svg)
 
 **Pandora GS** is a GPU driver for PSEmu-compatible PlayStation emulators (ePSXe, PCSX-R, PCSX-PGXP, ZiNc...).
 

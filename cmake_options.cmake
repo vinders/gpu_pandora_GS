@@ -32,63 +32,42 @@ if(NOT DEFINED _PANDORAGS_OPTIONS_FOUND)
             endif()
         endif()
         
-        set(CWORK_VIDEO_D3D11 ON CACHE BOOL "")
-        
         # Windows 7 / 8
         if(OPTION_MIN_WINDOWS_VERSION STREQUAL "7")
             set(CWORK_WINDOWS_VERSION "7" CACHE INTERNAL "" FORCE)  # use retrocompatible Win32 API -> missing new features + slower API
             set(CWORK_D3D11_VERSION "110" CACHE INTERNAL "" FORCE)  # 11.0 (D3D 11.1 only partially supported on Win7)
-            set(CWORK_OPENGL4_VERSION "45" CACHE INTERNAL "" FORCE) # 4.5
-            set(OPTION_ENABLE_VULKAN OFF CACHE BOOL "not supported") # disable Vulkan (poor support on older hardware)
+            set(OPTION_VULKAN_RENDERER OFF CACHE BOOL "not supported") # disable Vulkan (poor support on older hardware)
         # Windows 10+
         else()
             set(CWORK_WINDOWS_VERSION "10" CACHE INTERNAL "" FORCE) # Windows 10+ required -> support advanced DPI settings + faster API + extra D3D features
             set(CWORK_D3D11_VERSION "114" CACHE INTERNAL "" FORCE)  # 11.4
-            set(CWORK_OPENGL4_VERSION "46" CACHE INTERNAL "" FORCE) # 4.6
             
-            if(NOT "$ENV{VULKAN_SDK}" STREQUAL "") # only allow Vulkan if SDK is installed
-                if(NOT DEFINED OPTION_ENABLE_VULKAN)
-                    option(OPTION_ENABLE_VULKAN "enable Vulkan (ON) / OpenGL4 (OFF)" ON)
+            if("$ENV{VULKAN_SDK}" STREQUAL "") # only allow Vulkan if SDK is installed
+                if(NOT DEFINED OPTION_VULKAN_RENDERER)
+                    option(OPTION_VULKAN_RENDERER "use Vulkan renderer (instead of Direct3D11)" OFF)
                 endif()
             else()
-                set(OPTION_ENABLE_VULKAN OFF CACHE BOOL "not supported (SDK not found)")
+                set(OPTION_VULKAN_RENDERER OFF CACHE BOOL "not supported (env VULKAN_SDK not defined)")
             endif()
-            
-            if(OPTION_ENABLE_VULKAN)
-                set(CWORK_VIDEO_VULKAN ON CACHE BOOL "")
-                set(CWORK_VIDEO_OPENGL4 OFF CACHE BOOL "")
-            else()
-                set(CWORK_VIDEO_VULKAN OFF CACHE BOOL "")
-                set(CWORK_VIDEO_OPENGL4 ON CACHE BOOL "")
-            endif()
-        endif()
-    
-    # Linux/BSD/MacOS systems - OpenGL4+Vulkan
-    else()
-        set(CWORK_VIDEO_D3D11 OFF CACHE BOOL "not supported")
-        set(CWORK_VIDEO_OPENGL4 ON CACHE BOOL "")
-        if(APPLE)
-            set(CWORK_OPENGL4_VERSION "41" CACHE INTERNAL "" FORCE) # 4.1 (max API level on macOS)
-        else()
-            set(CWORK_OPENGL4_VERSION "46" CACHE INTERNAL "" FORCE) # 4.6
         endif()
         
-        if(NOT "$ENV{VULKAN_SDK}" STREQUAL "") # only allow Vulkan if SDK is installed
-            set(CWORK_VIDEO_VULKAN OFF CACHE BOOL "not supported (SDK not found)")
-        else()
+        if(OPTION_VULKAN_RENDERER)
+            set(CWORK_VIDEO_D3D11 OFF CACHE BOOL "")
             set(CWORK_VIDEO_VULKAN ON CACHE BOOL "")
+        else()
+            set(CWORK_VIDEO_D3D11 ON CACHE BOOL "")
+            set(CWORK_VIDEO_VULKAN OFF CACHE BOOL "")
         endif()
-    endif()
+        set(CWORK_VIDEO_OPENGL4 OFF CACHE BOOL "not supported")
     
-    
-    #<TMP>: openGL/vulkan not yet implemented -> disable
-    if(CWORK_VIDEO_OPENGL4)
-        unset(CWORK_VIDEO_OPENGL4 CACHE)
+    # Linux/MacOS systems - OpenGL4+Vulkan
+    else()
+        if(NOT APPLE AND "$ENV{VULKAN_SDK}" STREQUAL "")
+            message(FATAL_ERROR "Vulkan SDK was not found on current system (env VULKAN_SDK not defined)")
+        endif()
+        
+        set(CWORK_VIDEO_D3D11 OFF CACHE BOOL "not supported")
+        set(CWORK_VIDEO_OPENGL4 OFF CACHE BOOL "not supported")
+        set(CWORK_VIDEO_VULKAN ON CACHE BOOL "")
     endif()
-    if(CWORK_VIDEO_VULKAN)
-        unset(CWORK_VIDEO_VULKAN CACHE)
-    endif()
-    set(CWORK_VIDEO_OPENGL4 OFF CACHE BOOL "")
-    set(CWORK_VIDEO_VULKAN OFF CACHE BOOL "")
-    #</TMP>
 endif()

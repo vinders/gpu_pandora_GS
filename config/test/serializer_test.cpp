@@ -96,7 +96,6 @@ TEST_F(SerializerTest, gameBindingSaveFind) {
 static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
                                   const WindowConfig& w1, const WindowConfig& w2,
                                   const ActionsConfig& a1, const ActionsConfig& a2) {
-  EXPECT_EQ(r1.api, r2.api);
   EXPECT_EQ(r1.enableFramerateLimit, r2.enableFramerateLimit);
   EXPECT_EQ(r1.enableVsync, r2.enableVsync);
   EXPECT_EQ(r1.framerateLimit, r2.framerateLimit);
@@ -191,11 +190,10 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   inVideoCfg.enableVsync = false;
   inActionsCfg.hintMenuOnMouseMove = false;
   memset(&inActionsCfg, 0, sizeof(ActionsConfig));
-  Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
-  Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
+  Serializer::writeGlobalConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
+  Serializer::readGlobalConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
   __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
 
-  inVideoCfg.api = RenderingApi::openGL4;
   inVideoCfg.enableFramerateLimit = true;
   inVideoCfg.enableVsync = true;
   inVideoCfg.framerateLimit = 59.94f;
@@ -214,8 +212,8 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
     inActionsCfg.controllerMapping[i] = i + 3;
   inActionsCfg.controllerHotkey = 42;
   inActionsCfg.hintMenuOnMouseMove = true;
-  Serializer::writeMainConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
-  Serializer::readMainConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
+  Serializer::writeGlobalConfigFile(configDir, inVideoCfg, inWindowCfg, inActionsCfg);
+  Serializer::readGlobalConfigFile(configDir, outVideoCfg, outWindowCfg, outActionsCfg);
   __compareCommonConfig(inVideoCfg, outVideoCfg, inWindowCfg, outWindowCfg, inActionsCfg, outActionsCfg);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
