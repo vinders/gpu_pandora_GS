@@ -21,6 +21,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "config/serializer.h"
 #include "config/presets.h"
 #include "display/window_builder.h"
+#include "display/renderer.h"
 #include "psemu/syslog.h"
 #include "psemu/timer.h"
 #include "psemu/psemu_gpu.h"
@@ -37,6 +38,7 @@ pandora::memory::LightString g_gameId;
 
 display::WindowBuilder g_windowConfigurator = nullptr;
 std::unique_ptr<pandora::video::Window> g_window = nullptr;
+display::Renderer g_renderer;
 Timer g_timer;
 
 
@@ -221,6 +223,14 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
     g_window->clearClientArea();
     pandora::video::disableScreenSaver();
 
+    // create 3D renderer
+    display::Viewport viewport = (g_windowConfigurator.windowConfig().windowMode == config::WindowMode::window)
+                               ? display::Viewport(displayMode.height, g_windowConfigurator.windowConfig().isWideSource)
+                               : display::Viewport(displayMode, rendererConfig.screenStretching, rendererConfig.screenCropping,
+                                                   g_windowConfigurator.windowConfig().isWideSource);
+    g_window->setMinClientAreaSize(viewport.minWindowWidth(), viewport.minWindowHeight());
+    g_renderer = display::Renderer(g_window->handle(), displayMode, viewport, rendererConfig);
+
     // configure sync timer
     g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? psemu::SpeedMode::normal : psemu::SpeedMode::none);
     g_timer.setFrameSkipping(g_videoConfig.frameSkip == config::FrameSkipping::adaptative);
@@ -243,7 +253,7 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 // Close driver (game stopped)
 extern "C" long CALLBACK GPUclose() {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUclose");
-
+  g_renderer = display::Renderer{};
   g_window.reset();
   pandora::video::restoreScreenSaver();
   return PSE_SUCCESS;
