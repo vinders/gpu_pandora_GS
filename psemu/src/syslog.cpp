@@ -71,10 +71,13 @@ void SysLog::close() {
     g_logger->logArgs(pandora::system::LogLevel::debug, pandora::system::LogCategory::none, origin, line, format, args);
     va_end(args);
   }
-  void SysLog::logInfo(const char* origin, uint32_t line, const char* message) {
+  void SysLog::logInfo(const char* origin, uint32_t line, const char* format, ...) {
     if (!g_logger && !__createLogger()) // try to create if not already existing
       return;
-    g_logger->log(pandora::system::LogLevel::standard, pandora::system::LogCategory::INFO, origin, line, message);
+    va_list args;
+    va_start(args, format);
+    g_logger->logArgs(pandora::system::LogLevel::standard, pandora::system::LogCategory::INFO, origin, line, format, args);
+    va_end(args);
   }
 #   endif
 
