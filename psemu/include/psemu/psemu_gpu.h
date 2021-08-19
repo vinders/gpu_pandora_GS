@@ -99,7 +99,7 @@ extern "C" {
   /// @brief Read data from GPU status register
   /// @returns GPU status register data
   unsigned long CALLBACK GPUreadStatus();
-  /// @brief Process data sent to GPU status register
+  /// @brief Process data sent to GPU status register - GP1 commands
   /// @param gdata  Status register command
   void CALLBACK GPUwriteStatus(unsigned long gdata);
 
@@ -113,7 +113,7 @@ extern "C" {
   /// @param transferMode  Image transfer mode
   void CALLBACK GPUsetMode(unsigned long transferMode);
 
-  /// @brief Read data from video memory (VRAM)
+  /// @brief Receive response data to VRAM transfer or GPU info request (GPUREAD)
   /// @returns Raw GPU data
   unsigned long CALLBACK GPUreadData();
   /// @brief Read entire chunk of data from video memory (VRAM)
@@ -121,9 +121,9 @@ extern "C" {
   /// @param size  Memory chunk size
   void CALLBACK GPUreadDataMem(unsigned long* mem, int size);
 
-  /// @brief Process and send data to video data register
+  /// @brief Process and send data to video data register - GP0 commands
   void CALLBACK GPUwriteData(unsigned long gdata);
-  /// @brief Process and send chunk of data to video data register
+  /// @brief Process and send chunk of data to video data register - GP0 commands
   /// @param mem   Pointer to chunk of data (source)
   /// @param size  Memory chunk size
   void CALLBACK GPUwriteDataMem(unsigned long* mem, int size);

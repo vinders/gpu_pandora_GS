@@ -34,15 +34,15 @@ cwork_set_internal_libs(config display)
 # │  Library file generation                                         │
 # └──────────────────────────────────────────────────────────────────┘
 set(_LIB_FILE gpuPandoraGS)
-set(_LIB_NAME "Pandora-GS driver")
+set(_LIB_NAME "PandoraGS")
 set(_RES_DIR "${CWORK_SOLUTION_PATH}/_img/resources")
 
 if(WIN32 OR WIN64 OR _WIN32 OR _WIN64)
     if(OPTION_VULKAN_RENDERER)
         set(_LIB_FILE ${_LIB_FILE}_vulkan)
-        set(_LIB_NAME "Pandora-GS vulkan")
+        set(_LIB_NAME "${_LIB_NAME} vulkan")
     else()
-        set(_LIB_NAME "Pandora-GS D3D11")
+        set(_LIB_NAME "${_LIB_NAME} DX11")
     endif()
     if(CWORK_WINDOWS_VERSION AND CWORK_WINDOWS_VERSION STREQUAL "7")
         set(_LIB_FILE ${_LIB_FILE}_win7)

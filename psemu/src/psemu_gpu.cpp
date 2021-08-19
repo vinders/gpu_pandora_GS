@@ -20,6 +20,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "config/file_path_utils.h"
 #include "config/serializer.h"
 #include "config/presets.h"
+#include "display/status_register.h"
 #include "display/window_builder.h"
 #include "display/renderer.h"
 #include "psemu/syslog.h"
@@ -286,15 +287,12 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
 extern "C" long CALLBACK GPUgetMode() {
   return 0;
 }
-
 // Set data transfer mode (deprecated)
-extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {
-
-}
+extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {} // ignored
 
 // ---
 
-// Read data from video memory (VRAM)
+// Receive response data to VRAM transfer or GPU info request (GPUREAD)
 extern "C" unsigned long CALLBACK GPUreadData() {
   return 0;
 }
@@ -306,12 +304,12 @@ extern "C" void CALLBACK GPUreadDataMem(unsigned long* mem, int size) {
 
 // ---
 
-// Process and send data to video data register
+// Process and send data to video data register - GP0 commands
 extern "C" void CALLBACK GPUwriteData(unsigned long gdata) {
-
+  GPUwriteDataMem(&gdata, 1);
 }
 
-// Process and send chunk of data to video data register - GP0/DMA commands
+// Process and send chunk of data to video data register - GP0 commands
 extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
 
 }
@@ -340,7 +338,34 @@ extern "C" long CALLBACK GPUconfigure() {
 
 // Open plugin 'about' dialog box
 extern "C" void CALLBACK GPUabout() {
-  
+# if defined(_WINDOWS) && defined(_VIDEO_D3D11_SUPPORT)
+#   if !defined(_VIDEO_D3D11_VERSION) || _VIDEO_D3D11_VERSION != 110
+#     define __ABOUT_3DAPI_NAME "Direct3D 11.1"
+#   else
+#     define __ABOUT_3DAPI_NAME "Direct3D 11.0"
+#   endif
+#else
+# define __ABOUT_3DAPI_NAME "Vulkan 1.2"
+#endif
+  MessageBox::show("About " LIBRARY_NAME " Renderer...",
+                   LIBRARY_NAME ", by Romain Vinders\n"
+#                  if defined(_P_MIN_WINDOWS_VERSION)
+#                    if _P_MIN_WINDOWS_VERSION >= 10
+                       __ABOUT_3DAPI_NAME " - Windows 10 (RS2) or higher\n"
+#                    else
+                       __ABOUT_3DAPI_NAME " - Windows 7 or higher\n"
+#                    endif
+#                  elif defined(__APPLE__)
+                     __ABOUT_3DAPI_NAME " - Mac OS 10.12 or higher\n"
+#                  else
+                     __ABOUT_3DAPI_NAME " - Linux\n"
+#                  endif
+                   "Version " LIBRARY_VERSION "\n\n"
+                   "Special thanks:\n"
+                   "- Nocash & Doomed - for the very detailed specs\n"
+                   "- Pete, Tapeq, iCatButler - for sharing public sources\n"
+                   "- Amidog - for his useful test tools\n",
+                   MessageBox::ActionType::ok, MessageBox::IconType::info, true);
 }
 
 // Check if plugin works
