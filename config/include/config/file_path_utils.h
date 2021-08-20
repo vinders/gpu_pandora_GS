@@ -42,6 +42,8 @@ namespace config {
   /// @remarks Used for config files, for special tweaks and to call appropriate F-keys on menu action events
   /// @throws bad_alloc on memory allocation failure
   void readEmulatorInfo(EmulatorInfo& outInfo);
+  /// @brief Detect if emulator uses a widescreen hack
+  bool getEmulatorWidescreenState(EmulatorType type) noexcept;
 
 
   // -- config file paths --

@@ -198,15 +198,20 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
     }
     else if (!profiles.empty()) { // normal game -> load profile associated with game
       try {
-        config::ProfileMenuTile* targetProfile = &profiles[0]; // default to first profile (if target not found)
         auto targetId = config::Serializer::readGameProfileBinding(g_configDir, g_gameId.c_str());
-        for (auto& it : profiles) {
-          if (it.id == targetId) {
-            targetProfile = &it;
-            break;
-          }
+        if (targetId & __CONFIG_PRESET_FLAG) { // target is a preset
+          config::loadPreset((config::PresetId)targetId, rendererConfig);
         }
-        config::Serializer::readProfileConfigFile(targetProfile->file, rendererConfig);
+        else { // target is a profile
+          config::ProfileMenuTile* targetProfile = &profiles[0]; // default to first profile (if target not found)
+          for (auto& it : profiles) {
+            if (it.id == targetId) {
+              targetProfile = &it;
+              break;
+            }
+          }
+          config::Serializer::readProfileConfigFile(targetProfile->file, rendererConfig);
+        }
       }
       catch (const std::exception& exc) {
         if (!profiles.empty()) // corrupted profile or alloc failure
@@ -216,6 +221,7 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 
     // create output window
     pandora::hardware::DisplayMode displayMode;
+    g_windowConfigurator.windowConfig().isWideSource = config::getEmulatorWidescreenState(g_emulator.type);
 #   ifdef _WINDOWS
       g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), displayMode);
 #   else
@@ -344,12 +350,12 @@ extern "C" void CALLBACK GPUabout() {
 #   else
 #     define __ABOUT_3DAPI_NAME "Direct3D 11.0"
 #   endif
-#else
-# define __ABOUT_3DAPI_NAME "Vulkan 1.2"
-#endif
+# else
+#   define __ABOUT_3DAPI_NAME "Vulkan 1.2"
+# endif
   MessageBox::show("About " LIBRARY_NAME " Renderer...",
                    LIBRARY_NAME ", by Romain Vinders\n"
-#                  if defined(_P_MIN_WINDOWS_VERSION)
+#                  if defined(_WINDOWS)
 #                    if _P_MIN_WINDOWS_VERSION >= 10
                        __ABOUT_3DAPI_NAME " - Windows 10 (RS2) or higher\n"
 #                    else

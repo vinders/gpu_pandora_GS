@@ -14,6 +14,11 @@ GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstdio>
 #include <cstring>
+#ifndef _WINDOWS
+# include <cstdlib>
+# include <iostream>
+# include <fstream>
+#endif
 #include <io/file_system_locations.h>
 #include "config/file_path_utils.h"
 
@@ -137,6 +142,67 @@ UnicodeString config::getProcessPath() {
 # endif
 }
 
+// ---
+
+// Read registry/file containing emulator config property - string
+static bool __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHAR* prop,
+                                 __UNICODE_CHAR* buffer, size_t bufferByteSize) noexcept {
+# ifdef _WINDOWS
+    HKEY emuConfigKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, path, 0, KEY_ALL_ACCESS, &emuConfigKey) == ERROR_SUCCESS) {
+      DWORD size = (DWORD)bufferByteSize;
+      if (RegQueryValueExW(emuConfigKey, prop, 0, nullptr, (LPBYTE)buffer, &size) == ERROR_SUCCESS)
+        return true;
+    }
+# else
+    try {
+      std::ifstream reader(path, std::ios::in);
+      if (reader.is_open()) {
+        char line[128];
+        size_t propNameSize = strlen(prop);
+        while (!reader.eof() && reader.getline(line, sizeof(line))) {
+          if (memcmp(line, prop, propNameSize) == 0) {
+            char* it = line + propNameSize;
+            while (*it == ' ' || *it == '\t' || *it == '=')
+              ++it;
+
+            size_t valueSize = strlen(it);
+            if (valueSize >= bufferByteSize)
+              valueSize = bufferByteSize - 1;
+            memcpy(buffer, line, valueSize);
+            buffer[valueSize] = '\0';
+
+            reader.close();
+            return true;
+          }
+        }
+        reader.close();
+      }
+    }
+    catch (...) {}
+# endif
+  return false;
+}
+
+// Read registry/file containing emulator config property - integer
+static uint32_t __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHAR* prop) noexcept {
+# ifdef _WINDOWS
+    HKEY emuConfigKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, path, 0, KEY_ALL_ACCESS, &emuConfigKey) == ERROR_SUCCESS) {
+      DWORD buffer;
+      DWORD size = sizeof(DWORD);
+      DWORD type;
+      if (RegQueryValueExW(emuConfigKey, prop, 0, &type, (LPBYTE)&buffer, &size) == ERROR_SUCCESS)
+        return (uint32_t)buffer;
+    }
+# else
+    char buffer[16];
+    if (__readEmulatorConfig(path, prop, buffer, sizeof(buffer)))
+      return atoi(buffer);
+# endif
+  return 0;
+}
+
 
 // -- emulator detection -- ----------------------------------------------------
 
@@ -190,6 +256,31 @@ void config::readEmulatorInfo(EmulatorInfo& outInfo) {
                     : UnicodeString(processPath.c_str(), processPath.size() - nameLength); // full process path -> remove name
   if (outInfo.type != EmulatorType::zinc)
     outInfo.pluginDir.append(__UNICODE_STR("plugins" __ABS_PATH_SEP));
+}
+
+// ---
+
+# define __PCSXR_CFG_WIDESCREEN __UNICODE_STR("Widescreen")
+# define __EPSXE_CFG_WIDESCREEN __UNICODE_STR("GTEWidescreen")
+#ifdef _WINDOWS
+# define __PCSXR_CFG_PATH       L"SOFTWARE\\Pcsxr"
+# define __EPSXE_CFG_PATH       L"SOFTWARE\\epsxe\\config"
+#else
+# define __PCSXR_CFG_PATH       ".pcsxr/pcsxr.cfg"
+# define __EPSXE_CFG_PATH       ".epsxe/epsxerc"
+#endif
+
+bool config::getEmulatorWidescreenState(EmulatorType type) noexcept {
+  switch (type) {
+    case EmulatorType::pcsxr:
+      return (__readEmulatorConfig(__PCSXR_CFG_PATH, __PCSXR_CFG_WIDESCREEN) == 0x1u);
+    case EmulatorType::epsxe: {
+      __UNICODE_CHAR buffer[16];
+      return (__readEmulatorConfig(__EPSXE_CFG_PATH, __EPSXE_CFG_WIDESCREEN, buffer, sizeof(buffer))
+             && *buffer == (__UNICODE_CHAR)'3');
+    }
+    default: return false;
+  }
 }
 
 
