@@ -124,7 +124,7 @@ namespace config {
   // ---
 
   constexpr inline uint32_t autodetectInternalResFactor() noexcept { return 0; } ///< Internal X/Y resolution factor based on output size
-  constexpr inline uint32_t maxInternalResFactor() noexcept { return 8; } ///< Max internal X/Y resolution factor
+  constexpr inline uint32_t maxInternalResFactor() noexcept { return 12; } ///< Max internal X/Y resolution factor
 
 # define __UPSCALER_ID(id,x2,x3,x4,x5,x6,x8) (id | (x2<<16) | (x3<<17) | (x4<<18) | (x5<<19) | (x6<<20) | (x8<<22))
 
