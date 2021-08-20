@@ -23,7 +23,7 @@ if(NOT DEFINED _PANDORAGS_OPTIONS_FOUND)
     if(WIN32 OR WIN64 OR _WIN32 OR _WIN64 OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
         if(NOT DEFINED OPTION_MIN_WINDOWS_VERSION)
             # compiled on Windows 7 / 8 -> force Win7 version
-            if(${CMAKE_SYSTEM_VERSION} EQUAL 6.1 OR ${CMAKE_SYSTEM_VERSION} EQUAL 6.2 OR MINGW)
+            if("${CMAKE_SYSTEM_VERSION}" EQUAL 6.1 OR "${CMAKE_SYSTEM_VERSION}" EQUAL 6.2 OR MINGW)
                 set(OPTION_MIN_WINDOWS_VERSION "7" CACHE STRING "min required Windows version ('7', '10' (RS2))")
             # compiled on Windows 10+ -> option available
             else()

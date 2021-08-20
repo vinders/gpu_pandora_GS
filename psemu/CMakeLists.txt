@@ -79,11 +79,4 @@ cwork_create_project("dynamic" "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cm
                      "${CWORK_SOLUTION_PATH}/_libs/pandora_toolbox/_cmake/modules"
                      "include" "src" "test")
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_LIB_FILE})
-
-if(MSVC AND (WIN32 OR WIN64 OR _WIN32 OR _WIN64) AND NOT CMAKE_GENERATOR STREQUAL "Ninja")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                               ${CMAKE_BINARY_DIR}/${_PROJECT_TITLE}/$<CONFIG>/${_LIB_FILE}.dll
-                               ${CMAKE_BINARY_DIR}/$<CONFIG>/${_LIB_FILE}.dll)
-endif()
 unset(_LIB_FILE)
