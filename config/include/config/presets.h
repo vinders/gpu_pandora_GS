@@ -18,13 +18,15 @@ GNU General Public License for more details (LICENSE file).
 
 namespace config {
   /// @brief Config profile preset ID
-  enum class PresetId : int {
-    defaultConfig = 0,
-    psxAccurate = 1,
-    realistic2D = 2,
-    realistic3D = 3,
-    cartoon = 4
+  /// @remarks Can be used as ProfileId -> set MSB to 1, to avoid conflicts
+  enum class PresetId : uint32_t {
+    defaultConfig = 0x80000000,
+    psxAccurate   = 0x80000001,
+    realistic2D   = 0x80000002,
+    realistic3D   = 0x80000003,
+    cartoon       = 0x80000004
   };
+# define __CONFIG_PRESET_FLAG    0x80000000
 # define __CONFIG_LAST_PRESET_ID PresetId::cartoon
 
   /// @brief Get menu label for a preset
