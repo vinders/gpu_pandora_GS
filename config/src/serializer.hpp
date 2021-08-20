@@ -333,9 +333,9 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
   __writeIntegerArray<uint8_t>(jsonObject, profile::renderer::blackBorderSizes(), &rendererCfg.blackBorderSizes[0], 4);
   
   // rendering
-  if (rendererCfg.internalResFactorX > 1u)
+  if (rendererCfg.internalResFactorX != 1u)
     jsonObject.emplace(profile::renderer::internalResFactorX(), SerializableValue((int32_t)rendererCfg.internalResFactorX));
-  if (rendererCfg.internalResFactorY > 1u)
+  if (rendererCfg.internalResFactorY != 1u)
     jsonObject.emplace(profile::renderer::internalResFactorY(), SerializableValue((int32_t)rendererCfg.internalResFactorY));
   if (rendererCfg.colorMode != ColorOutput::rgb32)
     jsonObject.emplace(profile::renderer::colorMode(), SerializableValue((int32_t)rendererCfg.colorMode));
