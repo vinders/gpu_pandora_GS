@@ -156,7 +156,14 @@ static bool __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHA
     }
 # else
     try {
-      std::ifstream reader(path, std::ios::in);
+      UnicodeString absolutePath(getenv("HOME"));
+      if (absolutePath.empty())
+        absolutePath.assign("$HOME",5);
+      else if (absolutePath.c_str()[absolutePath.size() - 1] != '/')
+        absolutePath.append("/",1);
+      absolutePath.append(path);
+
+      std::ifstream reader(absolutePath.c_str(), std::ios::in);
       if (reader.is_open()) {
         char line[128];
         size_t propNameSize = strlen(prop);
@@ -250,7 +257,6 @@ void config::readEmulatorInfo(EmulatorInfo& outInfo) {
       }
     }
 # endif
-
   outInfo.pluginDir = isProcessDirPath
                     ? processPath + __UNICODE_STR(__ABS_PATH_SEP) // current dir -> append separator
                     : UnicodeString(processPath.c_str(), processPath.size() - nameLength); // full process path -> remove name
