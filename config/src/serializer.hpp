@@ -80,7 +80,7 @@ bool Serializer::saveGameProfileBinding(const UnicodeString& configDir, const ch
 
 // Write JSON to config file
 static void __writeJsonFile(const UnicodeString& outputFile, const SerializableValue::Object& data) {
-  pandora::io::JsonSerializer serializer(0);
+  pandora::io::JsonSerializer serializer(1);
   auto serialized = serializer.toString(data);
   size_t length = serialized.size();
 
