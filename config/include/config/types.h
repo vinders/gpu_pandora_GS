@@ -73,7 +73,6 @@ namespace config {
     constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
     constexpr inline uint32_t pause()            noexcept { return 1; } ///< Pause/resume game (ePSXe: F10)
     constexpr inline uint32_t turbo()            noexcept { return 2; } ///< Turbo game mode while pressed
-                                                                               ///  (requires plugin's rate limit instead of emulator's (ePSXe2.0.5: F4))
     constexpr inline uint32_t toggleSlowMotion() noexcept { return 3; } ///< Enable/disable slow-motion game mode
     constexpr inline uint32_t toggleVsync()      noexcept { return 4; } ///< Enable/disable vsync in renderer
     constexpr inline uint32_t toggleWindowMode() noexcept { return 5; } ///< Toggle fullscreen/window mode
@@ -86,7 +85,6 @@ namespace config {
   namespace controllerMap {
     constexpr inline uint32_t showHideMenu()     noexcept { return 0; } ///< Show/hide profile selection menu
     constexpr inline uint32_t turbo()            noexcept { return 1; } ///< Turbo game mode while pressed
-                                                                               ///  (requires plugin's rate limit instead of emulator's (ePSXe2.0.5: F4))
     constexpr inline uint32_t toggleSlowMotion() noexcept { return 2; } ///< Enable/disable slow-motion game mode
     constexpr inline uint32_t saveState()        noexcept { return 3; } ///< Send save-state command (ePSXe/PCSX: F1)
     constexpr inline uint32_t loadState()        noexcept { return 4; } ///< Send load-state command (ePSXe/PCSX: F3)
@@ -248,6 +246,8 @@ namespace config {
   /// @brief PlayStation emulator description
   struct EmulatorInfo {
     EmulatorType type = EmulatorType::unknown; ///< Emulator type
-    UnicodeString pluginDir; ///< Directory path for emulator plugins
+    UnicodeString pluginDir;     ///< Directory path for emulator plugins
+    bool isCursorHidden = false; ///< Emulator auto-hides cursor (must be refreshed after every GPUopen)
+    bool widescreenHack = false; ///< Emulator uses widescreen hack (must be refreshed after every GPUopen)
   };
 }

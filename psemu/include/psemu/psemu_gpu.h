@@ -109,7 +109,7 @@ extern "C" {
   /// @brief Get data transfer mode
   /// @returns Image transfer mode
   long CALLBACK GPUgetMode();
-  /// @brief Set data transfer mode (deprecated)
+  /// @brief Set data transfer mode (emulator initiates data transfer)
   /// @param transferMode  Image transfer mode
   void CALLBACK GPUsetMode(unsigned long transferMode);
 
@@ -127,7 +127,7 @@ extern "C" {
   /// @param mem   Pointer to chunk of data (source)
   /// @param size  Memory chunk size
   void CALLBACK GPUwriteDataMem(unsigned long* mem, int size);
-  /// @brief Direct memory chain transfer to GPU driver
+  /// @brief Direct memory chain transfer to GPU driver (linked-list DMA)
   /// @param baseAddress  Pointer to memory chain
   /// @param offset       Memory offset
   long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long offset);

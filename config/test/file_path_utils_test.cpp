@@ -93,6 +93,10 @@ TEST_F(FilePathUtilsTest, emulatorDetection) {
 
   ASSERT_TRUE(info.pluginDir.size() >= dirLength);
   EXPECT_EQ(0, memcmp(processDir, info.pluginDir.c_str(), dirLength*sizeof(__UNICODE_CHAR)));
+
+  config::readEmulatorOptions(info);
+  EXPECT_FALSE(info.isCursorHidden);
+  EXPECT_FALSE(info.widescreenHack);
 }
 
 // -- config file paths --

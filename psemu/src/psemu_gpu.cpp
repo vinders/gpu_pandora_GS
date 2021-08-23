@@ -123,10 +123,6 @@ extern "C" long CALLBACK GPUinit() {
   try {
     // identify emulator
     config::readEmulatorInfo(g_emulator);
-#   ifdef _WINDOWS
-      if (g_emulator.type == config::EmulatorType::epsxe)
-        ShowCursor(TRUE);
-#   endif
 
     // identify config directory (or ask for location + create it)
     g_windowConfigurator = display::WindowBuilder(__MENU_CURSOR_ID);
@@ -221,8 +217,11 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 
     // create output window
     pandora::hardware::DisplayMode displayMode;
-    g_windowConfigurator.windowConfig().isWideSource = config::getEmulatorWidescreenState(g_emulator.type);
+    config::readEmulatorOptions(g_emulator);
+    g_windowConfigurator.windowConfig().isWideSource = g_emulator.widescreenHack;
 #   ifdef _WINDOWS
+      if (g_emulator.isCursorHidden)
+        ShowCursor(TRUE);
       g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), displayMode);
 #   else
       g_window = pandora::video::Window::Builder{}.create("PGS_WINDOW", caption);
@@ -261,8 +260,13 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 extern "C" long CALLBACK GPUclose() {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUclose");
   g_renderer = display::Renderer{};
-  g_window.reset();
+
   pandora::video::restoreScreenSaver();
+# ifdef _WINDOWS
+    if (g_emulator.isCursorHidden)
+      ShowCursor(FALSE);
+# endif
+  g_window.reset();
   return PSE_SUCCESS;
 }
 
@@ -293,8 +297,10 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
 extern "C" long CALLBACK GPUgetMode() {
   return 0;
 }
-// Set data transfer mode (deprecated)
-extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {} // ignored
+// Set data transfer mode (emulator initiates data transfer)
+extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {
+
+}
 
 // ---
 
@@ -320,7 +326,7 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
 
 }
 
-// Direct memory chain transfer to GPU driver
+// Direct memory chain transfer to GPU driver (linked-list DMA)
 extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long offset) {
   return PSE_SUCCESS;
 }
@@ -368,9 +374,9 @@ extern "C" void CALLBACK GPUabout() {
 #                  endif
                    "Version " LIBRARY_VERSION "\n\n"
                    "Special thanks:\n"
-                   "- Nocash & Doomed - for the very detailed specs\n"
-                   "- Pete, Tapeq, iCatButler - for sharing public sources\n"
-                   "- Amidog - for his useful test tools\n",
+                   "- Nocash, Doomed, J. Walker: for their detailed specs\n"
+                   "- Pete, Tapeq, iCatButler: for sharing public sources\n"
+                   "- Amidog: for his useful test tools\n",
                    MessageBox::ActionType::ok, MessageBox::IconType::info, true);
 }
 
@@ -431,11 +437,11 @@ extern "C" void CALLBACK GPUshowScreenPic(unsigned char* image) {
 
 // Display debug text
 extern "C" void CALLBACK GPUdisplayText(char* message) {
-  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUdisplayText: %s", message);
+  SysLog::logInfo(__FILE_NAME__, __LINE__, "GPUdisplayText: %s", message);
 
 }
 
-// Set gun cursor display and position
+// Set gun cursor display and position: player=0-7, x=0-511, y=0-255
 extern "C" void CALLBACK GPUcursor(int player, int x, int y) {
 
 }

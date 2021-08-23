@@ -266,6 +266,7 @@ void config::readEmulatorInfo(EmulatorInfo& outInfo) {
 
 // ---
 
+# define __PCSXR_CFG_HIDE_CURSOR __UNICODE_STR("HideCursor")
 # define __PCSXR_CFG_WIDESCREEN __UNICODE_STR("Widescreen")
 # define __EPSXE_CFG_WIDESCREEN __UNICODE_STR("GTEWidescreen")
 #ifdef _WINDOWS
@@ -276,16 +277,29 @@ void config::readEmulatorInfo(EmulatorInfo& outInfo) {
 # define __EPSXE_CFG_PATH       ".epsxe/epsxerc"
 #endif
 
-bool config::getEmulatorWidescreenState(EmulatorType type) noexcept {
-  switch (type) {
-    case EmulatorType::pcsxr:
-      return (__readEmulatorConfig(__PCSXR_CFG_PATH, __PCSXR_CFG_WIDESCREEN) == 0x1u);
+void config::readEmulatorOptions(EmulatorInfo& inOutInfo) noexcept {
+  switch (inOutInfo.type) {
+    case EmulatorType::pcsxr: {
+      inOutInfo.isCursorHidden = (__readEmulatorConfig(__PCSXR_CFG_PATH, __PCSXR_CFG_HIDE_CURSOR) == 0x1u);
+      inOutInfo.widescreenHack = (__readEmulatorConfig(__PCSXR_CFG_PATH, __PCSXR_CFG_WIDESCREEN) == 0x1u);
+      break;
+    }
     case EmulatorType::epsxe: {
       __UNICODE_CHAR buffer[16];
-      return (__readEmulatorConfig(__EPSXE_CFG_PATH, __EPSXE_CFG_WIDESCREEN, buffer, sizeof(buffer))
-             && *buffer == (__UNICODE_CHAR)'3');
+      inOutInfo.isCursorHidden = true;
+      inOutInfo.widescreenHack = (__readEmulatorConfig(__EPSXE_CFG_PATH, __EPSXE_CFG_WIDESCREEN, buffer, sizeof(buffer))
+                                 && *buffer == (__UNICODE_CHAR)'3');
+      break;
     }
-    default: return false;
+    case EmulatorType::zinc: {
+      inOutInfo.isCursorHidden = true;
+      inOutInfo.widescreenHack = false;
+      break;
+    }
+    default:
+      inOutInfo.isCursorHidden = false;
+      inOutInfo.widescreenHack = false;
+      break;
   }
 }
 
