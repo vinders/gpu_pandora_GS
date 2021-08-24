@@ -43,7 +43,7 @@ display::Renderer g_renderer;
 Timer g_timer;
 
 
-// -- entry point -- -----------------------------------------------------------
+// -- entry point / directory management -- ------------------------------------
 
 #ifdef _WINDOWS
 # include <system/api/windows_app.h>
@@ -55,6 +55,39 @@ Timer g_timer;
     return TRUE;
   }
 #endif
+
+// ---
+
+// Show message-box to choose config directory + create it
+static config::UnicodeString createConfigDirectory(const config::UnicodeString& pluginDir) {
+  bool isUserDir = true;
+  if (config::isPathWritable(pluginDir.c_str())) {
+    auto choice = MessageBox::show(__UNICODE_STR("First config initialization"),
+                      __UNICODE_STR("Please choose where to create config files:\n\n"
+                                    "* Local: shared with other emulators (per user)\n"
+                                    "* Portable: in emulator's directory"),
+                      MessageBox::IconType::question,
+                      __UNICODE_STR("Local"), __UNICODE_STR("Portable"));
+    isUserDir = (choice != MessageBox::Result::action2);
+  }
+
+  config::UnicodeString configDir;
+  if (isUserDir) {
+    auto parentDir = config::getLocalUserParentDir();
+    if (!config::isPathReadable(parentDir.c_str()))
+      config::createDirectory(parentDir.c_str());
+    configDir = config::toLocalUserConfigDir(parentDir);
+  }
+  else
+    configDir = config::getPortableConfigDir(pluginDir);
+
+  if (!config::createDirectory(configDir.c_str())) {
+    MessageBox::show(__UNICODE_STR("Config creation failure"), __UNICODE_STR("Failed to create config directory..."),
+                     MessageBox::ActionType::ok, MessageBox::IconType::error);
+    throw std::runtime_error("GPUinit: config directory creation failed");
+  }
+  return configDir;
+}
 
 
 // -- plugin library info -- ---------------------------------------------------
@@ -85,38 +118,6 @@ extern "C" unsigned long CALLBACK PSEgetLibVersion() {
 #else
 # define __MENU_CURSOR_ID "menu_cursor.png"
 #endif
-
-// Show message-box to choose config directory + create it
-static config::UnicodeString createConfigDirectory(const config::UnicodeString& pluginDir) {
-  bool isUserDir = true;
-  if (config::isPathWritable(pluginDir.c_str())) {
-    auto choice = MessageBox::show(__UNICODE_STR("First config initialization"),
-                      __UNICODE_STR("Please choose where to create config files:\n\n"
-                                    "* Local: shared with other emulators using PandoraGS\n"
-                                    "* Portable: in emulator's executable directory"),
-                      MessageBox::IconType::question,
-                      __UNICODE_STR("Local"), __UNICODE_STR("Portable"));
-    isUserDir = (choice != MessageBox::Result::action2);
-  }
-
-  config::UnicodeString configDir;
-  if (isUserDir) {
-    auto parentDir = config::getLocalUserParentDir();
-    if (!config::isPathReadable(parentDir.c_str()))
-      config::createDirectory(parentDir.c_str());
-    configDir = config::toLocalUserConfigDir(parentDir);
-  }
-  else
-    configDir = config::getPortableConfigDir(pluginDir);
-
-  if (!config::createDirectory(configDir.c_str())) {
-    MessageBox::show(__UNICODE_STR("Config creation failure"), __UNICODE_STR("Failed to create config directory..."),
-                     MessageBox::ActionType::ok, MessageBox::IconType::error);
-    throw std::runtime_error("GPUinit: config directory creation failed");
-  }
-  return configDir;
-}
-
 
 // Driver init (called once)
 extern "C" long CALLBACK GPUinit() {
@@ -327,7 +328,7 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
 }
 
 // Direct memory chain transfer to GPU driver (linked-list DMA)
-extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long offset) {
+extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long index) {
   return PSE_SUCCESS;
 }
 
@@ -345,6 +346,10 @@ extern "C" long CALLBACK GPUfreeze(unsigned long dataMode, GPUFreeze_t* state) {
 
 // Open plugin config dialog box
 extern "C" long CALLBACK GPUconfigure() {
+  if (g_configDir.empty())
+    GPUinit();
+
+  //...
   return PSE_SUCCESS;
 }
 
@@ -391,13 +396,13 @@ extern "C" long CALLBACK GPUtest() {
 // Set special display flags
 extern "C" void CALLBACK GPUdisplayFlags(unsigned long flags) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUdisplayFlags: 0x%x", flags);
-  
+
 }
 
-// Enable/disable frame limit from emulator
+// Enable/disable frame limit from emulator: 1=on / 0=off
 extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetframelimit: %u", option);
-  
+
 }
 
 // Set custom fixes from emulator
@@ -418,12 +423,10 @@ extern "C" void CALLBACK GPUsetExeName(char* gameId) {
 // Request snapshot (on next display)
 extern "C" void CALLBACK GPUmakeSnapshot() {
 
-
 }
 
 // Get screen picture
 extern "C" void CALLBACK GPUgetScreenPic(unsigned char* image) {
-
 
 }
 
@@ -437,7 +440,7 @@ extern "C" void CALLBACK GPUshowScreenPic(unsigned char* image) {
 
 // Display debug text
 extern "C" void CALLBACK GPUdisplayText(char* message) {
-  SysLog::logInfo(__FILE_NAME__, __LINE__, "GPUdisplayText: %s", message);
+  SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUdisplayText: %s", message);
 
 }
 
