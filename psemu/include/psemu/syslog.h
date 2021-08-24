@@ -47,12 +47,12 @@ namespace psemu {
 
 #   if defined(_DEBUG) || !defined(NDEBUG)
       static void logDebug(const char* origin, uint32_t line, const char* format, ...); ///< Verbose log (debug mode only)
-      static void logInfo(const char* origin, uint32_t line, const char* format, ...);  ///< Informative log (debug mode only)
+      
 #   else
       static inline void logDebug(...) {}
-      static inline void logInfo(...) {}
 #   endif
-    static void logWarning(const char* origin, uint32_t line, const char* message); ///< Log warning message
-    static void logError(const char* origin, uint32_t line, const char* message);   ///< Log error message
+    static void logInfo(const char* origin, uint32_t line, const char* format, ...); ///< Informative log
+    static void logWarning(const char* origin, uint32_t line, const char* message);  ///< Log warning message
+    static void logError(const char* origin, uint32_t line, const char* message);    ///< Log error message
   };
 }
