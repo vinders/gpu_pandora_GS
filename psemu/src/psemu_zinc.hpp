@@ -41,12 +41,13 @@ extern "C" long CALLBACK ZN_GPUshutdown() { return GPUshutdown(); }
 
 // Open ZiNc driver (game started)
 extern "C" long CALLBACK ZN_GPUopen(void* cfgData) {
-	GPUConfiguration_t* config = (GPUConfiguration_t*)cfgData;
-	if (config == nullptr || config->version != 1)
-		return PSE_ERR_FATAL;
+  GPUConfiguration_t* config = (GPUConfiguration_t*)cfgData;
+  if (config == nullptr || config->version != 1)
+    return PSE_ERR_FATAL;
+  g_statusRegister.setGpuType((config->gpuVersion == 2) ? display::GpuVersion::arcadeGpu2 : display::GpuVersion::arcadeGpu1,
+	                          display::znArcadeVramHeight());
 
-	//... tile fix
-	//... set version
+  //... tile fix
 
 # ifdef _WINDOWS
 	  return GPUopen((HWND)config->window);

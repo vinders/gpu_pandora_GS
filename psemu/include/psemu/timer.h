@@ -15,7 +15,7 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <time/timer.h>
-#include "display/status_register.h"
+#include "display/types.h"
 
 namespace psemu {
   /// @brief Special speed mode
@@ -45,11 +45,16 @@ namespace psemu {
 
     /// @brief Set frequency based on SMPTE standard and CPU clock (auto-detection)
     inline void setFrequency(display::SmpteStandard standard, bool isInterlaced) noexcept {
-      this->_clock.reset<true,false>(cpuFieldRate(standard, isInterlaced));
+      double targetRate = cpuFieldRate(standard, isInterlaced);
+      if (targetRate != this->_rate) {
+        this->_rate = targetRate;
+        this->_clock.reset<true, false>(targetRate);
+      }
     }
     /// @brief Set custom frequency value
     inline void setFrequency(float framerateLimit) noexcept {
-      this->_clock.reset<true,false>((double)framerateLimit);
+      this->_rate = (double)framerateLimit;
+      this->_clock.reset<true,false>(this->_rate);
     }
     /// @brief Enable/disable adaptative frame skipping
     inline void setFrameSkipping(bool isEnabled) noexcept {
@@ -66,8 +71,7 @@ namespace psemu {
 
     // -- operations --
 
-    /// @brief Reset clock reference and frame skipping
-    /// @remarks Should be called everytime the game display mode is changed (internal resolution, interlacing on/off)
+    /// @brief Reset clock reference
     inline void reset() noexcept {
       this->_clock.reset<true, true>();
     }
@@ -87,6 +91,7 @@ namespace psemu {
 
   private:
     Clock _clock{ cpuFieldRate(display::SmpteStandard::ntsc, false) };
+    double _rate = cpuFieldRate(display::SmpteStandard::ntsc, false);
     SpeedMode _speed = SpeedMode::normal;
     bool _useFrameSkipping = false;
   };

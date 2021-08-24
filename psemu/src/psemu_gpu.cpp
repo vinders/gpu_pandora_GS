@@ -40,6 +40,8 @@ pandora::memory::LightString g_gameId;
 display::WindowBuilder g_windowConfigurator = nullptr;
 std::unique_ptr<pandora::video::Window> g_window = nullptr;
 display::Renderer g_renderer;
+display::StatusRegister g_statusRegister;
+unsigned long g_statusControlHistory[display::controlCommandNumber()];
 Timer g_timer;
 
 
@@ -149,6 +151,9 @@ extern "C" long CALLBACK GPUinit() {
       else // file corrupted or alloc failure
         SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
     }
+
+    g_statusRegister = display::StatusRegister{};
+    display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
     return PSE_INIT_SUCCESS;
   }
   catch (const std::exception& exc) {
@@ -283,12 +288,96 @@ extern "C" void CALLBACK GPUupdateLace() {
 
 // Read data from GPU status register
 extern "C" unsigned long CALLBACK GPUreadStatus() {
-  return 0x14802000;
+  return g_statusRegister.getStatusControlRegister();
 }
 
 // Process data sent to GPU status register - GP1 commands
 extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
+  auto commandId = display::StatusRegister::getGp1CommandId(gdata);
+  switch (commandId) {
+    // general GPU status
+    case display::ControlCommandId::resetGpu: {
+      SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(00): reset");
+      g_statusRegister.resetGpu();
+      display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
+      if (g_videoConfig.framerateLimit == config::autodetectFramerate())
+        g_timer.setFrequency(display::SmpteStandard::ntsc, false);
+      break;
+    }
+    case display::ControlCommandId::clearCommandFifo: g_statusRegister.clearPendingCommands(); break;
+    case display::ControlCommandId::ackIrq1:          g_statusRegister.ackIrq1(); break;
+    case display::ControlCommandId::dmaMode: {
+      g_statusControlHistory[(size_t)display::ControlCommandId::dmaMode] = gdata;
+      g_statusRegister.setDmaMode(gdata);
+      break;
+    }
+    // display state
+    case display::ControlCommandId::toggleDisplay: {
+      if (g_statusControlHistory[(size_t)display::ControlCommandId::toggleDisplay] != gdata) {
+        SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(03): toggleDisplay: 0x%x", gdata);
+        g_statusControlHistory[(size_t)display::ControlCommandId::toggleDisplay] = gdata;
+        g_statusRegister.toggleDisplay(gdata);
+      }
+      break;
+    }
+    case display::ControlCommandId::displayAreaOrigin: {
+      if (g_statusControlHistory[(size_t)display::ControlCommandId::displayAreaOrigin] != gdata) {
+        g_statusControlHistory[(size_t)display::ControlCommandId::displayAreaOrigin] = gdata;
+        g_statusRegister.setDisplayAreaOrigin(gdata);
+      }
+      break;
+    }
+    case display::ControlCommandId::horizontalDisplayRange: {
+      if (g_statusControlHistory[(size_t)display::ControlCommandId::horizontalDisplayRange] != gdata) {
+        SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(06): horizontalDisplayRange: 0x%x", gdata);
+        g_statusControlHistory[(size_t)display::ControlCommandId::horizontalDisplayRange] = gdata;
+        g_statusRegister.setHorizontalDisplayRange(gdata);
+      }
+      break;
+    }
+    case display::ControlCommandId::verticalDisplayRange: {
+      if (g_statusControlHistory[(size_t)display::ControlCommandId::verticalDisplayRange] != gdata) {
+        SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(07): verticalDisplayRange: 0x%x", gdata);
+        g_statusControlHistory[(size_t)display::ControlCommandId::verticalDisplayRange] = gdata;
+        g_statusRegister.setVerticalDisplayRange(gdata);
+      }
+      break;
+    }
+    case display::ControlCommandId::displayMode: {
+      if (g_statusControlHistory[(size_t)display::ControlCommandId::displayMode] != gdata) {
+        SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(08): displayMode: 0x%x", gdata);
+        g_statusControlHistory[(size_t)display::ControlCommandId::displayMode] = gdata;
+        g_statusRegister.setDisplayMode(gdata);
 
+        if (g_videoConfig.framerateLimit == config::autodetectFramerate())
+          g_timer.setFrequency(g_statusRegister.readStatus<display::SmpteStandard>(display::StatusBits::videoStandard),
+                               g_statusRegister.readStatus<bool>(display::StatusBits::verticalInterlacing));
+      }
+      break;
+    }
+    // texture disabled / debug mode
+    case display::ControlCommandId::allowTextureDisable: {
+      g_statusControlHistory[(size_t)display::ControlCommandId::allowTextureDisable] = gdata;
+      g_statusRegister.allowTextureDisable(gdata);
+      break;
+    }
+    case display::ControlCommandId::arcadeTextureDisable: {
+      if (g_statusRegister.getGpuVersion() != display::GpuVersion::psxGpu208pin) {
+        g_statusControlHistory[(size_t)display::ControlCommandId::arcadeTextureDisable] = gdata;
+        g_statusRegister.arcadeTextureDisable(gdata);
+      }
+      break;
+    }
+    // GPU info request
+    case display::ControlCommandId::requestGpuInfo: g_statusRegister.requestGpuInfo(gdata); break;
+    default: {
+      if (display::StatusRegister::isGpuInfoRequestMirror(commandId))
+        g_statusRegister.requestGpuInfo(gdata);
+      else
+        SysLog::logInfo(__FILE_NAME__, __LINE__, "GP1(%x): unknown command", (int)commandId);
+      break;
+    }
+  }
 }
 
 
@@ -296,18 +385,29 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
 
 // Get data transfer mode
 extern "C" long CALLBACK GPUgetMode() {
-  return 0;
+  return (long)g_statusRegister.getDataTransferMode();
 }
 // Set data transfer mode (emulator initiates data transfer)
 extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {
-
+  if ((transferMode & (unsigned long)display::DataTransfer::vramWrite)) {
+    if (g_statusRegister.readStatus<display::DmaMode>(display::StatusBits::dmaMode) == display::DmaMode::cpuToGpu)
+      g_statusRegister.setDataTransferMode(display::DataTransfer::vramWrite);
+  }
+  else if ((transferMode & (unsigned long)display::DataTransfer::vramRead)) {
+    if (g_statusRegister.readStatus<display::DmaMode>(display::StatusBits::dmaMode) == display::DmaMode::gpuToCpu)
+      g_statusRegister.setDataTransferMode(display::DataTransfer::vramRead);
+  }
+  else
+    g_statusRegister.setDataTransferMode(display::DataTransfer::primitives);
 }
 
 // ---
 
 // Receive response data to VRAM transfer or GPU info request (GPUREAD)
 extern "C" unsigned long CALLBACK GPUreadData() {
-  return 0;
+  unsigned long gdata;
+  GPUreadDataMem(&gdata, 1);
+  return g_statusRegister.getGpuReadBuffer();
 }
 
 // Read entire chunk of data from video memory (VRAM)
@@ -324,7 +424,28 @@ extern "C" void CALLBACK GPUwriteData(unsigned long gdata) {
 
 // Process and send chunk of data to video data register - GP0 commands
 extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
+  while (size) {
+    // GP0 command (primitive/attribute)
+    if (g_statusRegister.getDataTransferMode() == display::DataTransfer::primitives) {
+      --size;
 
+      auto commandId = display::StatusRegister::getGp0CommandId(*mem);
+      switch (commandId) {//TODO replace with lookup table: handler fct pointer + data length + skippable
+        //TODO: load/store (VRAM transfer cmd): setDataTransferMode vramRead/Write
+        case 0x1Fu: g_statusRegister.setIrq1(); break;
+        case 0xE1u: g_statusRegister.setTexturePageMode(*mem); break;
+        case 0xE2u: g_statusRegister.setTextureWindow(*mem); break;
+        case 0xE3u: g_statusRegister.setDrawAreaOrigin(*mem);  break;
+        case 0xE4u: g_statusRegister.setDrawAreaEnd(*mem); break;
+        case 0xE5u: g_statusRegister.setDrawOffset(*mem); break;
+        case 0xE6u: g_statusRegister.setMaskBit(*mem); break;
+      }
+    }
+    // VRAM transfer (continuous DMA)
+    else {
+      --size;
+    }
+  }
 }
 
 // Direct memory chain transfer to GPU driver (linked-list DMA)
@@ -396,7 +517,7 @@ extern "C" long CALLBACK GPUtest() {
 // Set special display flags
 extern "C" void CALLBACK GPUdisplayFlags(unsigned long flags) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUdisplayFlags: 0x%x", flags);
-
+  
 }
 
 // Enable/disable frame limit from emulator: 1=on / 0=off
@@ -406,9 +527,10 @@ extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
 }
 
 // Set custom fixes from emulator
+//  0x0001 = GPU busy hack
 extern "C" void CALLBACK GPUsetfix(unsigned long fixBits) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetfix: 0x%x", fixBits);
-
+  g_statusRegister.enableBusyGpuHack(fixBits & 0x0001);
 }
 
 // Set game executable ID (for config profiles associations)
@@ -446,7 +568,7 @@ extern "C" void CALLBACK GPUdisplayText(char* message) {
 
 // Set gun cursor display and position: player=0-7, x=0-511, y=0-255
 extern "C" void CALLBACK GPUcursor(int player, int x, int y) {
-
+  g_statusRegister.setLightgunCursor((unsigned long)player, (long)x, (long)y);
 }
 
 // Trigger screen vibration
