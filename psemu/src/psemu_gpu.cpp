@@ -43,6 +43,7 @@ display::Renderer g_renderer;
 display::StatusRegister g_statusRegister;
 unsigned long g_statusControlHistory[display::controlCommandNumber()];
 Timer g_timer;
+uint32_t g_delayToStart = 0;
 
 
 // -- entry point / directory management -- ------------------------------------
@@ -126,6 +127,8 @@ extern "C" long CALLBACK GPUinit() {
   try {
     // identify emulator
     config::readEmulatorInfo(g_emulator);
+    // no need to wait during black frames before startup -> accelerate boot time
+    g_delayToStart = (g_emulator.type == config::EmulatorType::epsxe) ? 560 : 220; // TODO: detect first rendered primitives instead
 
     // identify config directory (or ask for location + create it)
     g_windowConfigurator = display::WindowBuilder(__MENU_CURSOR_ID);
@@ -280,7 +283,17 @@ extern "C" long CALLBACK GPUclose() {
 
 // Display update (called on every vsync)
 extern "C" void CALLBACK GPUupdateLace() {
-  g_timer.waitPeriod();
+  if (g_delayToStart) {
+    --g_delayToStart;
+    if (g_delayToStart == 0) {
+      g_timer.reset();
+    }
+  }
+  else {
+    g_timer.waitPeriod();
+    //TODO: configurable turbo speed: 2x   = skip 1 frame / 2 (+ only waitPeriod() when not skipped);  4x = skip 3 frames / 4;  ... up to 8x
+    //TODO: configurable slow motion: 1/2x = waitPeriod() called twice;  1/4x = called 4x;  ... up to 1/8x
+  }
 }
 
 
@@ -523,7 +536,6 @@ extern "C" void CALLBACK GPUdisplayFlags(unsigned long flags) {
 // Enable/disable frame limit from emulator: 1=on / 0=off
 extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetframelimit: %u", option);
-
 }
 
 // Set custom fixes from emulator
