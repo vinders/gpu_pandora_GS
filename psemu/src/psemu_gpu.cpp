@@ -21,6 +21,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "config/serializer.h"
 #include "config/presets.h"
 #include "display/status_register.h"
+#include "display/dma_chain_iterator.h"
 #include "display/window_builder.h"
 #include "display/renderer.h"
 #include "psemu/syslog.h"
@@ -457,12 +458,34 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
     // VRAM transfer (continuous DMA)
     else {
       --size;
+
+      //TODO: if cols remaining == 0 && rows remaining == 0, setDataTransferMode(primitives)
+      //TODO: if size == 0, but cols or rows > 0: return; (wait for next data block) ???
     }
   }
 }
 
 // Direct memory chain transfer to GPU driver (linked-list DMA)
 extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long index) {
+  unsigned long* dmaBlock = nullptr;
+  int blockSize = 0;
+  g_statusRegister.setGpuBusy();
+
+  if (g_statusRegister.getGpuVramHeight() == display::psxVramHeight()) {
+    display::DmaChainIterator<display::psxRamSize()> it(baseAddress, index);
+    while (it.readNext(&dmaBlock, blockSize)) {
+      if (blockSize > 0)
+        GPUwriteDataMem(dmaBlock, blockSize);
+    }
+  }
+  else {
+    display::DmaChainIterator<display::znArcadeRamSize()> it(baseAddress, index);
+    while (it.readNext(&dmaBlock, blockSize)) {
+      if (blockSize > 0)
+        GPUwriteDataMem(dmaBlock, blockSize);
+    }
+  }
+  g_statusRegister.setGpuIdle();
   return PSE_SUCCESS;
 }
 
