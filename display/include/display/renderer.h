@@ -44,6 +44,8 @@ namespace display {
     void resize(const pandora::hardware::DisplayMode& displayMode, const Viewport& viewport);
 
     void swapBuffers(bool useVsync);
+
+    const config::RendererProfile& configProfile() const noexcept { return this->_config; }
       
   private:
     std::shared_ptr<pandora::video::d3d11::Renderer> _renderer = nullptr;
