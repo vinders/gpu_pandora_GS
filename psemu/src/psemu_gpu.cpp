@@ -580,15 +580,34 @@ extern "C" long CALLBACK GPUtest() {
 // -- runtime settings -- ------------------------------------------------------
 
 // Set special display flags
+//  0x1 = analog (digital if bit not set)
+//  0x2 = mouse
+//  0x0F00 = 0:digital / 1:analog / 2:mouse / 3:lightgun
+//  (flags&0XF000)>>12 = number
 extern "C" void CALLBACK GPUdisplayFlags(unsigned long flags) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUdisplayFlags: 0x%x", flags);
-  
+
+  g_inputConfig.hintMenuOnMouseMove = (flags & 0x202); // don't display menu on mouse move, if mouse input (or lightgun)
+  if ((flags & 0x0F00) == 0x300 && g_statusRegister.getActiveLightgunsMap() == 0)
+    g_statusRegister.setLightgunCursor(0,0,0); // report lightgun in status register (if not yet registered)
+
+  //TODO: display thumbnails
 }
 
 // Enable/disable frame limit from emulator: 1=on / 0=off
 extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetframelimit: %u", option);
+  bool enableLimit = (option & 0x1);
 
+  if (enableLimit != g_videoConfig.enableFramerateLimit) {
+    g_videoConfig.enableFramerateLimit = enableLimit;
+    if (enableLimit) {
+      g_timer.setSpeedMode(psemu::SpeedMode::normal);
+      g_timer.reset();
+    }
+    else
+      g_timer.setSpeedMode(psemu::SpeedMode::none);
+  }
 }
 
 // Set custom fixes from emulator
