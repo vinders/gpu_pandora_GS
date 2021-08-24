@@ -147,12 +147,14 @@ UnicodeString config::getProcessPath() {
 // Read registry/file containing emulator config property - string
 static bool __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHAR* prop,
                                  __UNICODE_CHAR* buffer, size_t bufferByteSize) noexcept {
+  bool isSuccess = false;
+
 # ifdef _WINDOWS
     HKEY emuConfigKey;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, path, 0, KEY_ALL_ACCESS, &emuConfigKey) == ERROR_SUCCESS) {
       DWORD size = (DWORD)bufferByteSize;
-      if (RegQueryValueExW(emuConfigKey, prop, 0, nullptr, (LPBYTE)buffer, &size) == ERROR_SUCCESS)
-        return true;
+      isSuccess = (RegQueryValueExW(emuConfigKey, prop, 0, nullptr, (LPBYTE)buffer, &size) == ERROR_SUCCESS);
+      RegCloseKey(emuConfigKey);
     }
 # else
     try {
@@ -179,8 +181,8 @@ static bool __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHA
             memcpy(buffer, line, valueSize);
             buffer[valueSize] = '\0';
 
-            reader.close();
-            return true;
+            isSuccess = true;
+            break;
           }
         }
         reader.close();
@@ -188,11 +190,13 @@ static bool __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHA
     }
     catch (...) {}
 # endif
-  return false;
+  return isSuccess;
 }
 
 // Read registry/file containing emulator config property - integer
 static uint32_t __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE_CHAR* prop) noexcept {
+  uint32_t value = 0;
+
 # ifdef _WINDOWS
     HKEY emuConfigKey;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, path, 0, KEY_ALL_ACCESS, &emuConfigKey) == ERROR_SUCCESS) {
@@ -200,14 +204,15 @@ static uint32_t __readEmulatorConfig(const __UNICODE_CHAR* path, const __UNICODE
       DWORD size = sizeof(DWORD);
       DWORD type;
       if (RegQueryValueExW(emuConfigKey, prop, 0, &type, (LPBYTE)&buffer, &size) == ERROR_SUCCESS)
-        return (uint32_t)buffer;
+        value = (uint32_t)buffer;
+      RegCloseKey(emuConfigKey);
     }
 # else
     char buffer[16];
     if (__readEmulatorConfig(path, prop, buffer, sizeof(buffer)))
-      return atoi(buffer);
+      value = atoi(buffer);
 # endif
-  return 0;
+  return value;
 }
 
 
