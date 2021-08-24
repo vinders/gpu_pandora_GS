@@ -129,17 +129,21 @@ extern "C" {
   void CALLBACK GPUwriteDataMem(unsigned long* mem, int size);
   /// @brief Direct memory chain transfer to GPU driver (linked-list DMA)
   /// @param baseAddress  Pointer to memory chain
-  /// @param offset       Memory offset
-  long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long offset);
+  /// @param index        First index in memory chain
+  long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long index);
   
   
   // -- save states -- ---------------------------------------------------------
+
+# define PSE_LOAD_STATE   0
+# define PSE_SAVE_STATE   1
+# define PSE_SELECT_STATE 2
   
   /// @brief Save-state data structure
   typedef struct GPUFREEZETAG {
-    unsigned long freezeVersion;    ///< System version: always 1 (set by emulator)
-    unsigned long status;           ///< Current GPU status
-    unsigned long controlReg[256];  ///< Latest control register values
+    unsigned long freezeVersion; ///< System version: always 1 (set by emulator)
+    unsigned long status;        ///< Current GPU status/control register
+    unsigned long control[256];  ///< Latest control command values
     unsigned char psxVram[1024 * 1024 * 2]; ///< Current VRAM image
   } GPUFreeze_t;
 

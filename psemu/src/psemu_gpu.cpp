@@ -469,9 +469,61 @@ extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long i
 
 // -- save states -- -----------------------------------------------------------
 
+long g_saveStateSlot = 0;
+
 // Save/load current state
 extern "C" long CALLBACK GPUfreeze(unsigned long dataMode, GPUFreeze_t* state) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUfreeze: %u", dataMode);
+  if (state == nullptr)
+    return SAVESTATE_ERR;
+
+  // change save-state slot
+  if (dataMode == PSE_SELECT_STATE) {
+    long slotIndex = *((long*)state);
+    if (slotIndex < 0 || slotIndex > 8)
+      return SAVESTATE_ERR;
+
+    g_saveStateSlot = slotIndex;//TODO: display thumbnail
+  }
+  else {
+    if (state->freezeVersion != 1)
+      return SAVESTATE_ERR;
+
+    // save status + vram
+    if (dataMode == PSE_SAVE_STATE) {
+      state->status = g_statusRegister.readStatus((display::StatusBits)0xFFFFFFFFu) // not getStatusControlRegister -> avoid triggering 'GPU busy'
+                    | ((unsigned long)display::StatusBits::readyForCommands | (unsigned long)display::StatusBits::readyForDmaBlock);
+
+      memcpy(state->control, g_statusControlHistory, display::controlCommandNumber()*sizeof(unsigned long));
+      state->control[0x11] = g_statusRegister.getGpuReadBuffer();
+
+      //memcpy(state->psxVram, g_vram, 1024*g_statusRegister.getGpuVramHeight()*2);//TODO
+    }
+    // load status + vram
+    else if (dataMode == PSE_LOAD_STATE) {
+      //memcpy(g_vram, state->psxVram, 1024*g_statusRegister.getGpuVramHeight()*2);//TODO
+      //reset texture area//TODO
+
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::resetGpu]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::clearCommandFifo]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::displayAreaOrigin]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::horizontalDisplayRange]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::verticalDisplayRange]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::displayMode]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::toggleDisplay]);
+      if (state->control[(size_t)display::ControlCommandId::allowTextureDisable]) // avoid reset if empty
+        GPUwriteStatus(state->control[(size_t)display::ControlCommandId::allowTextureDisable]);
+      else if (state->control[(size_t)display::ControlCommandId::arcadeTextureDisable]) // avoid reset if empty
+        GPUwriteStatus(state->control[(size_t)display::ControlCommandId::arcadeTextureDisable]);
+      GPUwriteStatus(state->control[(size_t)display::ControlCommandId::dmaMode]);
+
+      g_statusRegister.setStatusControlRegister(state->status);
+      g_statusRegister.setGpuReadBuffer(state->control[0x11]);
+      g_timer.reset();
+    }
+    else
+      return SAVESTATE_ERR;
+  }
   return SAVESTATE_SUCCESS;
 }
 
@@ -536,6 +588,7 @@ extern "C" void CALLBACK GPUdisplayFlags(unsigned long flags) {
 // Enable/disable frame limit from emulator: 1=on / 0=off
 extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUsetframelimit: %u", option);
+
 }
 
 // Set custom fixes from emulator
