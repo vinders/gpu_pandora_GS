@@ -78,7 +78,21 @@ namespace psemu {
 
     /// @brief Wait for remaining time of current frame period
     /// @returns True if next frame should be skipped
-    bool waitPeriod() noexcept;
+    bool waitPeriod() noexcept {
+      // normal speed -> use timer
+      if (this->_speed == SpeedMode::normal) {
+        auto lateness = this->_clock.waitPeriod();
+        return (this->_useFrameSkipping && lateness.count() > this->_clock.periodDuration().count() / 2);
+      }
+      else {
+        // slow-motion -> wait longer
+        if (this->_speed == SpeedMode::slowMotion)
+          std::this_thread::sleep_for(this->_clock.periodDuration() * 4);
+        //else: SpeedMode::turbo (no wait) / SpeedMode::none (no wait)
+          // -> nothing to do
+        return false;
+      }
+    }
 
 
   private:
