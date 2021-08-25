@@ -75,7 +75,7 @@ extern "C" unsigned long CALLBACK PSEgetLibType() {
   return PSE_LT_GPU;
 }
 extern "C" unsigned long CALLBACK PSEgetLibVersion() {
-  return (_PPDK_HEADER_VERSION << 16) | (psemu::libVersionMajor() << 8) | psemu::libVersionMinor();
+  return (_PPDK_HEADER_VERSION << 16) | (libVersionMajor() << 8) | libVersionMinor();
 }
 
 #ifndef _WINDOWS
@@ -108,20 +108,10 @@ extern "C" long CALLBACK GPUinit() {
     SysLog::init(g_configDir); // redirect default log path to config dir
     SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUinit");
 
-    // try to load global config (on failure, use default config)
-    try {
-      config::Serializer::readGlobalConfigFile(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
-    }
-    catch (const std::exception& exc) {
-      if (!g_configDir.empty() && !config::isPathReadable(g_configDir + config::globalConfigFileName())) { // not found -> create it
-        g_inputConfig.initDefaultMapping();
-        config::Serializer::writeGlobalConfigFile(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
-      }
-      else // file corrupted or alloc failure
-        SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
-    }
+    // load global config (on failure, keep default config)
+    loadGlobalConfig(g_configDir, g_videoConfig, g_windowConfigurator.windowConfig(), g_inputConfig);
 
-    g_statusRegister = display::StatusRegister{};
+    g_statusRegister = display::StatusRegister{}; // reset status
     display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
     return PSE_INIT_SUCCESS;
   }
@@ -160,7 +150,7 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
     // normal game -> load config profile associated with game ID (if available)
     else {
       std::vector<config::ProfileMenuTile> profiles = readListOfProfiles(g_configDir);
-      loadGameConfigProfile(g_configDir, profiles, rendererConfig);
+      loadGameConfigProfile(g_configDir, g_gameId, profiles, rendererConfig);
       //TODO: don't reload if GPUopen is called again but not GPUinit
       // -> if user changed active profile, don't "reset" to associated profile everytime the window is open
     }
@@ -188,8 +178,8 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
     g_renderer = display::Renderer(g_window->handle(), displayMode, viewport, rendererConfig);
 
     // configure sync timer
-    g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? psemu::SpeedMode::normal : psemu::SpeedMode::none);
-    g_timer.setFrameSkipping(g_videoConfig.frameSkip == config::FrameSkipping::adaptative);
+    g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? SpeedMode::normal : SpeedMode::none);
+    g_timer.setFrameSkipping(g_videoConfig.enableFrameSkip);
     if (g_videoConfig.framerateLimit != config::autodetectFramerate())
       g_timer.setFrequency(g_videoConfig.framerateLimit);
 
@@ -565,11 +555,11 @@ extern "C" void CALLBACK GPUsetframelimit(unsigned long option) {
   if (enableLimit != g_videoConfig.enableFramerateLimit) {
     g_videoConfig.enableFramerateLimit = enableLimit;
     if (enableLimit) {
-      g_timer.setSpeedMode(psemu::SpeedMode::normal);
+      g_timer.setSpeedMode(SpeedMode::normal);
       g_timer.reset();
     }
     else
-      g_timer.setSpeedMode(psemu::SpeedMode::none);
+      g_timer.setSpeedMode(SpeedMode::none);
   }
 }
 

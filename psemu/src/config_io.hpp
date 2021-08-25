@@ -11,19 +11,16 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
-#include <memory/light_string.h>
 #include <video/message_box.h>
 #include "config/file_path_utils.h"
 #include "config/serializer.h"
 #include "config/presets.h"
+#include "psemu/syslog.h"
 #include "psemu/config_io.h"
 // this implementation is included in psemu_gpu.cpp -> single object file (less overhead + smaller lib size)
 
 using pandora::video::MessageBox;
 
-#ifndef __DECLARE_GLOBALS
-  extern pandora::memory::LightString g_gameId;
-#endif
 
 // -- config directory management -- -------------------------------------------
 
@@ -61,6 +58,22 @@ config::UnicodeString psemu::createConfigDirectory(const config::UnicodeString& 
 
 // -- config profile management -- ---------------------------------------------
 
+// Load global/common config (or create file if missing)
+void psemu::loadGlobalConfig(const config::UnicodeString& configDir, config::VideoConfig& outVideoConfig,
+                             config::WindowConfig& outWindowConfig, config::ActionsConfig& outInputConfig) noexcept {
+  try {
+    config::Serializer::readGlobalConfigFile(configDir, outVideoConfig, outWindowConfig, outInputConfig);
+  }
+  catch (const std::exception& exc) {
+    if (!configDir.empty() && !config::isPathReadable(configDir + config::globalConfigFileName())) { // not found -> create it
+      outInputConfig.initDefaultMapping();
+      config::Serializer::writeGlobalConfigFile(configDir, outVideoConfig, outWindowConfig, outInputConfig);
+    }
+    else // file corrupted or alloc failure
+      SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
+  }
+}
+
 // Read list of profiles (or create file if missing)
 std::vector<config::ProfileMenuTile> psemu::readListOfProfiles(const config::UnicodeString& configDir) noexcept {
   std::vector<config::ProfileMenuTile> profiles;
@@ -79,9 +92,10 @@ std::vector<config::ProfileMenuTile> psemu::readListOfProfiles(const config::Uni
 // ---
 
 // Load config profile associated with current game ID (if available)
-void psemu::loadGameConfigProfile(const config::UnicodeString& configDir, const std::vector<config::ProfileMenuTile>& profiles,
+void psemu::loadGameConfigProfile(const config::UnicodeString& configDir, const pandora::memory::LightString& gameId,
+                                  const std::vector<config::ProfileMenuTile>& profiles,
                                   config::RendererProfile& outConfigProfile) noexcept {
-  auto targetId = config::Serializer::readGameProfileBinding(configDir, g_gameId.c_str());
+  auto targetId = config::Serializer::readGameProfileBinding(configDir, gameId.c_str());
 
   if (config::isPresetId(targetId)) { // target is a preset
     config::loadPreset((config::PresetId)targetId, outConfigProfile);

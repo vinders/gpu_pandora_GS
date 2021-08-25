@@ -15,23 +15,30 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <vector>
-#include "config/types.h"
+#include "config/config.h"
 
 namespace psemu {
   // -- config directory management -- -------------------------------------------
 
   /// @brief Show message-box to choose config directory + create it
-  /// @throws - runtime_error on directory creation failure
-  ///         - bad_alloc on memory allocation failure
+  /// @throws - runtime_error on directory creation failure;
+  ///         - bad_alloc on memory allocation failure.
   config::UnicodeString createConfigDirectory(const config::UnicodeString& pluginDir);
 
 
   // -- config profile management -- ---------------------------------------------
 
+  /// @brief Load global/common config (or create file if missing)
+  /// @warning On failure, keeps current config values.
+  void loadGlobalConfig(const config::UnicodeString& configDir, config::VideoConfig& outVideoConfig,
+                        config::WindowConfig& outWindowConfig, config::ActionsConfig& outInputConfig) noexcept;
+
   /// @brief Read list of profiles (or create file if missing)
   std::vector<config::ProfileMenuTile> readListOfProfiles(const config::UnicodeString& configDir) noexcept;
 
   /// @brief Load config profile associated with current game ID (if available)
-  void loadGameConfigProfile(const config::UnicodeString& configDir, const std::vector<config::ProfileMenuTile>& profiles,
+  /// @warning On failure, keeps current config values.
+  void loadGameConfigProfile(const config::UnicodeString& configDir, const pandora::memory::LightString& gameId,
+                             const std::vector<config::ProfileMenuTile>& profiles,
                              config::RendererProfile& outConfigProfile) noexcept;
 }
