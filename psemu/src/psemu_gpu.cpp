@@ -26,12 +26,13 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "display/renderer.h"
 #include "psemu/syslog.h"
 #include "psemu/timer.h"
+#include "psemu/config_io.h"
 #include "psemu/psemu_gpu.h"
 
 using pandora::video::MessageBox;
-using psemu::SysLog;
-using psemu::Timer;
+using namespace psemu;
 
+#define __DECLARE_GLOBALS 1
 config::EmulatorInfo g_emulator;
 config::UnicodeString g_configDir;
 config::VideoConfig   g_videoConfig;
@@ -47,51 +48,21 @@ Timer g_timer;
 uint32_t g_delayToStart = 0;
 
 
-// -- entry point / directory management -- ------------------------------------
+// -- entry point -- -----------------------------------------------------------
 
 #ifdef _WINDOWS
 # include <system/api/windows_app.h>
 # include "_generated/resources.h"
+# define __MENU_CURSOR_ID MAKEINTRESOURCEW(IDC_MENU_CURSOR)
 
   // Main library entry point (Windows)
   BOOL APIENTRY DllMain(HANDLE module, DWORD reason, LPVOID) {
     pandora::system::WindowsApp::instance().init((reason != DLL_PROCESS_DETACH) ? (HINSTANCE)module : nullptr); // attach / detach
     return TRUE;
   }
+#else
+# define __MENU_CURSOR_ID nullptr
 #endif
-
-// ---
-
-// Show message-box to choose config directory + create it
-static config::UnicodeString createConfigDirectory(const config::UnicodeString& pluginDir) {
-  bool isUserDir = true;
-  if (config::isPathWritable(pluginDir.c_str())) {
-    auto choice = MessageBox::show(__UNICODE_STR("First config initialization"),
-                      __UNICODE_STR("Please choose where to create config files:\n\n"
-                                    "* Local: shared with other emulators (per user)\n"
-                                    "* Portable: in emulator's directory"),
-                      MessageBox::IconType::question,
-                      __UNICODE_STR("Local"), __UNICODE_STR("Portable"));
-    isUserDir = (choice != MessageBox::Result::action2);
-  }
-
-  config::UnicodeString configDir;
-  if (isUserDir) {
-    auto parentDir = config::getLocalUserParentDir();
-    if (!config::isPathReadable(parentDir.c_str()))
-      config::createDirectory(parentDir.c_str());
-    configDir = config::toLocalUserConfigDir(parentDir);
-  }
-  else
-    configDir = config::getPortableConfigDir(pluginDir);
-
-  if (!config::createDirectory(configDir.c_str())) {
-    MessageBox::show(__UNICODE_STR("Config creation failure"), __UNICODE_STR("Failed to create config directory..."),
-                     MessageBox::ActionType::ok, MessageBox::IconType::error);
-    throw std::runtime_error("GPUinit: config directory creation failed");
-  }
-  return configDir;
-}
 
 
 // -- plugin library info -- ---------------------------------------------------
@@ -116,12 +87,6 @@ extern "C" unsigned long CALLBACK PSEgetLibVersion() {
 
 
 // -- driver base interface -- -------------------------------------------------
-
-#ifdef _WINDOWS
-# define __MENU_CURSOR_ID MAKEINTRESOURCEW(IDC_MENU_CURSOR)
-#else
-# define __MENU_CURSOR_ID "menu_cursor.png"
-#endif
 
 // Driver init (called once)
 extern "C" long CALLBACK GPUinit() {
@@ -169,7 +134,8 @@ extern "C" long CALLBACK GPUinit() {
 // Driver shutdown (called once)
 extern "C" long CALLBACK GPUshutdown() {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUshutdown");
-  //...
+  //TODO: save game/profile association
+
   SysLog::close();
   return PSE_SUCCESS;
 }
@@ -184,45 +150,19 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 #endif
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUopen");
   try {
-    // load list of renderer config profiles
-    std::vector<config::ProfileMenuTile> profiles;
-    try {
-      config::Serializer::readProfileListFile(g_configDir, profiles);
-    }
-    catch (const std::exception& exc) {
-      if (!g_configDir.empty() && !config::isPathReadable(g_configDir + config::profileListFileName())) // not found -> create it
-        config::Serializer::writeProfileListFile(g_configDir, std::vector<config::ProfileLabel>{});
-      else // file corrupted
-        SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
-    }
-
-    // try to load profile (associated with game ID, if available)
     config::RendererProfile rendererConfig;
-    if (g_gameId == "DEMO_999.99") { // psxtest_gpu -> use accurate settings
+
+    // GPU test -> use accurate settings
+    if (g_gameId == PSX_GPU_TEST_ID) { 
       config::loadPreset(config::PresetId::psxAccurate, rendererConfig);
       g_windowConfigurator.windowConfig().windowMode = config::WindowMode::window;
     }
-    else if (!profiles.empty()) { // normal game -> load profile associated with game
-      try {
-        auto targetId = config::Serializer::readGameProfileBinding(g_configDir, g_gameId.c_str());
-        if (targetId & __CONFIG_PRESET_FLAG) { // target is a preset
-          config::loadPreset((config::PresetId)targetId, rendererConfig);
-        }
-        else { // target is a profile
-          config::ProfileMenuTile* targetProfile = &profiles[0]; // default to first profile (if target not found)
-          for (auto& it : profiles) {
-            if (it.id == targetId) {
-              targetProfile = &it;
-              break;
-            }
-          }
-          config::Serializer::readProfileConfigFile(targetProfile->file, rendererConfig);
-        }
-      }
-      catch (const std::exception& exc) {
-        if (!profiles.empty()) // corrupted profile or alloc failure
-          SysLog::logError(__FILE_NAME__, __LINE__, exc.what());
-      }
+    // normal game -> load config profile associated with game ID (if available)
+    else {
+      std::vector<config::ProfileMenuTile> profiles = readListOfProfiles(g_configDir);
+      loadGameConfigProfile(g_configDir, profiles, rendererConfig);
+      //TODO: don't reload if GPUopen is called again but not GPUinit
+      // -> if user changed active profile, don't "reset" to associated profile everytime the window is open
     }
 
     // create output window
@@ -687,4 +627,4 @@ extern "C" void CALLBACK GPUvisualVibration(unsigned long smallRumble, unsigned 
 // -- other implementation files -- --------------------------------------------
 
 #include "./psemu_zinc.hpp" // include -> single object file (less overhead + smaller lib size)
-#include "./timer.hpp"
+#include "./config_io.hpp"

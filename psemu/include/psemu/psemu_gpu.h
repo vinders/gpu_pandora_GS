@@ -25,39 +25,40 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 # define CALLBACK
 #endif
 
-# define  _PPDK_HEADER_VERSION       1uL // PSEmu 1.x
+#define  _PPDK_HEADER_VERSION       1uL // PSEmu 1.x
 
-  // plugin type returned by PSEgetLibType (types can be merged)
-# define  PSE_LT_CDR  1L
-# define  PSE_LT_GPU  2L
-# define  PSE_LT_SPU  4L
-# define  PSE_LT_PAD  8L
+// plugin type returned by PSEgetLibType (types can be merged)
+#define  PSE_LT_CDR  1L
+#define  PSE_LT_GPU  2L
+#define  PSE_LT_SPU  4L
+#define  PSE_LT_PAD  8L
 
-  // plugin return codes
-# define  PSE_SUCCESS                 0L // every interface function should return this value if successful
-# define  PSE_ERR_FATAL              -1L // undefined error but fatal one, that kills all functionality
-# define  PSE_INIT_SUCCESS            0L // initialization went OK
-# define  PSE_INIT_ERR_NOTCONFIGURED -2L // this driver is not configured
-# define  PSE_INIT_ERR_NOHARDWARE    -3L // this driver can not operate properly on this hardware or hardware is not detected
-# define  SAVESTATE_SUCCESS           1L
-# define  SAVESTATE_ERR               0L
+// plugin return codes
+#define  PSE_SUCCESS                 0L // every interface function should return this value if successful
+#define  PSE_ERR_FATAL              -1L // undefined error but fatal one, that kills all functionality
+#define  PSE_INIT_SUCCESS            0L // initialization went OK
+#define  PSE_INIT_ERR_NOTCONFIGURED -2L // this driver is not configured
+#define  PSE_INIT_ERR_NOHARDWARE    -3L // this driver can not operate properly on this hardware or hardware is not detected
+#define  SAVESTATE_SUCCESS           1L
+#define  SAVESTATE_ERR               0L
 
-  // GPU test return values
-# define  PSE_GPU_SUCCESS             0L // success, everything configured, and went OK
-# define  PSE_GPU_ERR_NOTCONFIGURED   1L // this driver is not configured
+// GPU test return values
+#define  PSE_GPU_SUCCESS             0L // success, everything configured, and went OK
+#define  PSE_GPU_ERR_NOTCONFIGURED   1L // this driver is not configured
 
-# define  PSE_GPU_FLAGS_WINDOWED      1L // this driver requests window mode (gpuQueryS.flags)
-# define  PSE_GPU_STATUS_WINDOWWRONG  1L // this driver cannot operate in this window mode (gpuQueryS.status)
+#define  PSE_GPU_FLAGS_WINDOWED      1L // this driver requests window mode (gpuQueryS.flags)
+#define  PSE_GPU_STATUS_WINDOWWRONG  1L // this driver cannot operate in this window mode (gpuQueryS.status)
 
-  // CDR test return values
-# define  PSE_CDR_SUCCESS             0L  // success, everything configured, and went OK
-# define  PSE_CDR_ERR                -40L // driver error
-# define  PSE_CDR_ERR_NOTCONFIGURED   PSE_CDR_ERR - 0 // this driver is not configured
-# define  PSE_CDR_ERR_NOREAD          PSE_CDR_ERR - 1 // this driver is unable to read data from medium
-# define  PSE_CDR_WARN                40L // driver warnings
-  // if this driver emulates lame mode (ie. can read only 2048 tracks and sector header is emulated)
-  // this might happen to CDROMS that do not support RAW mode reading
-# define  PSE_CDR_WARN_LAMECD         PSE_CDR_WARN + 0
+// CDR test return values
+#define  PSE_CDR_SUCCESS             0L  // success, everything configured, and went OK
+#define  PSE_CDR_ERR                -40L // driver error
+#define  PSE_CDR_ERR_NOTCONFIGURED   PSE_CDR_ERR - 0 // this driver is not configured
+#define  PSE_CDR_ERR_NOREAD          PSE_CDR_ERR - 1 // this driver is unable to read data from medium
+#define  PSE_CDR_WARN                40L // driver warnings
+#define  PSE_CDR_WARN_LAMECD         PSE_CDR_WARN + 0
+
+// miscellaneous
+#define PSX_GPU_TEST_ID  "DEMO_999.99" // psxtest_gpu app: rendering & accuracy tests
 
 
 extern "C" {

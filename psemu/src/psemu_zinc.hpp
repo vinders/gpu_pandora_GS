@@ -17,6 +17,10 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "psemu/psemu_gpu.h"
 // this implementation is included in psemu_gpu.cpp -> single object file (less overhead + smaller lib size)
 
+#ifndef __DECLARE_GLOBALS
+  extern display::StatusRegister g_statusRegister;
+#endif
+
 /// @brief ZiNc config structure
 typedef struct GPUOTAG {
 	unsigned long version;        // version of structure - currently 1
