@@ -133,7 +133,7 @@ TEST_F(DmaChainIteratorTest, endlessChain1Test_simple) {
   while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 10) {
     EXPECT_EQ((int)0, bufferSize);
   }
-  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead >= (int)sizeof(chain)/(int)sizeof(*chain));
   EXPECT_TRUE(itemsRead < 10);
 }
 
@@ -149,7 +149,7 @@ TEST_F(DmaChainIteratorTest, endlessChain2Test_alternateMoves) {
   while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 30) {
     EXPECT_EQ((int)0, bufferSize);
   }
-  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead >= (int)sizeof(chain)/(int)sizeof(*chain));
   EXPECT_TRUE(itemsRead < 30);
 }
 
@@ -165,7 +165,7 @@ TEST_F(DmaChainIteratorTest, endlessChain3Test_minMaxScattered) {
   while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 30) {
     EXPECT_EQ((int)0, bufferSize);
   }
-  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead >= (int)sizeof(chain)/(int)sizeof(*chain));
   EXPECT_TRUE(itemsRead < 30);
 }
 

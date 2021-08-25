@@ -85,11 +85,11 @@ namespace display {
     inline bool areTexturesDisabled() const noexcept {
       return (this->_isTexturingDisabled && readStatus<bool>(StatusBits::disableTextures));
     }
-    inline bool getTexpageBaseX() const noexcept { this->_texpageBaseX; } ///< Read texture page base X
-    inline bool getTexpageBaseY() const noexcept { this->_texpageBaseY; } ///< Read texture page base Y
-    inline bool isTextureFlipX() const noexcept { this->_isTextureFlipX; } ///< Verify texture flip-X status
-    inline bool isTextureFlipY() const noexcept { this->_isTextureFlipY; } ///< Verify texture flip-Y status
-    inline bool isTextureDecodingIL() const noexcept { this->_isTextureDecodingIL; } ///< Special arcade GPU texture mode
+    inline bool getTexpageBaseX() const noexcept { return this->_texpageBaseX; } ///< Read texture page base X
+    inline bool getTexpageBaseY() const noexcept { return this->_texpageBaseY; } ///< Read texture page base Y
+    inline bool isTextureFlipX() const noexcept { return this->_isTextureFlipX; } ///< Verify texture flip-X status
+    inline bool isTextureFlipY() const noexcept { return this->_isTextureFlipY; } ///< Verify texture flip-Y status
+    inline bool isTextureDecodingIL() const noexcept { return this->_isTextureDecodingIL; } ///< Special arcade GPU texture mode
 
     /// @brief Get current texture window settings (repeat cropped texture area)
     // @remarks Texture coord transform:  texcoord = (texcoord & ~(sizeMask)) | (offset & sizeMask);
