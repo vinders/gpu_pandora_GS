@@ -24,7 +24,7 @@ using namespace config;
 static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 0;
   outRendererCfg.screenCropping = 0;
-  outRendererCfg.isCenterX = true;
+  outRendererCfg.isCenterX = false;
   outRendererCfg.isCenterY = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;

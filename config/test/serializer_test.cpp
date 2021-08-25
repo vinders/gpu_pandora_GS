@@ -109,7 +109,7 @@ static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
   EXPECT_EQ(w1.fullscreen.width, w2.fullscreen.width);
   EXPECT_EQ(w1.fullscreen.height, w2.fullscreen.height);
   EXPECT_EQ(w1.fullscreen.refreshRate, w2.fullscreen.refreshRate);
-  EXPECT_EQ(w1.isWideSource, w2.isWideSource);
+  //EXPECT_EQ(w1.isWideSource, w2.isWideSource); // not serialized
 
   for (size_t i = 0; i < keyboardMap::length(); ++i) {
     EXPECT_EQ(a1.keyboardMapping[i], a2.keyboardMapping[i]);
@@ -118,7 +118,7 @@ static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
     EXPECT_EQ(a1.controllerMapping[i], a2.controllerMapping[i]);
   }
   EXPECT_EQ(a1.controllerHotkey, a2.controllerHotkey);
-  EXPECT_EQ(a1.hintMenuOnMouseMove, a2.hintMenuOnMouseMove);
+  //EXPECT_EQ(a1.hintMenuOnMouseMove, a2.hintMenuOnMouseMove); // not serialized
 }
 static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std::vector<ProfileLabel>& p2_label,
                                  const std::vector<ProfileMenuTile>& p2_menu) {
