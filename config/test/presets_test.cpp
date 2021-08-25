@@ -64,8 +64,11 @@ TEST_F(PresetsTest, applyPresets) {
   loadPreset(PresetId::defaultConfig, rendererCfg);
   EXPECT_TRUE(__isProfileConfigEqual(defRendererCfg, rendererCfg));
   
-  for (int i = ((int)PresetId::defaultConfig) + 1; i < (int)__CONFIG_LAST_PRESET_ID; ++i) {
+  for (int i = ((int)PresetId::defaultConfig) + 1; i < (int)__CONFIG_MAX_PRESET_ID; ++i) {
     loadPreset((PresetId)i, rendererCfg);
     EXPECT_FALSE(__isProfileConfigEqual(defRendererCfg, rendererCfg));
   }
+
+  EXPECT_TRUE(isPresetId((ProfileId)(__CONFIG_PRESET_FLAG | 1)));
+  EXPECT_FALSE(isPresetId((ProfileId)1));
 }

@@ -26,11 +26,11 @@ namespace config {
     realistic3D   = 0x80000003,
     cartoon       = 0x80000004
   };
-# define __CONFIG_PRESET_FLAG    0x80000000
-# define __CONFIG_LAST_PRESET_ID PresetId::cartoon
+# define __CONFIG_PRESET_FLAG   0x80000000
+# define __CONFIG_MAX_PRESET_ID PresetId::cartoon
 
   /// @brief Get menu label for a preset
-  constexpr inline const __UNICODE_CHAR* toLabel(PresetId id) {
+  constexpr inline const __UNICODE_CHAR* toLabel(PresetId id) noexcept {
     switch (id) {
       case PresetId::defaultConfig: return __UNICODE_STR("Default");
       case PresetId::psxAccurate:   return __UNICODE_STR("Accurate (PSX)");
@@ -43,5 +43,9 @@ namespace config {
 
   // ---
 
+  /// @brief Verify if a "profile ID" (ex: stored in game association) is actually a preset ID
+  constexpr inline bool isPresetId(ProfileId targetId) noexcept { return (targetId & __CONFIG_PRESET_FLAG); }
+
+  /// @brief Load config preset values (associated with a preset ID)
   void loadPreset(PresetId id, RendererProfile& outRendererCfg) noexcept;
 }

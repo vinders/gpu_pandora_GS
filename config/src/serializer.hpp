@@ -33,40 +33,47 @@ using pandora::io::SerializableValue;
 
 // Find profile associated with current game (saved at the end of last execution)
 ProfileId Serializer::readGameProfileBinding(const UnicodeString& configDir, const char* gameId) noexcept {
-  ProfileId profileId;
-  if (gameId != nullptr) {
-    auto filePath = getGameBindingPath(configDir, gameId);
+  try {
+    ProfileId profileId;
+    if (gameId != nullptr) {
+      auto filePath = getGameBindingPath(configDir, gameId);
+      auto reader = openFile(filePath.c_str(), __UNICODE_STR("rb"));
+      if (reader.isOpen() && fread(&profileId, sizeof(ProfileId), 1, reader.handle()) > 0)
+        return profileId;
+    }
+
+    auto filePath = configDir + latestBindingFileName();
     auto reader = openFile(filePath.c_str(), __UNICODE_STR("rb"));
     if (reader.isOpen() && fread(&profileId, sizeof(ProfileId), 1, reader.handle()) > 0)
       return profileId;
   }
-
-  auto filePath = configDir + latestBindingFileName();
-  auto reader = openFile(filePath.c_str(), __UNICODE_STR("rb"));
-  if (reader.isOpen() && fread(&profileId, sizeof(ProfileId), 1, reader.handle()) > 0)
-    return profileId;
+  catch (...) {} // alloc failure
   return 0;
 }
 
 // Associate profile with current game (for the next time) + save profile as "last used profile"
 bool Serializer::saveGameProfileBinding(const UnicodeString& configDir, const char* gameId, ProfileId profileId) noexcept {
-  // create directory (if not existing)
-  auto dirPath = getGameBindingsDir(configDir);
-  if (!isPathReadable(dirPath.c_str()) && !config::createDirectory(dirPath.c_str()))
-    return false;
+  try {
+    // create directory (if not existing)
+    auto dirPath = getGameBindingsDir(configDir);
+    if (!isPathReadable(dirPath.c_str()) && !config::createDirectory(dirPath.c_str()))
+      return false;
 
-  // save game/profile association (if supported by emulator)
-  if (gameId != nullptr) {
-    auto filePath = getGameBindingPath(configDir, gameId);
+    // save game/profile association (if supported by emulator)
+    if (gameId != nullptr) {
+      auto filePath = getGameBindingPath(configDir, gameId);
+      auto writer = openFile(filePath.c_str(), __UNICODE_STR("wb"));
+      if (writer.isOpen())
+        fwrite(&profileId, sizeof(ProfileId), 1, writer.handle());
+    }
+
+    // save latest profile
+    auto filePath = configDir + latestBindingFileName();
     auto writer = openFile(filePath.c_str(), __UNICODE_STR("wb"));
-    if (writer.isOpen())
-      fwrite(&profileId, sizeof(ProfileId), 1, writer.handle());
+    return (writer.isOpen() && fwrite(&profileId, sizeof(ProfileId), 1, writer.handle()) > 0);
   }
-
-  // save latest profile
-  auto filePath = configDir + latestBindingFileName();
-  auto writer = openFile(filePath.c_str(), __UNICODE_STR("wb"));
-  return (writer.isOpen() && fwrite(&profileId, sizeof(ProfileId), 1, writer.handle()) > 0);
+  catch (...) {} // alloc failure
+  return false;
 }
 
 
