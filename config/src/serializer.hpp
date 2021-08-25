@@ -263,16 +263,16 @@ void Serializer::writeGlobalConfigFile(const UnicodeString& configDir, const Vid
     jsonObject.emplace(window::fullscreenResY(), SerializableValue((int32_t)windowCfg.fullscreen.height));
   if (windowCfg.fullscreen.refreshRate != defaultRefreshRateMilli())
     jsonObject.emplace(window::fullscreenRate(), SerializableValue((int32_t)windowCfg.fullscreen.refreshRate));
-  if (windowCfg.isWideSource)
-    jsonObject.emplace(window::isWideSource(), SerializableValue((int32_t)windowCfg.isWideSource));
+  //if (windowCfg.isWideSource) // auto-detected
+  //  jsonObject.emplace(window::isWideSource(), SerializableValue((int32_t)windowCfg.isWideSource));
 
   // actions params
   __writeIntegerArray(jsonObject, actions::keyboardMapping(), &actionsCfg.keyboardMapping[0], keyboardMap::length());
   __writeIntegerArray(jsonObject, actions::controllerMapping(), &actionsCfg.controllerMapping[0], controllerMap::length());
   if (actionsCfg.controllerHotkey)
     jsonObject.emplace(actions::controllerHotkey(), SerializableValue((int32_t)actionsCfg.controllerHotkey));
-  if (actionsCfg.hintMenuOnMouseMove)
-    jsonObject.emplace(actions::hintMenuOnMouseMove(), SerializableValue((int32_t)actionsCfg.hintMenuOnMouseMove));
+  //if (actionsCfg.hintMenuOnMouseMove) // auto-detected
+  //  jsonObject.emplace(actions::hintMenuOnMouseMove(), SerializableValue((int32_t)actionsCfg.hintMenuOnMouseMove));
 
   uint32_t retryCount = 0;
   bool isSuccess = false;
@@ -329,8 +329,10 @@ void Serializer::writeProfileConfigFile(const UnicodeString& outputFilePath, con
     jsonObject.emplace(profile::renderer::screenStretching(), SerializableValue((int32_t)rendererCfg.screenStretching));
   if (rendererCfg.screenCropping)
     jsonObject.emplace(profile::renderer::screenCropping(), SerializableValue((int32_t)rendererCfg.screenCropping));
-  if (rendererCfg.isPalRecentered)
-    jsonObject.emplace(profile::renderer::isPalRecentered(), SerializableValue((int32_t)rendererCfg.isPalRecentered));
+  if (rendererCfg.isCenterX)
+    jsonObject.emplace(profile::renderer::isCenterX(), SerializableValue((int32_t)rendererCfg.isCenterX));
+  if (rendererCfg.isCenterY)
+    jsonObject.emplace(profile::renderer::isCenterY(), SerializableValue((int32_t)rendererCfg.isCenterY));
   if (rendererCfg.isOverscanVisible)
     jsonObject.emplace(profile::renderer::isOverscanVisible(), SerializableValue((int32_t)rendererCfg.isOverscanVisible));
   if (rendererCfg.isMirrored)
@@ -422,7 +424,7 @@ void Serializer::readGlobalConfigFile(const UnicodeString& configDir, VideoConfi
   outWindowCfg.fullscreen.width = __readInteger(jsonObject, window::fullscreenResX(), desktopResolution());
   outWindowCfg.fullscreen.height = __readInteger(jsonObject, window::fullscreenResY(), desktopResolution());
   outWindowCfg.fullscreen.refreshRate = __readInteger(jsonObject, window::fullscreenRate(), defaultRefreshRateMilli());
-  outWindowCfg.isWideSource = __readInteger<bool>(jsonObject, window::isWideSource(), false);
+  //outWindowCfg.isWideSource = __readInteger<bool>(jsonObject, window::isWideSource(), false); // auto-detected
 
   // actions params
   memset(outActionsCfg.keyboardMapping, disabledKey(), keyboardMap::length()*sizeof(*outActionsCfg.keyboardMapping));
@@ -430,7 +432,7 @@ void Serializer::readGlobalConfigFile(const UnicodeString& configDir, VideoConfi
   memset(outActionsCfg.controllerMapping, disabledKey(), controllerMap::length()*sizeof(*outActionsCfg.controllerMapping));
   __readIntegerArray(jsonObject, actions::controllerMapping(), &outActionsCfg.controllerMapping[0], controllerMap::length());
   outActionsCfg.controllerHotkey = __readInteger(jsonObject, actions::controllerHotkey(), disabledKey());
-  outActionsCfg.hintMenuOnMouseMove = __readInteger<bool>(jsonObject, actions::hintMenuOnMouseMove(), false);
+  //outActionsCfg.hintMenuOnMouseMove = __readInteger<bool>(jsonObject, actions::hintMenuOnMouseMove(), false); // auto-detected
 }
 
 // Deserialize list of profile labels from JSON file
@@ -493,7 +495,8 @@ void Serializer::readProfileConfigFile(const UnicodeString& sourceFilePath, Rend
   outRendererCfg.screenCropping = __readInteger(jsonObject, profile::renderer::screenCropping(), 0);
   if (outRendererCfg.screenCropping > maxScreenFraming())
     outRendererCfg.screenCropping = maxScreenFraming();
-  outRendererCfg.isPalRecentered = __readInteger<bool>(jsonObject, profile::renderer::isPalRecentered(), false);
+  outRendererCfg.isCenterX = __readInteger<bool>(jsonObject, profile::renderer::isCenterX(), false);
+  outRendererCfg.isCenterY = __readInteger<bool>(jsonObject, profile::renderer::isCenterY(), false);
   outRendererCfg.isOverscanVisible = __readInteger<bool>(jsonObject, profile::renderer::isOverscanVisible(), false);
   outRendererCfg.isMirrored = __readInteger<bool>(jsonObject, profile::renderer::isMirrored(), false);
   outRendererCfg.screenCurvature = __readInteger(jsonObject, profile::renderer::screenCurvature(), 0);

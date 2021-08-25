@@ -30,7 +30,8 @@ protected:
 static bool __isProfileConfigEqual(const RendererProfile& r1, const RendererProfile& r2) {
   return  (r1.screenStretching == r2.screenStretching
         && r1.screenCropping == r2.screenCropping
-        && r1.isPalRecentered == r2.isPalRecentered
+        && r1.isCenterX == r2.isCenterX
+        && r1.isCenterY == r2.isCenterY
         && r1.isOverscanVisible == r2.isOverscanVisible
         && r1.isMirrored == r2.isMirrored
         && r1.screenCurvature == r2.screenCurvature

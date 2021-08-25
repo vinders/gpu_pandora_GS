@@ -146,7 +146,8 @@ static void __compareProfileList(const std::vector<ProfileLabel>& p1, const std:
 static void __compareProfileConfig(const RendererProfile& r1, const RendererProfile& r2) {
   EXPECT_EQ(r1.screenStretching, r2.screenStretching);
   EXPECT_EQ(r1.screenCropping, r2.screenCropping);
-  EXPECT_EQ(r1.isPalRecentered, r2.isPalRecentered);
+  EXPECT_EQ(r1.isCenterX, r2.isCenterX);
+  EXPECT_EQ(r1.isCenterY, r2.isCenterY);
   EXPECT_EQ(r1.isOverscanVisible, r2.isOverscanVisible);
   EXPECT_EQ(r1.isMirrored, r2.isMirrored);
   EXPECT_EQ(r1.screenCurvature, r2.screenCurvature);
@@ -254,7 +255,7 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   RendererProfile inRendererCfg, outRendererCfg;
   inRendererCfg.internalResFactorX = inRendererCfg.internalResFactorY = 1;
   inRendererCfg.useTextureBilinear = false;
-  inRendererCfg.isPalRecentered = false;
+  inRendererCfg.isCenterY = false;
   Serializer::writeProfileConfigFile(filePath1, inRendererCfg);
   Serializer::readProfileConfigFile(filePath1, outRendererCfg);
   __compareProfileConfig(inRendererCfg, outRendererCfg);
@@ -271,7 +272,7 @@ TEST_F(SerializerTest, writeReadProfileConfig) {
   inRendererCfg.screenUpscaling = UpscalingFilter::SABR;
   inRendererCfg.mdecUpscaling = MdecFilter::bilinear;
   inRendererCfg.isOverscanVisible = true;
-  inRendererCfg.isPalRecentered = true;
+  inRendererCfg.isCenterY = true;
   inRendererCfg.isMirrored = true;
   inRendererCfg.screenCurvature = 2;
   for (uint32_t i = 0; i < 4; ++i)

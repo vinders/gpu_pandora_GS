@@ -24,7 +24,8 @@ using namespace config;
 static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 0;
   outRendererCfg.screenCropping = 0;
-  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isCenterX = true;
+  outRendererCfg.isCenterY = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
@@ -58,7 +59,8 @@ static __forceinline void __loadDefaultConfig(RendererProfile& outRendererCfg) n
 static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 0;
   outRendererCfg.screenCropping = 0;
-  outRendererCfg.isPalRecentered = false;
+  outRendererCfg.isCenterX = false;
+  outRendererCfg.isCenterY = false;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
@@ -92,7 +94,8 @@ static __forceinline void __loadPsxAccurate(RendererProfile& outRendererCfg) noe
 static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 0;
   outRendererCfg.screenCropping = 2;
-  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isCenterX = false;
+  outRendererCfg.isCenterY = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
@@ -126,7 +129,8 @@ static __forceinline void __loadRealistic2D(RendererProfile& outRendererCfg) noe
 static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 4;
   outRendererCfg.screenCropping = 4;
-  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isCenterX = true;
+  outRendererCfg.isCenterY = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;
@@ -160,7 +164,8 @@ static __forceinline void __loadRealistic3D(RendererProfile& outRendererCfg) noe
 static __forceinline void __loadCartoon(RendererProfile& outRendererCfg) noexcept {
   outRendererCfg.screenStretching = 0;
   outRendererCfg.screenCropping = 2;
-  outRendererCfg.isPalRecentered = true;
+  outRendererCfg.isCenterX = false;
+  outRendererCfg.isCenterY = true;
   outRendererCfg.isOverscanVisible = false;
   outRendererCfg.isMirrored = false;
   outRendererCfg.screenCurvature = 0;

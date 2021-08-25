@@ -50,7 +50,8 @@ namespace config {
     namespace renderer {
       constexpr const char* screenStretching() noexcept { return "stretch"; }
       constexpr const char* screenCropping() noexcept { return "crop"; }
-      constexpr const char* isPalRecentered() noexcept { return "pal_pos"; }
+      constexpr const char* isCenterX() noexcept { return "center_x"; }
+      constexpr const char* isCenterY() noexcept { return "center_y"; }
       constexpr const char* isOverscanVisible() noexcept { return "ovscan"; }
       constexpr const char* isMirrored() noexcept { return "mirror"; }
       constexpr const char* screenCurvature() noexcept { return "curved"; }
