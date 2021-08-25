@@ -1,10 +1,10 @@
 # Changelog
 All notable changes will be documented in this file (generated).
 
-## 0.12.1.79
-2021-08-13 - 384ae772aa4ed126a80de23d3b24f20893ba9631
+## 0.20.1.114
+2021-08-25 - 76bd26f404afbaf798a6f0416a4e1568cf5c7ba8
 ### features
-vinders (12):
+vinders (20):
 * psemu: add PSEmu dynamic library interface functions
 * display: font-map manager + character descriptor
 * display: create font descriptor generation tool (CSV to binary) - useful to regenerate for big-endian systems
@@ -17,8 +17,17 @@ vinders (12):
 * config: emulator info detection (process name + emulator type)
 * psemu: system logger (for error messages & warnings)
 * psemu: sync timer (framerate limit + skipping) + speed modes
+* psemu: read game ID + load config profile associated with game
+* psemu: plugin 'about' message box
+* config: detect emulator 'widescreen hack' settings (epsxe/pcsxr)
+* display: status/control register & rendering attributes management + DMA status + display state + texture page/window state + light-cursor status
+* psemu: add delay-to-start-limiter to speedup game startup
+* psemu: emulator save-state management: load/save/select
+* psemu: toggle framerate limit from emulator
+* display: DMA-chain iterator (with endless loop protection)
 ### fixes
-vinders (1):
+vinders (2):
 * config: refactor file management: create file/path utils
+* config: refactor emulator options detection + detect if cursor is auto-hidden
 
 ---
