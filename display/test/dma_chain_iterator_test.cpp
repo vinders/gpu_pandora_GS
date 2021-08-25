@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <gtest/gtest.h>
+#include <vector>
 #include <display/dma_chain_iterator.h>
 
 using namespace display;
@@ -94,59 +95,8 @@ TEST_F(DmaChainIteratorTest, nullChainTest) {
   EXPECT_FALSE(psxIt.readNext(&buffer, bufferSize));
 }
 
-TEST_F(DmaChainIteratorTest, endlessChain1Test) {
-  uint32_t chain[] {
-    0x00000008u, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000000u
-  };
-  unsigned long* buffer = nullptr;
-  int bufferSize = 0;
-
-  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
-  EXPECT_TRUE(psxIt.readNext(&buffer, bufferSize));
-  EXPECT_EQ((int)0, bufferSize);
-  EXPECT_TRUE(psxIt.readNext(&buffer, bufferSize));
-  EXPECT_EQ((int)0, bufferSize);
-  EXPECT_TRUE(psxIt.readNext(&buffer, bufferSize));
-  EXPECT_EQ((int)0, bufferSize);
-  EXPECT_TRUE(psxIt.readNext(&buffer, bufferSize));
-  EXPECT_EQ((int)0, bufferSize);
-  EXPECT_TRUE(psxIt.readNext(&buffer, bufferSize));
-  EXPECT_EQ((int)0, bufferSize);
-  EXPECT_FALSE(psxIt.readNext(&buffer, bufferSize));
-}
-
-TEST_F(DmaChainIteratorTest, endlessChain2Test) {
-  uint32_t chain[] { // note: with only 'lower'/'greater' index history, this chain would loop until max counter
-    0x00000008u, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000018u, 0x0000001Cu, 0x00000014u, 0x00000010u
-  };
-  unsigned long* buffer = nullptr;
-  int bufferSize = 0;
-
-  int retry = 0;
-  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
-  while (psxIt.readNext(&buffer, bufferSize) && ++retry < 20) {
-    EXPECT_EQ((int)0, bufferSize);
-  }
-  EXPECT_TRUE(retry < 20);
-}
-
-TEST_F(DmaChainIteratorTest, endlessChain3Test) {
-  uint32_t chain[] {
-    0x0000001Cu, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000018u, 0x00000008u, 0x00000014u, 0x00000008u
-  };
-  unsigned long* buffer = nullptr;
-  int bufferSize = 0;
-
-  int retry = 0;
-  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
-  while (psxIt.readNext(&buffer, bufferSize) && ++retry <= psxIt.maxCounter() + 1) {
-    EXPECT_EQ((int)0, bufferSize);
-  }
-  EXPECT_TRUE(retry <= psxIt.maxCounter());
-}
-
 TEST_F(DmaChainIteratorTest, selfRefItemTest) {
-  uint32_t chain[] { 0x01000000u, 42u };
+  uint32_t chain[] { 0x01000000u, 42u }; // self-referenced: faster detection with 'lower'/'greater' history
   unsigned long* buffer = nullptr;
   int bufferSize = 0;
 
@@ -169,4 +119,94 @@ TEST_F(DmaChainIteratorTest, selfRefItemTest) {
   ASSERT_TRUE(buffer != nullptr);
   EXPECT_EQ((unsigned long)42u, *buffer);
   EXPECT_FALSE(psxIt2.readNext(&buffer, bufferSize));
+}
+
+TEST_F(DmaChainIteratorTest, endlessChain1Test_simple) {
+  uint32_t chain[] { // easily detected with both techniques
+    0x00000008u, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000000u
+  };
+  unsigned long* buffer = nullptr;
+  int bufferSize = 0;
+
+  int itemsRead = 0;
+  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
+  while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 10) {
+    EXPECT_EQ((int)0, bufferSize);
+  }
+  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead < 10);
+}
+
+TEST_F(DmaChainIteratorTest, endlessChain2Test_alternateMoves) {
+  uint32_t chain[] { // only detected with slower moving index (with 'lower'/'greater' history, this chain would loop until max counter)
+    0x00000008u, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000018u, 0x0000001Cu, 0x00000014u, 0x00000010u
+  };
+  unsigned long* buffer = nullptr;
+  int bufferSize = 0;
+
+  int itemsRead = 0;
+  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
+  while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 30) {
+    EXPECT_EQ((int)0, bufferSize);
+  }
+  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead < 30);
+}
+
+TEST_F(DmaChainIteratorTest, endlessChain3Test_minMaxScattered) {
+  uint32_t chain[] { // only detected with slower moving index (with 'lower'/'greater' history, this chain would loop until max counter)
+    0x0000001Cu, 0x0000000Cu, 0x00000004u, 0x00000010u, 0x00000018u, 0x00000008u, 0x00000014u, 0x00000008u
+  };
+  unsigned long* buffer = nullptr;
+  int bufferSize = 0;
+
+  int itemsRead = 0;
+  DmaChainIterator<0x200000u> psxIt((unsigned long*)chain, 0);
+  while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 30) {
+    EXPECT_EQ((int)0, bufferSize);
+  }
+  EXPECT_TRUE(itemsRead >= sizeof(chain)/sizeof(*chain));
+  EXPECT_TRUE(itemsRead < 30);
+}
+
+#define __LONG_CHAIN_BYTE_SIZE 0x80000
+
+TEST_F(DmaChainIteratorTest, endlessChain4Test_orderedLongChain) {
+  uint32_t chainSize = (__LONG_CHAIN_BYTE_SIZE >> 2);
+  std::vector<uint32_t> chain; // ordered: much faster detection with 'lower'/'greater' history
+  for (uint32_t i = sizeof(uint32_t); i < __LONG_CHAIN_BYTE_SIZE; i += sizeof(uint32_t))
+    chain.push_back(i);
+  chain.push_back(0);
+
+  unsigned long* buffer = nullptr;
+  int bufferSize = 0;
+
+  int itemsRead = 0;
+  DmaChainIterator<0x200000u> psxIt((unsigned long*)&chain[0], 0);
+  while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 4*(int)chainSize) {
+    EXPECT_EQ((int)0, bufferSize);
+  }
+  EXPECT_TRUE(itemsRead >= (int)chainSize);
+  EXPECT_TRUE(itemsRead < 2*(int)chainSize);
+}
+
+TEST_F(DmaChainIteratorTest, endlessChain5Test_unorderedLongChain) {
+  uint32_t chainSize = (__LONG_CHAIN_BYTE_SIZE >> 2);
+  std::vector<uint32_t> chain; // unordered: only detected with slower moving index
+  for (uint32_t i = sizeof(uint32_t); i <= __LONG_CHAIN_BYTE_SIZE/2; i += sizeof(uint32_t))
+    chain.push_back(__LONG_CHAIN_BYTE_SIZE - i);
+  chain.push_back(0);
+  for (uint32_t i = sizeof(uint32_t); i < __LONG_CHAIN_BYTE_SIZE/2; i += sizeof(uint32_t))
+    chain.push_back(__LONG_CHAIN_BYTE_SIZE/2 - i);
+
+  unsigned long* buffer = nullptr;
+  int bufferSize = 0;
+
+  int itemsRead = 0;
+  DmaChainIterator<0x200000u> psxIt((unsigned long*)&chain[0], 0);
+  while (psxIt.readNext(&buffer, bufferSize) && ++itemsRead < 4*(int)chainSize) {
+    EXPECT_EQ((int)0, bufferSize);
+  }
+  EXPECT_TRUE(itemsRead >= (int)chainSize);
+  EXPECT_TRUE(itemsRead < 2*(int)chainSize);
 }

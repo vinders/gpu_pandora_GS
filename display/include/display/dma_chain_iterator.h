@@ -53,27 +53,26 @@ namespace display {
 
       // prevent endless loops
       if (++(this->_counter) > maxCounter()
+      ||  this->_index == this->_prevIndexes.slow
       ||  this->_index == this->_prevIndexes.lower
-      ||  this->_index == this->_prevIndexes.greater
-      ||  this->_index == this->_prevIndexes.lowest
-      ||  (long)this->_index == this->_prevIndexes.greatest) {
+      ||  this->_index == this->_prevIndexes.greater) {
         this->_index = endIndexBits();
         return false;
       }
-      // store address to detect endless loops
-      if (this->_index < this->_prevIndexes.latest) {
-        if (this->_index < this->_prevIndexes.lowest)
-          this->_prevIndexes.lowest = this->_index;
-        else
-          this->_prevIndexes.lower = this->_index;
-      }
-      else {
-        if ((long)this->_index > this->_prevIndexes.greatest)
-          this->_prevIndexes.greatest = (long)this->_index;
-        else
-          this->_prevIndexes.greater = this->_index;
-      }
+      // previous addresses, to detect loops (great for small loops and ordered chains) // inspired by Peops sources
+      if (this->_index < this->_prevIndexes.latest)
+        this->_prevIndexes.lower = this->_index;
+      else
+        this->_prevIndexes.greater = this->_index;
       this->_prevIndexes.latest = this->_index;
+
+      // slower moving index, to detect loops (much better for large loops and unordered chains)
+      if (this->_counter & 0x1) {
+        if (this->_prevIndexes.slow != endIndexBits())
+          this->_prevIndexes.slow = (this->_baseAddress[this->_prevIndexes.slow >> 2] & addressMask());
+        else
+          this->_prevIndexes.slow = this->_index;
+      }
 
       // read current value + size
       uint32_t* currentBlock = &_baseAddress[this->_index >> 2];
@@ -86,11 +85,10 @@ namespace display {
 
   private:
     struct {
-      unsigned long lowest = endIndexBits();
+      unsigned long latest = endIndexBits();
       unsigned long lower  = endIndexBits();
-      unsigned long latest  = endIndexBits();
       unsigned long greater = endIndexBits();
-      long greatest = -1;
+      unsigned long slow = endIndexBits();
     } _prevIndexes;
 
     uint32_t* _baseAddress = nullptr;
