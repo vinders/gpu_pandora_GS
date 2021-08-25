@@ -52,17 +52,8 @@ namespace config {
     renderInfo = 2  ///< Current FPS + rendering info (vsync, polygon count, source resolution)
   };
   
-  
-  // -- time management --------------------------------------------------------
-  
-  /// @brief OSD textual info to display
-  enum class FrameSkipping : int {
-    none       = 0,
-    evenFrames = 1, ///< Skip every 2nd frame (even frames) if too slow
-    adaptative = 2  ///< Skip frames based on actual lateness
-  };
   constexpr inline float autodetectFramerate() noexcept { return 0.0f; } ///< Auto-detect NTSC/PAL frame-rate limit
-  
+
   
   // -- menu / hotkey management -- --------------------------------------------
 

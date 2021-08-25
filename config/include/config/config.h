@@ -40,7 +40,7 @@ namespace config {
     bool enableVsync = false;                          ///< Vertical sync (no tearing, lower power consump., but higher input delay)
     bool enableFramerateLimit = true;                  ///< Enable framerate limiter (with 'framerateLimit')
     float framerateLimit = autodetectFramerate();      ///< Framerate limit (frames per second / autodetectFramerate())
-    FrameSkipping frameSkip = FrameSkipping::none;     ///< Frame skipping mode
+    bool enableFrameSkip = false;                      ///< Frame skipping mode
     OnScreenDisplay osd = OnScreenDisplay::none;       ///< On-screen-display: none / FPS / rendering info
   };
 

@@ -21,7 +21,7 @@ namespace config {
     constexpr const char* enableVsync() noexcept { return "vsync"; }
     constexpr const char* enableFramerateLimit() noexcept { return "limit_on"; }
     constexpr const char* framerateLimit() noexcept { return "framerate"; }
-    constexpr const char* frameSkip() noexcept { return "skip"; }
+    constexpr const char* enableFrameSkip() noexcept { return "skip"; }
     constexpr const char* precision() noexcept { return "subprec"; }
     constexpr const char* osd() noexcept { return "osd"; }
   }

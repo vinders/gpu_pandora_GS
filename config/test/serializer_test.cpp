@@ -99,7 +99,7 @@ static void __compareCommonConfig(const VideoConfig& r1, const VideoConfig& r2,
   EXPECT_EQ(r1.enableFramerateLimit, r2.enableFramerateLimit);
   EXPECT_EQ(r1.enableVsync, r2.enableVsync);
   EXPECT_EQ(r1.framerateLimit, r2.framerateLimit);
-  EXPECT_EQ(r1.frameSkip, r2.frameSkip);
+  EXPECT_EQ(r1.enableFrameSkip, r2.enableFrameSkip);
   EXPECT_EQ(r1.precision, r2.precision);
   EXPECT_EQ(r1.osd, r2.osd);
 
@@ -197,7 +197,7 @@ TEST_F(SerializerTest, writeReadCommonConfig) {
   inVideoCfg.enableFramerateLimit = true;
   inVideoCfg.enableVsync = true;
   inVideoCfg.framerateLimit = 59.94f;
-  inVideoCfg.frameSkip = FrameSkipping::adaptative;
+  inVideoCfg.enableFrameSkip = true;
   inVideoCfg.precision = PrecisionMode::subprecision;
   inVideoCfg.osd = OnScreenDisplay::framerate;
   inWindowCfg.monitorId = __UNICODE_STR("\\Display_1 - Generic PnP");

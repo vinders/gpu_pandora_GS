@@ -246,8 +246,8 @@ void Serializer::writeGlobalConfigFile(const UnicodeString& configDir, const Vid
     jsonObject.emplace(video::enableFramerateLimit(), SerializableValue((int32_t)videoCfg.enableFramerateLimit));
   if (videoCfg.framerateLimit != autodetectFramerate())
     jsonObject.emplace(video::framerateLimit(), SerializableValue(videoCfg.framerateLimit));
-  if (videoCfg.frameSkip != FrameSkipping::none)
-    jsonObject.emplace(video::frameSkip(), SerializableValue((int32_t)videoCfg.frameSkip));
+  if (videoCfg.enableFrameSkip)
+    jsonObject.emplace(video::enableFrameSkip(), SerializableValue((int32_t)videoCfg.enableFrameSkip));
   if (videoCfg.precision != PrecisionMode::standard)
     jsonObject.emplace(video::precision(), SerializableValue((int32_t)videoCfg.precision));
   if (videoCfg.osd != OnScreenDisplay::none)
@@ -411,7 +411,7 @@ void Serializer::readGlobalConfigFile(const UnicodeString& configDir, VideoConfi
   outVideoCfg.enableVsync = __readInteger<bool>(jsonObject, video::enableVsync(), false);
   outVideoCfg.enableFramerateLimit = __readInteger<bool>(jsonObject, video::enableFramerateLimit(), false);
   outVideoCfg.framerateLimit = __readFloat(jsonObject, video::framerateLimit(), autodetectFramerate());
-  outVideoCfg.frameSkip = __readInteger(jsonObject, video::frameSkip(), FrameSkipping::none);
+  outVideoCfg.enableFrameSkip = __readInteger<bool>(jsonObject, video::enableFrameSkip(), false);
   outVideoCfg.precision = __readInteger(jsonObject, video::precision(), PrecisionMode::standard);
   outVideoCfg.osd = __readInteger(jsonObject, video::osd(), OnScreenDisplay::none);
 
