@@ -21,6 +21,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "config/serializer.h"
 #include "config/presets.h"
 #include "display/status_register.h"
+#include "display/status_lock.h"
 #include "display/dma_chain_iterator.h"
 #include "display/window_builder.h"
 #include "display/renderer.h"
@@ -345,14 +346,13 @@ extern "C" unsigned long CALLBACK GPUreadData() {
 // Read entire chunk of data from video memory (VRAM)
 extern "C" void CALLBACK GPUreadDataMem(unsigned long* mem, int size) {
   if (g_statusRegister.getDataReadMode() == display::DataTransfer::vramTransfer) {
-    g_statusRegister.setGpuBusy();
+    display::GpuBusyStatusLock gpuBusyLock(g_statusRegister);
 
     //...
     //g_statusRegister.setGpuReadBuffer(...);
 
     g_statusRegister.setDataReadMode(display::DataTransfer::command);
     g_statusRegister.setVramReadFinished();
-    g_statusRegister.setGpuIdle();
   }
 }
 
@@ -365,8 +365,8 @@ extern "C" void CALLBACK GPUwriteData(unsigned long gdata) {
 
 // Process and send chunk of data to video data register - GP0 commands
 extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
-  g_statusRegister.setGpuBusy();
-  g_statusRegister.setGp0CommandReceived();
+  display::GpuBusyStatusLock gpuBusyLock(g_statusRegister);
+  display::Gp0CommandStatusLock gp0CommandLock(g_statusRegister);
 
   while (size > 0) {
     // VRAM transfer (continuous DMA)
@@ -376,6 +376,9 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
         //copy data as a texture ???
         //watch out for alignement (if odd width -> padded or mis-aligned ???)
         --size;
+
+      // stop vram transfer
+      g_statusRegister.setDataWriteMode(display::DataTransfer::command);
     }
     // GP0 command (primitive/attribute)
     else {
@@ -389,20 +392,35 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
         case 0xE4u: g_statusRegister.setDrawAreaEnd(*mem); break;
         case 0xE5u: g_statusRegister.setDrawOffset(*mem); break;
         case 0xE6u: g_statusRegister.setMaskBit(*mem); break;
+        default: {
+          if (commandId >= 0xA0 && commandId < 0xC0) {
+            //unsigned long x = (mem[1] & 0x3FFu);
+            //unsigned long y = (g_statusRegister.getGpuVramHeight() == display::psxVramHeight()) ? ((mem[1] >> 16) & 0x1FFu) : ((mem[1] >> 16) & 0x3FFu);
+            //imgWidth = ((mem[2] - 1u) & 0x3FFu) + 1u;
+            //imgHeight = (((mem[2] >> 16) - 1u) & 0x1FFu) + 1u;
+
+            g_statusRegister.setDataWriteMode(display::DataTransfer::vramTransfer);
+            cmdSize = 2;
+          }
+          else if (commandId >= 0xC0 && commandId < 0xE0) {
+            g_statusRegister.setDataReadMode(display::DataTransfer::vramTransfer);
+            g_statusRegister.setVramReadPending();
+            cmdSize = 2;
+          }
+          break;
+        }
       }
       size -= (int)cmdSize;
       mem += cmdSize;;
     }
   }
-  g_statusRegister.setGp0CommandFinished();
-  g_statusRegister.setGpuIdle();
 }
 
 // Direct memory chain transfer to GPU driver (linked-list DMA)
 extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long index) {
+  display::GpuBusyStatusLock gpuBusyLock(g_statusRegister);
   unsigned long* dmaBlock = nullptr;
   int blockSize = 0;
-  g_statusRegister.setGpuBusy();
 
   if (g_statusRegister.getGpuVramHeight() == display::psxVramHeight()) {
     display::DmaChainIterator<display::psxRamSize()> it(baseAddress, index);
@@ -418,7 +436,6 @@ extern "C" long CALLBACK GPUdmaChain(unsigned long* baseAddress, unsigned long i
         GPUwriteDataMem(dmaBlock, blockSize);
     }
   }
-  g_statusRegister.setGpuIdle();
   return PSE_SUCCESS;
 }
 
