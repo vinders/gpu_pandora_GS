@@ -68,7 +68,7 @@ namespace display {
 
       // slower moving index, to detect loops (much better for large loops and unordered chains)
       if (this->_counter & 0x1) {
-        if (this->_prevIndexes.slow != endIndexBits())
+        if (this->_prevIndexes.slow != endIndexBits()) // not default value (already initialized)
           this->_prevIndexes.slow = (this->_baseAddress[this->_prevIndexes.slow >> 2] & addressMask());
         else
           this->_prevIndexes.slow = this->_index;
@@ -79,7 +79,7 @@ namespace display {
       *outMemBlock = (unsigned long*)(currentBlock + 1);
       outBlockSize = static_cast<int>((*currentBlock >> 24) & 0xFF);
 
-      this->_index = (*currentBlock & (endIndexBits() | addressMask())); // move to next index (for next call)
+      this->_index = *currentBlock; // move to next index (for next call)
       return true;
     }
 
