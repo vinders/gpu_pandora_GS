@@ -160,9 +160,9 @@ namespace display {
 # define __TV_RANGE_CENTER_Y_PAL    0xA3  // middle line offset (PAL)
 
 # define __DEFAULT_RANGE_X0  __TV_RANGE_OFFSET_X
-# define __DEFAULT_RANGE_X1  __DEFAULT_RANGE_X0+__TV_RANGE_AVERAGE_WIDTH_X
+# define __DEFAULT_RANGE_X1  (__DEFAULT_RANGE_X0+__TV_RANGE_AVERAGE_WIDTH_X)
 # define __DEFAULT_RANGE_Y0  0x10
-# define __DEFAULT_RANGE_Y1  __DEFAULT_RANGE_Y0+240
+# define __DEFAULT_RANGE_Y1  (__DEFAULT_RANGE_Y0+240)
   
   /// @brief Pixel position or size
   struct Point final {
