@@ -91,10 +91,10 @@ namespace display {
                                        ///  Changes per field (interlaced) or per scaline (progressive). Set to 0 during VBlank.
 
     // data exchange status - special arcade GPU
-    arcadeC_texturePageBaseY   = 0x00000070u,
-    arcadeC_texturePageAlignedY= 0x00000060u,
-    arcadeC_semiTransparency   = 0x00000180u,
-    arcadeC_texturePageColors  = 0x00000600u
+    arcade2_texturePageBaseY   = 0x00000070u,
+    arcade2_texturePageAlignedY= 0x00000060u,
+    arcade2_semiTransparency   = 0x00000180u,
+    arcade2_texturePageColors  = 0x00000600u
   };
   constexpr inline int bitOffset_forceSetMaskBit() noexcept { return 11; } ///< Offset of StatusBits::forceSetMaskBit
   constexpr inline int bitOffset_reverseFlag() noexcept     { return 14; } ///< Offset of StatusBits::reverseFlag
@@ -122,12 +122,11 @@ namespace display {
           | (unsigned long)StatusBits::dithering        | (unsigned long)StatusBits::drawToDisplay
           | (unsigned long)StatusBits::disableTextures);
   }
-  constexpr inline unsigned long arcadeC_texturePageBits() noexcept { ///< Texture page bits for special arcade GPU
-    return ((unsigned long)StatusBits::texturePageBaseX | (unsigned long)StatusBits::arcadeC_texturePageBaseY
-          | (unsigned long)StatusBits::arcadeC_semiTransparency | (unsigned long)StatusBits::arcadeC_texturePageColors
-          | (unsigned long)StatusBits::forceSetMaskBit        | (unsigned long)StatusBits::enableMask);
+  constexpr inline unsigned long arcade2_texturePageBits() noexcept { ///< Texture page bits for special arcade GPU
+    return ((unsigned long)StatusBits::texturePageBaseX         | (unsigned long)StatusBits::arcade2_texturePageBaseY
+          | (unsigned long)StatusBits::arcade2_semiTransparency | (unsigned long)StatusBits::arcade2_texturePageColors
+          | (unsigned long)0x00001800u); // unknown content -> ignore mask/dithering/drawToDisplay with arcadeGpu2
   }
-  
   
   
   // -- hardware management -- -------------------------------------------------

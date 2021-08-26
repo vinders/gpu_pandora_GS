@@ -85,10 +85,14 @@ namespace display {
     inline bool areTexturesDisabled() const noexcept {
       return (this->_isTexturingDisabled && readStatus<bool>(StatusBits::disableTextures));
     }
-    inline bool getTexpageBaseX() const noexcept { return this->_texpageBaseX; } ///< Read texture page base X
-    inline bool getTexpageBaseY() const noexcept { return this->_texpageBaseY; } ///< Read texture page base Y
-    inline bool isTextureFlipX() const noexcept { return this->_isTextureFlipX; } ///< Verify texture flip-X status
-    inline bool isTextureFlipY() const noexcept { return this->_isTextureFlipY; } ///< Verify texture flip-Y status
+    inline long getTexpageBaseX() const noexcept { return this->_texpageBaseX; } ///< Read texture page base X
+    inline long getTexpageBaseY() const noexcept { return this->_texpageBaseY; } ///< Read texture page base Y
+    /// @brief Verify texture flip-X status
+    /// @remarks Only sprites are flipped (their coords are decremented instead of incremented)
+    inline bool isTextureFlipX() const noexcept { return this->_isTextureFlipX; }
+    /// @brief Verify texture flip-Y status
+    /// @remarks Only sprites are flipped (their coords are decremented instead of incremented)
+    inline bool isTextureFlipY() const noexcept { return this->_isTextureFlipY; }
     inline bool isTextureDecodingIL() const noexcept { return this->_isTextureDecodingIL; } ///< Special arcade GPU texture mode
 
     /// @brief Get current texture window settings (repeat cropped texture area)
@@ -201,7 +205,8 @@ namespace display {
     /// @brief Reset GPU status and display mode (GP1(0x00))
     /// @note  _isTexturingDisabled (GP1(0x09)) is not affected by reset
     void resetGpu() noexcept;
-    static void resetControlCommandHistory(unsigned long* history) noexcept; ///< Update command history values after a reset
+    /// @brief Update command history values after a reset
+    static void resetControlCommandHistory(unsigned long history[controlCommandNumber()]) noexcept;
 
     /// @brief Enable/disable display output (GP1(0x03))
     /// @note  when disabled, a black frame is drawn.

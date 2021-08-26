@@ -68,7 +68,7 @@ void StatusRegister::setDmaMode(unsigned long params) noexcept {
   this->_statusControlRegister &= ~((unsigned long)StatusBits::dmaMode | (unsigned long)StatusBits::dmaRequestState);
   this->_statusControlRegister |= (unsigned long)mode;
 
-  // set DMA status bit (+ reset current data transfer if DMA is disabled)
+  // set DMA status bit (+ update data transfer mode)
   switch (mode) {
     case DmaMode::fifoStatus: // query FIFO state -> note: no FIFO implemented (commands are synchronous)
       //if (command FIFO is full)
@@ -78,10 +78,12 @@ void StatusRegister::setDmaMode(unsigned long params) noexcept {
     case DmaMode::cpuToGpu: // CPU -> GPU (write DMA)
       this->_statusControlRegister |= ((unsigned long)mode & (unsigned long)StatusBits::readyForDmaBlock)
                                       >> (bitOffset_readyForDmaWrite() - bitOffset_dmaRequestState());
+      this->_dataTransferMode = DataTransfer::vramWrite;
       break;
     case DmaMode::gpuToCpu: // GPU -> CPU (read DMA)
       this->_statusControlRegister |= ((unsigned long)mode & (unsigned long)StatusBits::readyForDmaRead)
                                       >> (bitOffset_readyForDmaRead() - bitOffset_dmaRequestState());
+      this->_dataTransferMode = DataTransfer::vramRead;
       break;
     default: 
       this->_dataTransferMode = DataTransfer::primitives;
@@ -112,7 +114,7 @@ void StatusRegister::setLightgunCursor(unsigned long player, long x, long y) noe
 
 #define __SET_HISTORY(history,cmdId,value)   history[(size_t)cmdId] = (((unsigned long)cmdId << 24) | value)
 
-void StatusRegister::resetControlCommandHistory(unsigned long* history) noexcept {
+void StatusRegister::resetControlCommandHistory(unsigned long history[controlCommandNumber()]) noexcept {
   memset(history, 0, controlCommandNumber()*sizeof(unsigned long));
   __SET_HISTORY(history, ControlCommandId::clearCommandFifo, 0);
   __SET_HISTORY(history, ControlCommandId::ackIrq1, 0);
@@ -133,10 +135,11 @@ void StatusRegister::resetGpu() noexcept {
   this->_gpuBusyHackCounter = 0;
 
   // reset display state
-  memset(&(this->_textureWindow), 0, sizeof(TextureWindow));
   this->_displayState = DisplayState{};
   this->_texpageBaseX = this->_texpageBaseY = 0;
   this->_isTextureFlipX = this->_isTextureFlipY = false;
+  this->_isTextureDecodingIL = false;
+  this->_textureWindow = TextureWindow{};
 }
 
 void StatusRegister::setDisplayMode(unsigned long params) noexcept {
@@ -156,16 +159,15 @@ void StatusRegister::setDisplayMode(unsigned long params) noexcept {
     this->_displayState.cyclesPerPixel = 7; // round(2560 / 368)
   }
   else {
-    this->_displayState.displayAreaSize.x = (256 + ((params & 0x1) << 6)) << (params & 0x2); // 00: 256 / 01: 320 / 02: 512 / 03: 640
+    this->_displayState.displayAreaSize.x = (256 + ((params&0x1)<<6) ) << ((params&0x2)>>1); // 00: 256 / 01: 320 / 02: 512 / 03: 640
     this->_displayState.cyclesPerPixel = __TV_RANGE_AVERAGE_WIDTH_X / this->_displayState.displayAreaSize.x; // 10 / 8 / 5 / 4
   }
 
   // compute new display area size - Y
-  unsigned long isDoubleHeight = ((unsigned long)StatusBits::displayAreaHeight | (unsigned long)StatusBits::verticalInterlacing);
   if (readStatus<SmpteStandard>(StatusBits::videoStandard) == SmpteStandard::ntsc)
-    this->_displayState.displayAreaSize.y = (readStatus((StatusBits)isDoubleHeight) == isDoubleHeight) ? 480 : 240;
+    this->_displayState.displayAreaSize.y = readStatus<bool>(StatusBits::displayAreaHeight) ? 480 : 240;
   else // PAL
-    this->_displayState.displayAreaSize.y = (readStatus((StatusBits)isDoubleHeight) == isDoubleHeight) ? 512 : 256;
+    this->_displayState.displayAreaSize.y = readStatus<bool>(StatusBits::displayAreaHeight) ? 512 : 256;
 }
 
 // ---
@@ -175,6 +177,8 @@ void StatusRegister::setTexturePageMode(unsigned long params) noexcept {
     this->_statusControlRegister &= ~(texturePageBits());
     this->_statusControlRegister |= (params & 0x7FFu)
                                   | ((params & 0x800u) << (bitOffset_disableTextures() - 11));
+    if (readStatus(StatusBits::texturePageColors) == (unsigned long)TextureColorMode::reserved)
+      this->_statusControlRegister &= ~((unsigned long)TextureColorMode::lookupTable8bit); // "reserved" -> to "15-bit" mode
 
     this->_texpageBaseX = (params & (unsigned long)StatusBits::texturePageBaseX) << 6;
     this->_texpageBaseY = (params & (unsigned long)StatusBits::texturePageBaseY) << 4;
@@ -185,11 +189,13 @@ void StatusRegister::setTexturePageMode(unsigned long params) noexcept {
     this->_isTextureFlipY = (params & 0x2000u);
   }
   else { // special arcade GPU
-    this->_statusControlRegister &= ~(arcadeC_texturePageBits());
-    this->_statusControlRegister |= (params & arcadeC_texturePageBits());
+    this->_statusControlRegister &= ~(arcade2_texturePageBits());
+    this->_statusControlRegister |= (params & arcade2_texturePageBits());
+    if (readStatus(StatusBits::arcade2_texturePageColors) == (unsigned long)StatusBits::arcade2_texturePageColors)
+      this->_statusControlRegister &= ~((unsigned long)TextureColorMode::lookupTable8bit << 2); // "reserved" -> to "15-bit" mode
 
     this->_texpageBaseX = (params & (unsigned long)StatusBits::texturePageBaseX) << 6;
-    this->_texpageBaseY = (params & (unsigned long)StatusBits::arcadeC_texturePageAlignedY) << 3;
+    this->_texpageBaseY = (params & (unsigned long)StatusBits::arcade2_texturePageAlignedY) << 3;
     this->_isTextureDecodingIL = (params & 0x2000u);
   }
 }
@@ -237,7 +243,7 @@ void StatusRegister::setTextureWindow(unsigned long params) noexcept {
 // -- display area/range & draw area -- --------------------------------------
 
 void StatusRegister::setDisplayAreaOrigin(unsigned long params) noexcept {
-  this->_displayState.displayOrigin.x = (params & 0x3FE); // [0; 1022]: lower bit apparently ignored
+  this->_displayState.displayOrigin.x = (params & 0x3FF); // [0; 1023]
   if (this->_vramHeight == psxVramHeight())
     this->_displayState.displayOrigin.y = ((params >> 10) & 0x1FFu); // [0; 511]
   else if (this->_gpuType == GpuVersion::arcadeGpu2)
