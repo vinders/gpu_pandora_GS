@@ -119,8 +119,8 @@ void StatusRegister::resetControlCommandHistory(unsigned long* history) noexcept
   __SET_HISTORY(history, ControlCommandId::toggleDisplay, 0x1); // display off
   __SET_HISTORY(history, ControlCommandId::dmaMode, 0);
   __SET_HISTORY(history, ControlCommandId::displayAreaOrigin, 0);
-  __SET_HISTORY(history, ControlCommandId::horizontalDisplayRange, 0xC00200); // range X: 0x200 - 0xC00 (0x200+2560)
-  __SET_HISTORY(history, ControlCommandId::verticalDisplayRange,   0x040010); // range Y: 0x010 - 0x100 (0x010+240)
+  __SET_HISTORY(history, ControlCommandId::horizontalDisplayRange,((__DEFAULT_RANGE_X1<<12)|__DEFAULT_RANGE_X0)); // range X
+  __SET_HISTORY(history, ControlCommandId::verticalDisplayRange,  ((__DEFAULT_RANGE_Y1<<10)|__DEFAULT_RANGE_Y0)); // range Y
   __SET_HISTORY(history, ControlCommandId::displayMode, 0);
 }
 
@@ -157,7 +157,7 @@ void StatusRegister::setDisplayMode(unsigned long params) noexcept {
   }
   else {
     this->_displayState.displayAreaSize.x = (256 + ((params & 0x1) << 6)) << (params & 0x2); // 00: 256 / 01: 320 / 02: 512 / 03: 640
-    this->_displayState.cyclesPerPixel = 2560 / this->_displayState.displayAreaSize.x;       //     10  /     8   /     5   /     4
+    this->_displayState.cyclesPerPixel = __TV_RANGE_AVERAGE_WIDTH_X / this->_displayState.displayAreaSize.x; // 10 / 8 / 5 / 4
   }
 
   // compute new display area size - Y

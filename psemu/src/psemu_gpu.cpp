@@ -265,10 +265,8 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
       break;
     }
     case display::ControlCommandId::displayAreaOrigin: {
-      if (g_statusControlHistory[(size_t)display::ControlCommandId::displayAreaOrigin] != gdata) {
-        g_statusControlHistory[(size_t)display::ControlCommandId::displayAreaOrigin] = gdata;
-        g_statusRegister.setDisplayAreaOrigin(gdata);
-      }
+      g_statusControlHistory[(size_t)display::ControlCommandId::displayAreaOrigin] = gdata;
+      g_statusRegister.setDisplayAreaOrigin(gdata);
       break;
     }
     case display::ControlCommandId::horizontalDisplayRange: {

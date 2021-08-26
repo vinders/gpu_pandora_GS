@@ -153,6 +153,16 @@ namespace display {
 
 
   // -- display state -- -------------------------------------------------------
+
+# define __TV_RANGE_OFFSET_X        0x260 // offset to first visible pixel on most CRT TVs
+# define __TV_RANGE_AVERAGE_WIDTH_X 2560  // average range width on most CRT TVs
+# define __TV_RANGE_CENTER_Y_NTSC   0x88  // middle line offset (NTSC)
+# define __TV_RANGE_CENTER_Y_PAL    0xA3  // middle line offset (PAL)
+
+# define __DEFAULT_RANGE_X0  __TV_RANGE_OFFSET_X
+# define __DEFAULT_RANGE_X1  __DEFAULT_RANGE_X0+__TV_RANGE_AVERAGE_WIDTH_X
+# define __DEFAULT_RANGE_Y0  0x10
+# define __DEFAULT_RANGE_Y1  __DEFAULT_RANGE_Y0+240
   
   /// @brief Pixel position or size
   struct Point final {
@@ -177,11 +187,12 @@ namespace display {
 
   /// @brief Display mode: display/draw area, range, offset, status
   struct DisplayState final {
-    Rectangle displayRange{ 0x200,0x200+2560, 0x10,0x10+240 }; ///< Display range (horizontal/vertical screen range)
+    Rectangle displayRange{ __DEFAULT_RANGE_X0, __DEFAULT_RANGE_X1,
+                            __DEFAULT_RANGE_Y0, __DEFAULT_RANGE_Y1 }; ///< Display range (horizontal/vertical screen range)
     Rectangle drawArea;              ///< Drawing area boundaries: x0/x1 [0;1023], y0/y1 [0;511]
     Point drawOffset;                ///< Drawing offset: x/y [-1024; 1023]
-    Point displayAreaSize{ 320,240 };///< Display area pixel size
+    Point displayAreaSize{ 256,240 };///< Display area pixel size
     Point displayOrigin;             ///< Display source area in VRAM: x [0;1023], y [0;511]
-    uint32_t cyclesPerPixel = 8u;
+    long cyclesPerPixel = __TV_RANGE_AVERAGE_WIDTH_X/256;
   };
 }
