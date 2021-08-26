@@ -59,20 +59,35 @@ TEST_F(StatusRegisterTest, getSetHardwareInfo) {
   EXPECT_EQ(DmaMode::off, reg.readStatus<DmaMode>(StatusBits::dmaMode));
   reg.setDmaMode(1);
   EXPECT_EQ(DmaMode::fifoStatus, reg.readStatus<DmaMode>(StatusBits::dmaMode));
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
   reg.setDmaMode(2);
   EXPECT_EQ(DmaMode::cpuToGpu, reg.readStatus<DmaMode>(StatusBits::dmaMode));
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
   reg.setDmaMode(3);
   EXPECT_EQ(DmaMode::gpuToCpu, reg.readStatus<DmaMode>(StatusBits::dmaMode));
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataReadMode());
   reg.setDmaMode(0);
   EXPECT_EQ(DmaMode::off, reg.readStatus<DmaMode>(StatusBits::dmaMode));
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
 
-  EXPECT_EQ(DataTransfer::primitives, reg.getDataTransferMode());
-  reg.setDataTransferMode(DataTransfer::vramWrite);
-  EXPECT_EQ(DataTransfer::vramWrite, reg.getDataTransferMode());
-  reg.setDataTransferMode(DataTransfer::vramRead);
-  EXPECT_EQ(DataTransfer::vramRead, reg.getDataTransferMode());
-  reg.setDataTransferMode(DataTransfer::primitives);
-  EXPECT_EQ(DataTransfer::primitives, reg.getDataTransferMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
+  reg.setDataWriteMode(DataTransfer::vramTransfer);
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
+  reg.setDataReadMode(DataTransfer::vramTransfer);
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataReadMode());
+  reg.setDataWriteMode(DataTransfer::command);
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::vramTransfer, reg.getDataReadMode());
+  reg.setDataReadMode(DataTransfer::command);
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
 
   // lightgun
   reg.requestGpuInfo((unsigned long)GpuInfoType::biosAddress);
@@ -206,15 +221,18 @@ TEST_F(StatusRegisterTest, statusResetTest) {
   StatusRegister empty;
   StatusRegister reg;
   reg.setStatusControlRegister(0xFFFFFFFFu);
-  reg.setDataTransferMode(DataTransfer::vramWrite);
+  reg.setDataWriteMode(DataTransfer::vramTransfer);
+  reg.setDataReadMode(DataTransfer::vramTransfer);
   reg.setTexturePageMode(0xFFFFFFFFu);
   reg.setTextureWindow(0xFFFFFFFFu);
 
   reg.resetGpu();
   EXPECT_EQ(empty.getStatusControlRegister(), reg.getStatusControlRegister());
   EXPECT_EQ((unsigned long)0x14802000u, reg.getStatusControlRegister());
-  EXPECT_EQ(empty.getDataTransferMode(), reg.getDataTransferMode());
-  EXPECT_EQ(DataTransfer::primitives, reg.getDataTransferMode());
+  EXPECT_EQ(empty.getDataWriteMode(), reg.getDataWriteMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataWriteMode());
+  EXPECT_EQ(empty.getDataReadMode(), reg.getDataReadMode());
+  EXPECT_EQ(DataTransfer::command, reg.getDataReadMode());
   EXPECT_EQ((long)0, reg.getDisplayState().displayOrigin.x);
   EXPECT_EQ((long)0, reg.getDisplayState().displayOrigin.y);
   EXPECT_EQ((long)256, reg.getDisplayState().displayAreaSize.x);

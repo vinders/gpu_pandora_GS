@@ -122,11 +122,16 @@ namespace display {
 
     /// @brief Set direct-memory-access mode (GP1(0x04)) -> set data transfer mode in register status
     void setDmaMode(unsigned long params) noexcept;
-    /// @brief Set current data transfer mode (after receiving/completing VRAM read/write commands)
-    inline void setDataTransferMode(DataTransfer mode) noexcept { this->_dataTransferMode = mode; }
-    /// @brief Get actual current data transfer mode
+    /// @brief Set current data write mode (after receiving/completing VRAM write commands)
+    inline void setDataWriteMode(DataTransfer mode) noexcept { this->_dataWriteMode = mode; }
+    /// @brief Set current data read mode (after receiving/completing VRAM read commands)
+    inline void setDataReadMode(DataTransfer mode) noexcept { this->_dataReadMode = mode; }
+    /// @brief Get current data write mode
     /// @remarks Equal to DMA mode of register status in most cases (but may differ for compatibility reasons)
-    inline DataTransfer getDataTransferMode() const noexcept { return this->_dataTransferMode; }
+    inline DataTransfer getDataWriteMode() const noexcept { return this->_dataWriteMode; }
+    /// @brief Get current data read mode
+    /// @remarks Equal to DMA mode of register status in most cases (but may differ for compatibility reasons)
+    inline DataTransfer getDataReadMode() const noexcept { return this->_dataReadMode; }
 
     /// @brief Remove all lightgun cursors
     inline void clearLightgunCursors() noexcept { this->_activeLightguns = 0; }
@@ -161,18 +166,19 @@ namespace display {
 
     /// @brief Set status flag 'readyForCommands': when the GPU is ready for new commands
     inline void setGpuIdle() noexcept { this->_statusControlRegister |= (unsigned long)StatusBits::readyForCommands; }
-    /// @brief Clear status flag 'readyForCommands': - when the GPU is busy with a command execution
-    ///                                              - when the GPU is waiting for DMA data blocks
+    /// @brief Clear status flag 'readyForCommands' when the GPU is busy with a command execution or a DMA block
     inline void setGpuBusy() noexcept { this->_statusControlRegister &= ~(unsigned long)StatusBits::readyForCommands; }
 
     /// @brief Clear status flag 'readyForDmaBlock': - when receiving polygon/line primitive (immediately, before reading vertex params)
     ///                                              - after receiving any other GP0 command+params (all params received)
+    ///                                              - after receiving a DMA block for VRAM write commands
     inline void setGp0CommandReceived() noexcept {
       this->_statusControlRegister &= (this->_statusControlRegister & (unsigned long)DmaMode::cpuToGpu)
                                       ? ~((unsigned long)StatusBits::readyForDmaBlock | (unsigned long)StatusBits::dmaRequestState)
                                       : ~(unsigned long)StatusBits::readyForDmaBlock;
     }
-    /// @brief Restore status flag 'readyForDmaBlock': after completing command processing
+    /// @brief Restore status flag 'readyForDmaBlock': after finishing command execution or current DMA block
+    ///        (should be called between a transfer command header and the associated DMA transfer -> don't keep locked status)
     inline void setGp0CommandFinished() noexcept {
       this->_statusControlRegister |= (this->_statusControlRegister & (unsigned long)DmaMode::cpuToGpu)
                                       ? ((unsigned long)StatusBits::readyForDmaBlock | (unsigned long)StatusBits::dmaRequestState)
@@ -285,7 +291,8 @@ namespace display {
     // status/control registers
     unsigned long _statusControlRegister = statusControlDefaults();
     unsigned long _gpuReadBuffer = 0x400uL;
-    DataTransfer _dataTransferMode = DataTransfer::primitives;
+    DataTransfer _dataWriteMode = DataTransfer::command;
+    DataTransfer _dataReadMode = DataTransfer::command;
 
     // display state
     DisplayState _displayState;

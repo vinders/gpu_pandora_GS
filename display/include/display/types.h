@@ -145,9 +145,8 @@ namespace display {
   /// @brief Data transfer mode: primitives / VRAM transfer
   /// @remarks Represents current data transfer (set after receiving or completing VRAM transfer commands)
   enum class DataTransfer : long {
-    primitives = 0,
-    vramWrite  = 1,
-    vramRead   = 2
+    command = 0,
+    vramTransfer  = 1
   };
 
 

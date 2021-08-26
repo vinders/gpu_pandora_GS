@@ -69,25 +69,23 @@ void StatusRegister::setDmaMode(unsigned long params) noexcept {
   this->_statusControlRegister |= (unsigned long)mode;
 
   // set DMA status bit (+ update data transfer mode)
+  this->_dataWriteMode = this->_dataReadMode = DataTransfer::command;
   switch (mode) {
-    case DmaMode::fifoStatus: // query FIFO state -> note: no FIFO implemented (commands are synchronous)
-      //if (command FIFO is full)
-      //  this->_statusControlRegister |= (unsigned long)StatusBits::dmaRequestState;
-      this->_dataTransferMode = DataTransfer::primitives;
-      break;
+    //case DmaMode::fifoStatus: // query FIFO state -> note: no FIFO implemented (commands are synchronous)
+    //  if (commandFifo.isFull())
+    //    this->_statusControlRegister |= (unsigned long)StatusBits::dmaRequestState;
+    //  break;
     case DmaMode::cpuToGpu: // CPU -> GPU (write DMA)
       this->_statusControlRegister |= ((unsigned long)mode & (unsigned long)StatusBits::readyForDmaBlock)
                                       >> (bitOffset_readyForDmaWrite() - bitOffset_dmaRequestState());
-      this->_dataTransferMode = DataTransfer::vramWrite;
+      this->_dataWriteMode = DataTransfer::vramTransfer;
       break;
     case DmaMode::gpuToCpu: // GPU -> CPU (read DMA)
       this->_statusControlRegister |= ((unsigned long)mode & (unsigned long)StatusBits::readyForDmaRead)
                                       >> (bitOffset_readyForDmaRead() - bitOffset_dmaRequestState());
-      this->_dataTransferMode = DataTransfer::vramRead;
+      this->_dataReadMode = DataTransfer::vramTransfer;
       break;
-    default: 
-      this->_dataTransferMode = DataTransfer::primitives;
-      break;
+    default: break;
   }
 }
 
@@ -131,7 +129,7 @@ void StatusRegister::resetControlCommandHistory(unsigned long history[controlCom
 void StatusRegister::resetGpu() noexcept {
   // reset status/control register
   _statusControlRegister = statusControlDefaults();
-  this->_dataTransferMode = DataTransfer::primitives;
+  this->_dataWriteMode = this->_dataReadMode = DataTransfer::command;
   this->_gpuBusyHackCounter = 0;
 
   // reset display state

@@ -246,6 +246,7 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
       display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
       if (g_videoConfig.framerateLimit == config::autodetectFramerate())
         g_timer.setFrequency(display::SmpteStandard::ntsc, false);
+      //TODO: reset current VRAM transfer (remaining data...)
       break;
     }
     case display::ControlCommandId::clearCommandFifo: g_statusRegister.clearPendingCommands(); break;
@@ -327,21 +328,10 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
 
 // Get data transfer mode
 extern "C" long CALLBACK GPUgetMode() {
-  return (long)g_statusRegister.getDataTransferMode();
+  return ((long)g_statusRegister.getDataWriteMode() | ((long)g_statusRegister.getDataReadMode() << 1));
 }
 // Set data transfer mode (emulator initiates data transfer)
-extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {
-  if ((transferMode & (unsigned long)display::DataTransfer::vramWrite)) {
-    if (g_statusRegister.readStatus<display::DmaMode>(display::StatusBits::dmaMode) == display::DmaMode::cpuToGpu)
-      g_statusRegister.setDataTransferMode(display::DataTransfer::vramWrite);
-  }
-  else if ((transferMode & (unsigned long)display::DataTransfer::vramRead)) {
-    if (g_statusRegister.readStatus<display::DmaMode>(display::StatusBits::dmaMode) == display::DmaMode::gpuToCpu)
-      g_statusRegister.setDataTransferMode(display::DataTransfer::vramRead);
-  }
-  else
-    g_statusRegister.setDataTransferMode(display::DataTransfer::primitives);
-}
+extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {} // deprecated
 
 // ---
 
@@ -354,7 +344,16 @@ extern "C" unsigned long CALLBACK GPUreadData() {
 
 // Read entire chunk of data from video memory (VRAM)
 extern "C" void CALLBACK GPUreadDataMem(unsigned long* mem, int size) {
+  if (g_statusRegister.getDataReadMode() == display::DataTransfer::vramTransfer) {
+    g_statusRegister.setGpuBusy();
 
+    //...
+    //g_statusRegister.setGpuReadBuffer(...);
+
+    g_statusRegister.setDataReadMode(display::DataTransfer::command);
+    g_statusRegister.setVramReadFinished();
+    g_statusRegister.setGpuIdle();
+  }
 }
 
 // ---
@@ -366,14 +365,23 @@ extern "C" void CALLBACK GPUwriteData(unsigned long gdata) {
 
 // Process and send chunk of data to video data register - GP0 commands
 extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
-  while (size) {
-    // GP0 command (primitive/attribute)
-    if (g_statusRegister.getDataTransferMode() == display::DataTransfer::primitives) {
-      --size;
+  g_statusRegister.setGpuBusy();
+  g_statusRegister.setGp0CommandReceived();
 
+  while (size > 0) {
+    // VRAM transfer (continuous DMA)
+    if (g_statusRegister.getDataWriteMode() == display::DataTransfer::vramTransfer) {
+      //while cols/rows remaining
+        //if size == 0 before end of cols/rows, return;
+        //copy data as a texture ???
+        //watch out for alignement (if odd width -> padded or mis-aligned ???)
+        --size;
+    }
+    // GP0 command (primitive/attribute)
+    else {
+      size_t cmdSize = 1;
       auto commandId = display::StatusRegister::getGp0CommandId(*mem);
       switch (commandId) {//TODO replace with lookup table: handler fct pointer + data length + skippable
-        //TODO: load/store (VRAM transfer cmd): setDataTransferMode vramRead/Write
         case 0x1Fu: g_statusRegister.setIrq1(); break;
         case 0xE1u: g_statusRegister.setTexturePageMode(*mem); break;
         case 0xE2u: g_statusRegister.setTextureWindow(*mem); break;
@@ -382,15 +390,12 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
         case 0xE5u: g_statusRegister.setDrawOffset(*mem); break;
         case 0xE6u: g_statusRegister.setMaskBit(*mem); break;
       }
-    }
-    // VRAM transfer (continuous DMA)
-    else {
-      --size;
-
-      //TODO: if cols remaining == 0 && rows remaining == 0, setDataTransferMode(primitives)
-      //TODO: if size == 0, but cols or rows > 0: return; (wait for next data block) ???
+      size -= (int)cmdSize;
+      mem += cmdSize;;
     }
   }
+  g_statusRegister.setGp0CommandFinished();
+  g_statusRegister.setGpuIdle();
 }
 
 // Direct memory chain transfer to GPU driver (linked-list DMA)
