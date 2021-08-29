@@ -17,6 +17,13 @@ GNU General Public License for more details (LICENSE file).
 #include "display/status_register.h"
 #include "display/renderer.h"
 #include "display/primitives.h"
+#if !defined(_CPP_REVISION) || _CPP_REVISION != 14
+# define __if_constexpr if constexpr
+#else
+# define __if_constexpr if
+#endif
+#define __MAX_GP0_PARAMS_LENGTH 0xFF
+#define __MAX_INT32 0x7FFFFFFF
 
 using namespace display;
 
@@ -30,20 +37,15 @@ enum class Gp0DrawCmdBit : unsigned long {
   textured          = 0x4, ///< Textured (1) / Simple color (0)
   shaded            = 0x10 ///< Gouraud shaded (1) / Flat color (0) -- only for polygons and lines
 };
-#define __GP0_POLY_CMD_BIT_MASK          0x16
+#define __GP0_POLY_CMD_BIT_MASK          0x12
 #define __GP0_POLY_CMD_BIT_MASK_TEXTURED 0x17
 #define __GP0_LINE_CMD_BIT_MASK          0x12
-#define __GP0_TILE_CMD_BIT_MASK          0x06
+#define __GP0_TILE_CMD_BIT_MASK          0x02
 #define __GP0_TILE_CMD_BIT_MASK_TEXTURED 0x07
 
 static constexpr inline bool hasGp0CommandBit(Gp0DrawCmdBit id, Gp0DrawCmdBit bit) noexcept {
   return (((unsigned long)id & (unsigned long)bit) == (unsigned long)bit);
 }
-static constexpr inline bool isGp0PolyLineTermination(uint32_t param) noexcept { // verify if param is a poly-line termination
-  return ((param & 0xF000F000) == 0x50005000);
-}
-#define __MAX_GP0_PARAMS_LENGTH 0xFF
-#define __MAX_INT32 0x7FFFFFFF
 
 
 // -- GP0 commands - general -- ------------------------------------------------
@@ -65,15 +67,29 @@ static void requestIrq1(StatusRegister& status, Renderer&, uint32_t*) noexcept {
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawTriangle(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+    
+  }
 }
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawQuad(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+    
+  }
 }
 
 // ---
+
+static constexpr inline bool isGp0PolyLineTermination(uint32_t param) noexcept {
+  return ((param & 0xF000F000) == 0x50005000);
+}
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawLine(StatusRegister&, Renderer&, uint32_t*) noexcept {
@@ -89,22 +105,42 @@ static void drawPolyLine(StatusRegister&, Renderer&, uint32_t*) noexcept {
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawCustomTile(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+    
+  }
 }
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawTile1x1(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+    
+  }
 }
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawTile8x8(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+    
+  }
 }
 
 template <Gp0DrawCmdBit _CmdId>
 static void drawTile16x16(StatusRegister&, Renderer&, uint32_t*) noexcept {
+  __if_constexpr (hasGp0CommandBit(_CmdId, Gp0DrawCmdBit::textured)) {
 
+  }
+  else {
+
+  }
 }
 
 
@@ -249,7 +285,7 @@ static constexpr inline bool isGp0ShadedPolyLine(int maxSize) noexcept {  // ver
   return (maxSize == __MAX_GP0_PARAMS_LENGTH);
 }
 
-// get remaining length of poly-line params (variable length)
+// Get remaining length of poly-line params (variable length)
 // - memSize:       array size of 'mem'.
 // - maxSize:       maximum total length of poly-line params.
 // - existingSize:  length of poly-line params already read (from previous call(s)).
