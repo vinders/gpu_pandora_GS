@@ -110,18 +110,21 @@ static void drawTile16x16(StatusRegister&, Renderer&, uint32_t*) noexcept {
 
 // -- GP0 commands - framebuffer data transfers -- -----------------------------
 
+unsigned long Primitives::imgWidth__TMP = 0;//TODO: replace with VRAM reader/writer
+unsigned long Primitives::imgHeight__TMP = 0;
+
 static void copyVramRectangle(StatusRegister&, Renderer&, uint32_t*) noexcept {
 
 }
 
 static void writeVramRectangle(StatusRegister& status, Renderer&, uint32_t* params) noexcept {
   ++params;
-  unsigned long x = (*params & 0x3FFu);
-  unsigned long y = (status.getGpuVramHeight() == display::psxVramHeight()) ? ((*params >> 16) & 0x1FFu) : ((*params >> 16) & 0x3FFu);
+  //unsigned long x = (*params & 0x3FFu);
+  //unsigned long y = (status.getGpuVramHeight() == display::psxVramHeight()) ? ((*params >> 16) & 0x1FFu) : ((*params >> 16) & 0x3FFu);
 
   ++params;
-  //imgWidth = ((*params - 1u) & 0x3FFu) + 1u;
-  //imgHeight = (((*params >> 16) - 1u) & 0x1FFu) + 1u;
+  Primitives::imgWidth__TMP = ((*params - 1u) & 0x3FFu) + 1u;
+  Primitives::imgHeight__TMP = (((*params >> 16) - 1u) & 0x1FFu) + 1u;
 
   status.setDataWriteMode(display::DataTransfer::vramTransfer);
 }
@@ -166,7 +169,7 @@ struct Gp0Command final {
   int paramsLength;
 };
 
-#define NOP { nullptr, 1 }
+#define NOP Gp0Command({ nullptr, 1 })
 #define CMD_4X(baseId, idMask, runner, size)  { runner <(Gp0DrawCmdBit)( baseId    & idMask)>, size }, \
                                               { runner <(Gp0DrawCmdBit)((baseId+1) & idMask)>, size }, \
                                               { runner <(Gp0DrawCmdBit)((baseId+2) & idMask)>, size }, \
@@ -247,8 +250,9 @@ static constexpr inline bool isGp0ShadedPolyLine(int maxSize) noexcept {  // ver
 }
 
 // get remaining length of poly-line params (variable length)
-// - maxSize:      maximum total length of poly-line.
-// - existingSize: length of poly-line already read (from previous call(s)).
+// - memSize:       array size of 'mem'.
+// - maxSize:       maximum total length of poly-line params.
+// - existingSize:  length of poly-line params already read (from previous call(s)).
 // - returns: actual length remaining (or __MAX_INT32 if termination not found and max size not reached).
 static inline int getPolyLineRemLength(uint32_t* mem, int memSize, int maxSize, int existingSize) {
   if (maxSize < existingSize)
@@ -287,13 +291,16 @@ static inline int getPolyLineRemLength(uint32_t* mem, int memSize, int maxSize, 
 
 // -- GP0 command interface -- -------------------------------------------------
 
-void display::clearCommandBuffer() noexcept {
+// Clear pending command data buffer
+void Primitives::clearCommandBuffer() noexcept {
   g_truncatedParamsLength = 0;
   //TODO: clear current VRAM transfer ???
 }
 
-int display::runGp0Command(StatusRegister& status, Renderer& renderer,
-                           uint32_t* mem, int size, bool isFrameSkipped) noexcept {
+// Run GP0 rendering command (drawing & rendering attributes)
+// returns: size used by current command
+int Primitives::runGp0Command(StatusRegister& status, Renderer& renderer,
+                              uint32_t* mem, int size, bool isFrameSkipped) noexcept {
   const auto& command = (g_truncatedParamsLength == 0)
                       ? g_gp0CommandTable[StatusRegister::getGp0CommandId((unsigned long)*mem)]
                       : g_gp0CommandTable[StatusRegister::getGp0CommandId((unsigned long)*g_truncatedParams)];

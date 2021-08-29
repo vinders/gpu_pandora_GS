@@ -19,11 +19,21 @@ namespace display {
   class StatusRegister;
   class Renderer;
 
-  /// @brief Clear pending command data buffer
-  void clearCommandBuffer() noexcept;
+  class Primitives final {
+  public:
+    Primitives() = delete;
 
-  /// @brief Run GP0 rendering command (drawing & rendering attributes)
-  /// @returns Size used by current command
-  int runGp0Command(StatusRegister& status, Renderer& renderer,
-                    uint32_t* mem, int size, bool isFrameSkipped) noexcept;
+    /// @brief Clear pending command data buffer
+    static void clearCommandBuffer() noexcept;
+
+    /// @brief Run GP0 rendering command (drawing & rendering attributes)
+    /// @returns Size used by current command
+    static int runGp0Command(StatusRegister& status, Renderer& renderer,
+                             uint32_t* mem, int size, bool isFrameSkipped) noexcept;
+
+
+
+    static unsigned long imgWidth__TMP;//TODO: replace with VRAM reader/writer
+    static unsigned long imgHeight__TMP;
+  };
 }

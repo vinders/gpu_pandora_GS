@@ -117,7 +117,7 @@ extern "C" long CALLBACK GPUinit() {
 
     g_statusRegister = display::StatusRegister{}; // reset status
     display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
-    display::clearCommandBuffer();
+    display::Primitives::clearCommandBuffer();
     return PSE_INIT_SUCCESS;
   }
   catch (const std::exception& exc) {
@@ -247,7 +247,7 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
     // general GPU status
     case display::ControlCommandId::resetGpu: {
       SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(00): reset");
-      display::clearCommandBuffer();
+      display::Primitives::clearCommandBuffer();
       g_statusRegister.resetGpu();
       display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
 
@@ -256,7 +256,7 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
       break;
     }
     case display::ControlCommandId::clearCommandFifo: {
-      display::clearCommandBuffer();
+      display::Primitives::clearCommandBuffer();
       g_statusRegister.clearPendingCommands();
       break;
     }
@@ -380,18 +380,28 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
   while (size > 0) {
     // VRAM transfer (continuous DMA)
     if (g_statusRegister.getDataWriteMode() == display::DataTransfer::vramTransfer) {
-      //while cols/rows remaining
-        //if size == 0 before end of cols/rows, return;
-        //copy data as a texture ???
-        //watch out for alignement (if odd width -> padded or mis-aligned ???)
-        --size;
+      if (display::Primitives::imgHeight__TMP) {
+        size -= (display::Primitives::imgWidth__TMP * display::Primitives::imgHeight__TMP + 1) >> 1;
+        if (size < 0) {
+          display::Primitives::imgHeight__TMP = -size;//TMP
+          display::Primitives::imgWidth__TMP = 1;
+          return;
+        }
+        mem += (display::Primitives::imgWidth__TMP * display::Primitives::imgHeight__TMP + 1) >> 1;
+
+        //while cols/rows remaining
+          //if size == 0 before end of cols/rows, return;
+          //copy data as a texture ???
+          //watch out for alignement (if odd width -> padded or mis-aligned ???)
+      }
 
       // stop vram transfer
+      display::Primitives::imgWidth__TMP = display::Primitives::imgHeight__TMP = 0;
       g_statusRegister.setDataWriteMode(display::DataTransfer::command);
     }
     // GP0 command (primitive/attribute)
     else {
-      int cmdSize = display::runGp0Command(g_statusRegister, g_renderer, (uint32_t*)mem, size, false);
+      int cmdSize = display::Primitives::runGp0Command(g_statusRegister, g_renderer, (uint32_t*)mem, size, false);
       size -= cmdSize;
       mem += (intptr_t)cmdSize;
     }
