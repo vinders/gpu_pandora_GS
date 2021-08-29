@@ -50,6 +50,7 @@ cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox OFF OFF
 # │  Solution projects                                               │
 # └──────────────────────────────────────────────────────────────────┘
 cwork_set_solution_projects(
+    utils
     config
     display
     psemu
