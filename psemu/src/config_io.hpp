@@ -15,11 +15,12 @@ GNU General Public License for more details (LICENSE file).
 #include "config/file_path_utils.h"
 #include "config/serializer.h"
 #include "config/presets.h"
-#include "psemu/syslog.h"
+#include "utils/syslog.h"
 #include "psemu/config_io.h"
 // this implementation is included in psemu_gpu.cpp -> single object file (less overhead + smaller lib size)
 
 using pandora::video::MessageBox;
+using utils::SysLog;
 
 
 // -- config directory management -- -------------------------------------------

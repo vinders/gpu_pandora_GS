@@ -28,7 +28,7 @@ project("${CWORK_SOLUTION_NAME}.${_PROJECT_TITLE}" VERSION ${CWORK_BUILD_VERSION
 cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox ON OFF
     system
 )
-cwork_set_internal_libs(config display)
+cwork_set_internal_libs(utils config display)
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │  Library file generation                                         │

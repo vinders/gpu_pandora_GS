@@ -25,12 +25,13 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "display/dma_chain_iterator.h"
 #include "display/window_builder.h"
 #include "display/renderer.h"
-#include "psemu/syslog.h"
+#include "utils/syslog.h"
 #include "psemu/timer.h"
 #include "psemu/config_io.h"
 #include "psemu/psemu_gpu.h"
 
 using pandora::video::MessageBox;
+using utils::SysLog;
 using namespace psemu;
 
 #define __DECLARE_GLOBALS 1
@@ -106,7 +107,8 @@ extern "C" long CALLBACK GPUinit() {
     }
     catch (const std::exception& exc) { SysLog::logError(__FILE_NAME__, __LINE__, exc.what()); }
 
-    SysLog::init(g_configDir); // redirect default log path to config dir
+    // redirect default log path to config dir
+    SysLog::init(g_configDir, "----- " LIBRARY_NAME " " LIBRARY_VERSION " -----", SysLog::Level::debug);
     SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUinit");
 
     // load global config (on failure, keep default config)
@@ -332,7 +334,7 @@ extern "C" long CALLBACK GPUgetMode() {
   return ((long)g_statusRegister.getDataWriteMode() | ((long)g_statusRegister.getDataReadMode() << 1));
 }
 // Set data transfer mode (emulator initiates data transfer)
-extern "C" void CALLBACK GPUsetMode(unsigned long transferMode) {} // deprecated
+extern "C" void CALLBACK GPUsetMode(unsigned long) {} // deprecated
 
 // ---
 

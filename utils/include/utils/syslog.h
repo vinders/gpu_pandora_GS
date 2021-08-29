@@ -31,15 +31,24 @@ GNU General Public License for more details (LICENSE file).
 # endif
 #endif
 
-namespace psemu {
+namespace utils {
   /// @brief System logger (for warnings, errors, debugging...)
   class SysLog final {
   public:
+    /// @brief Log level
+    /// @note: same values as pandora::system::LogLevel
+    enum class Level: uint32_t {
+      debug   = 2u, // only for debug builds
+      info    = 3u,
+      warning = 4u,
+      error   = 5u
+    };
+
     // -- initialization --
 
-    /// @brief Initialize log file directory path (with trailing slash/backslash)
+    /// @brief Initialize log file directory path (with trailing slash/backslash) + section title
     /// @remarks Has no effect if some messages have already been logged (logger is created with first message log)
-    static void init(const LoggerPath& logDir);
+    static void init(const LoggerPath& logDir, const char* title, Level level);
     /// @brief Flush and shutdown logger
     static void close();
 
@@ -47,7 +56,6 @@ namespace psemu {
 
 #   if defined(_DEBUG) || !defined(NDEBUG)
       static void logDebug(const char* origin, uint32_t line, const char* format, ...); ///< Verbose log (debug mode only)
-      
 #   else
       static inline void logDebug(...) {}
 #   endif
