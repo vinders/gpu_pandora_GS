@@ -22,6 +22,7 @@ This file can be used only to develop PSEmu Plugins. Other usage is highly prohi
 #include "config/presets.h"
 #include "display/status_register.h"
 #include "display/status_lock.h"
+#include "display/primitives.h"
 #include "display/dma_chain_iterator.h"
 #include "display/window_builder.h"
 #include "display/renderer.h"
@@ -116,6 +117,7 @@ extern "C" long CALLBACK GPUinit() {
 
     g_statusRegister = display::StatusRegister{}; // reset status
     display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
+    display::clearCommandBuffer();
     return PSE_INIT_SUCCESS;
   }
   catch (const std::exception& exc) {
@@ -245,15 +247,20 @@ extern "C" void CALLBACK GPUwriteStatus(unsigned long gdata) {
     // general GPU status
     case display::ControlCommandId::resetGpu: {
       SysLog::logDebug(__FILE_NAME__, __LINE__, "GP1(00): reset");
+      display::clearCommandBuffer();
       g_statusRegister.resetGpu();
       display::StatusRegister::resetControlCommandHistory(g_statusControlHistory);
+
       if (g_videoConfig.framerateLimit == config::autodetectFramerate())
         g_timer.setFrequency(display::SmpteStandard::ntsc, false);
-      //TODO: reset current VRAM transfer (remaining data...)
       break;
     }
-    case display::ControlCommandId::clearCommandFifo: g_statusRegister.clearPendingCommands(); break;
-    case display::ControlCommandId::ackIrq1:          g_statusRegister.ackIrq1(); break;
+    case display::ControlCommandId::clearCommandFifo: {
+      display::clearCommandBuffer();
+      g_statusRegister.clearPendingCommands();
+      break;
+    }
+    case display::ControlCommandId::ackIrq1: g_statusRegister.ackIrq1(); break;
     case display::ControlCommandId::dmaMode: {
       g_statusControlHistory[(size_t)display::ControlCommandId::dmaMode] = gdata;
       g_statusRegister.setDmaMode(gdata);
@@ -384,36 +391,9 @@ extern "C" void CALLBACK GPUwriteDataMem(unsigned long* mem, int size) {
     }
     // GP0 command (primitive/attribute)
     else {
-      size_t cmdSize = 1;
-      auto commandId = display::StatusRegister::getGp0CommandId(*mem);
-      switch (commandId) {//TODO replace with lookup table: handler fct pointer + data length + skippable
-        case 0x1Fu: g_statusRegister.setIrq1(); break;
-        case 0xE1u: g_statusRegister.setTexturePageMode(*mem); break;
-        case 0xE2u: g_statusRegister.setTextureWindow(*mem); break;
-        case 0xE3u: g_statusRegister.setDrawAreaOrigin(*mem);  break;
-        case 0xE4u: g_statusRegister.setDrawAreaEnd(*mem); break;
-        case 0xE5u: g_statusRegister.setDrawOffset(*mem); break;
-        case 0xE6u: g_statusRegister.setMaskBit(*mem); break;
-        default: {
-          if (commandId >= 0xA0 && commandId < 0xC0) {
-            //unsigned long x = (mem[1] & 0x3FFu);
-            //unsigned long y = (g_statusRegister.getGpuVramHeight() == display::psxVramHeight()) ? ((mem[1] >> 16) & 0x1FFu) : ((mem[1] >> 16) & 0x3FFu);
-            //imgWidth = ((mem[2] - 1u) & 0x3FFu) + 1u;
-            //imgHeight = (((mem[2] >> 16) - 1u) & 0x1FFu) + 1u;
-
-            g_statusRegister.setDataWriteMode(display::DataTransfer::vramTransfer);
-            cmdSize = 2;
-          }
-          else if (commandId >= 0xC0 && commandId < 0xE0) {
-            g_statusRegister.setDataReadMode(display::DataTransfer::vramTransfer);
-            g_statusRegister.setVramReadPending();
-            cmdSize = 2;
-          }
-          break;
-        }
-      }
-      size -= (int)cmdSize;
-      mem += cmdSize;;
+      int cmdSize = display::runGp0Command(g_statusRegister, g_renderer, (uint32_t*)mem, size, false);
+      size -= cmdSize;
+      mem += (intptr_t)cmdSize;
     }
   }
 }

@@ -29,7 +29,7 @@ cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox ON OFF
     time
     video
 )
-cwork_set_internal_libs(config)
+cwork_set_internal_libs(utils config)
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │  Project settings                                                │
