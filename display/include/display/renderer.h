@@ -13,48 +13,77 @@ GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #pragma once
 
-# include "config/config.h"
-# include "display/viewport.h"
+#include <video/window.h>
+#include "config/config.h"
+#include "display/types.h"
+#include "display/viewport.h"
 #if defined(_WINDOWS) && defined(_VIDEO_D3D11_SUPPORT)
 # include <video/d3d11/renderer.h>
 # include <video/d3d11/depth_stencil_buffer.h>
 # include <video/d3d11/texture.h>
-  namespace renderer_api = pandora::video::d3d11;
+  namespace video_api = pandora::video::d3d11;
 #else
 # include <video/vulkan/renderer.h>
 # include <video/vulkan/depth_stencil_buffer.h>
 # include <video/vulkan/texture.h>
-  namespace renderer_api = pandora::video::vulkan;
+  namespace video_api = pandora::video::vulkan;
 #endif
 
 namespace display {
   class Renderer final {
   public:
-    Renderer(pandora::video::WindowHandle handle, const pandora::hardware::DisplayMode& displayMode,
-              const Viewport& viewport, const config::RendererProfile& config);
-    ~Renderer() noexcept;
+    /// @brief Create display pipeline (initialize size-independant components)
+    /// @param monitor  Display monitor on which the output window is located.
+    /// @warning 'openWindow' should be called with window/size params before drawing anything.
+    /// @throws invalid_argument/runtime_error/bad_alloc on failure.
+    Renderer(const pandora::hardware::DisplayMonitor& monitor, config::RendererProfile&& settings);
+    void release() noexcept; ///< Destroy display pipeline
 
-    Renderer() = default;
+    Renderer() = default; ///< Empty instance (verify with 'isRunning()')
     Renderer(const Renderer&) = delete;
     Renderer(Renderer&&) noexcept = default;
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&) noexcept = default;
+    ~Renderer() noexcept { release(); }
 
-    void changeConfig(const config::RendererProfile& config);
-    void resize(const pandora::hardware::DisplayMode& displayMode, const Viewport& viewport);
+    // -- accessors --
+
+    /// @brief Verify if current instance is valid (true) or empty (false)
+    inline bool isRunning() const noexcept { return (this->_renderer != nullptr); }
+    /// @brief Read renderer profile settings
+    inline const config::RendererProfile& configProfile() const noexcept { return this->_settings; }
+
+    // -- set display pipeline components --
+
+    /// @brief Create window/size-dependant rendering components
+    void openWindow(pandora::video::Window& window, const config::WindowConfig& windowConfig,
+                    const pandora::hardware::DisplayMode& outputArea, unsigned long vramHeight,
+                    const DisplayState& psxDisplayState);
+    void closeWindow() noexcept;
+
+    void onWindowSizeChange(pandora::video::Window& window, const config::WindowConfig& windowConfig);
+    void onProfileChange(config::RendererProfile&& settings);
+
+    // -- operations --
 
     void swapBuffers(bool useVsync);
 
-    const config::RendererProfile& configProfile() const noexcept { return this->_config; }
-      
+
   private:
     std::shared_ptr<pandora::video::d3d11::Renderer> _renderer = nullptr;
-    renderer_api::SwapChain _swapChain;
-    renderer_api::DepthStencilBuffer _depthBuffer;
-    renderer_api::RasterizerState _rasterizerState;
-    renderer_api::FilterStateArray _filterStates;
-    renderer_api::BlendStateArray<4> _blendStates;
-    renderer_api::Viewport _viewport;
-    config::RendererProfile _config;
+    video_api::SwapChain _swapChain;
+    
+    video_api::TextureTarget2D _internalFramebuffers;
+    uint32_t _internalResX = 1;
+    uint32_t _internalResY = 1;
+
+    config::RendererProfile _settings;
+    pandora::hardware::DisplayMode _outputMode{ 0,0,32,60 };
+    video_api::Viewport _outputViewport;
+
+    video_api::DepthStencilBuffer _depthBuffer;
+    video_api::RasterizerState _rasterizerState;
+    video_api::FilterStateArray _filterStates;
+    video_api::BlendStateArray<4> _blendStates;
   };
 }

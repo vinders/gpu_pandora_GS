@@ -129,8 +129,9 @@ extern "C" long CALLBACK GPUinit() {
 // Driver shutdown (called once)
 extern "C" long CALLBACK GPUshutdown() {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUshutdown");
-  //TODO: save game/profile association
+  g_renderer.release();
 
+  //TODO: save game/profile association
   SysLog::close();
   return PSE_SUCCESS;
 }
@@ -145,42 +146,37 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 #endif
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUopen");
   try {
-    config::RendererProfile rendererConfig;
+    if (!g_renderer.isRunning()) {
+      config::RendererProfile configProfile;
 
-    // GPU test -> use accurate settings
-    if (g_gameId == PSX_GPU_TEST_ID) { 
-      config::loadPreset(config::PresetId::psxAccurate, rendererConfig);
-      g_windowConfigurator.windowConfig().windowMode = config::WindowMode::window;
-    }
-    // normal game -> load config profile associated with game ID (if available)
-    else {
-      std::vector<config::ProfileMenuTile> profiles = readListOfProfiles(g_configDir);
-      loadGameConfigProfile(g_configDir, g_gameId, profiles, rendererConfig);
-      //TODO: don't reload if GPUopen is called again but not GPUinit
-      // -> if user changed active profile, don't "reset" to associated profile everytime the window is open
+      // GPU test -> use accurate settings
+      if (g_gameId == PSX_GPU_TEST_ID) {
+        config::loadPreset(config::PresetId::psxAccurate, configProfile);
+        g_windowConfigurator.windowConfig().windowMode = config::WindowMode::window;
+      }
+      // normal game -> load config profile associated with game ID (if available)
+      else {
+        std::vector<config::ProfileMenuTile> profiles = readListOfProfiles(g_configDir);
+        loadGameConfigProfile(g_configDir, g_gameId, profiles, configProfile);
+      }
+      g_renderer = display::Renderer(g_window->displayMonitor(), std::move(configProfile));
     }
 
     // create output window
-    pandora::hardware::DisplayMode displayMode;
+    pandora::hardware::DisplayMode outputMode;
     config::readEmulatorOptions(g_emulator);
     g_windowConfigurator.windowConfig().isWideSource = g_emulator.widescreenHack;
 #   ifdef _WINDOWS
       if (g_emulator.isCursorHidden)
         ShowCursor(TRUE);
-      g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), displayMode);
+      g_window = g_windowConfigurator.build(window, pandora::system::WindowsApp::instance().handle(), outputMode);
 #   else
       g_window = pandora::video::Window::Builder{}.create("PGS_WINDOW", caption);
 #   endif
     g_window->clearClientArea();
-    pandora::video::disableScreenSaver();
 
-    // create 3D renderer
-    display::Viewport viewport = (g_windowConfigurator.windowConfig().windowMode == config::WindowMode::window)
-                               ? display::Viewport(displayMode.height, g_windowConfigurator.windowConfig().isWideSource)
-                               : display::Viewport(displayMode, rendererConfig.screenStretching, rendererConfig.screenCropping,
-                                                   g_windowConfigurator.windowConfig().isWideSource);
-    g_window->setMinClientAreaSize(viewport.minWindowWidth(), viewport.minWindowHeight());
-    g_renderer = display::Renderer(g_window->handle(), displayMode, viewport, rendererConfig);
+    g_renderer.openWindow(*g_window, g_windowConfigurator.windowConfig(), outputMode, g_statusRegister.getGpuVramHeight());
+    pandora::video::disableScreenSaver();
 
     // configure sync timer
     g_timer.setSpeedMode(g_videoConfig.enableFramerateLimit ? SpeedMode::normal : SpeedMode::none);
@@ -204,7 +200,7 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 // Close driver (game stopped)
 extern "C" long CALLBACK GPUclose() {
   SysLog::logDebug(__FILE_NAME__, __LINE__, "GPUclose");
-  g_renderer = display::Renderer{};
+  g_renderer.closeWindow();
 
   pandora::video::restoreScreenSaver();
 # ifdef _WINDOWS

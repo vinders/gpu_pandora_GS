@@ -222,8 +222,9 @@ static constexpr const Gp0Command g_gp0CommandTable[0x100] = {
   NOP,
   { clearTextureCache, 1 },
   { fillVramRectangle, 3 },
-  _P_DUPLICATE_16X_COMMA(NOP),
-  _P_DUPLICATE_12X_COMMA(NOP), 
+  NOP, // 0x03: unknown
+  _P_DUPLICATE_24X_COMMA(NOP),
+  _P_DUPLICATE_3X_COMMA(NOP), 
   { requestIrq1, 1 },
 
   // 0x20: draw polygons (triangles/quads)
