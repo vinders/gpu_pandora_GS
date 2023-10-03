@@ -31,11 +31,7 @@ cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox ON OFF
     hardware
     video
 )
-if(OPTION_VULKAN_RENDERER)
-  cwork_set_external_libs("private" freetype)
-else()
-  cwork_set_external_libs("private" freetype directxtk)
-endif()
+cwork_set_external_libs("private" freetype)
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │  Project settings                                                │

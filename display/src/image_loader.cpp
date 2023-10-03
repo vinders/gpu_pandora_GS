@@ -16,7 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #ifdef _WINDOWS
 # include <system/api/windows_app.h>
 # include <system/api/windows_api.h>
-# include <WICTextureLoader.h>
+//# include <WICTextureLoader.h>
 #endif
 #include "display/image_loader.h"
 
@@ -107,9 +107,9 @@ static std::shared_ptr<Texture2D> bitmapToTexture(HINSTANCE hInstance, HRSRC ima
     auto imageFileSize = SizeofResource(hInstance, imageResHandle);
     if (imageFileSize) {
       try {
-        ID3D11Resource* imageRes = nullptr;
-        ID3D11ShaderResourceView* resourceView = nullptr;
-        if (SUCCEEDED(DirectX::CreateWICTextureFromMemoryEx((ID3D11Device*)renderer.device(),
+        //ID3D11Resource* imageRes = nullptr;
+        //ID3D11ShaderResourceView* resourceView = nullptr;
+        /*if (SUCCEEDED(DirectX::CreateWICTextureFromMemoryEx((ID3D11Device*)renderer.device(),
                                                             (const uint8_t*)imageFile, (size_t)imageFileSize, 0, D3D11_USAGE_IMMUTABLE,
                                                             D3D11_BIND_SHADER_RESOURCE, 0, 0, DirectX::WIC_LOADER_FLAGS::WIC_LOADER_FORCE_SRGB,
                                                             &imageRes, &resourceView))) {
@@ -117,7 +117,7 @@ static std::shared_ptr<Texture2D> bitmapToTexture(HINSTANCE hInstance, HRSRC ima
           ((ID3D11Texture2D*)imageRes)->GetDesc(&descriptor);
           texture = std::make_shared<Texture2D>((TextureHandle)imageRes, (TextureView)resourceView, descriptor.Width*4,
                                                 descriptor.Height, (uint8_t)1, ResourceUsage::staticGpu);
-        }
+        }*/
       }
       catch (...) { texture = nullptr; }
     }
