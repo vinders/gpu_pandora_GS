@@ -91,11 +91,131 @@ ControlIcon ImageLoader::generateSquareIcon(bool isFilled) {
 
 // -- load image -- ------------------------------------------------------------
 
-#ifdef _WINDOWS
-static std::shared_ptr<Texture2D> bitmapToTexture(HINSTANCE hInstance, HRSRC imageResHandle, Renderer& renderer) {
-  if (imageResHandle == nullptr)
+/*//https://stackoverflow.com/questions/8657155/getting-bitmap-pixel-values-using-the-windows-getdibits-function
+//HBITMAP bitmapHandle = (HBITMAP)LoadImage(0, L"C:/tmp/Foo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+  BITMAP bitmap;
+  if (bitmapHandle == nullptr || GetObject(bitmapHandle , sizeof(bitmap) , &bitmap) == 0)
     return nullptr;
-  auto imageDataHandle = LoadResource(hInstance, imageResHandle);
+
+  HDC dcBitmap = CreateCompatibleDC(NULL);
+  auto region = SelectObject(dcBitmap, bitmapHandle);
+  if (region == nullptr || region == HGDI_ERROR)
+    return nullptr;
+
+  BITMAPINFO bmpInfo{};
+  bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  bmpInfo.bmiHeader.biWidth = bitmap.bmWidth;
+  bmpInfo.bmiHeader.biHeight = -bitmap.bmHeight;
+  bmpInfo.bmiHeader.biPlanes = 1;
+  bmpInfo.bmiHeader.biBitCount = 24;
+  bmpInfo.bmiHeader.biCompression = BI_RGB;
+
+  COLORREF* pixel = new COLORREF [ bitmap.bmWidth * bitmap.bmHeight ];
+  GetDIBits(dcBitmap, bitmapHandle, 0, bitmap.bmHeight, pixel, &bmpInfo, DIB_RGB_COLORS);
+*/
+
+/*//https://stackoverflow.com/questions/26233848/c-read-pixels-with-getdibits
+HBITMAP GetScreenBmp( HDC hdc) {
+    // Get screen dimensions
+    int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    // Create compatible DC, create a compatible bitmap and copy the screen using BitBlt()
+    HDC hCaptureDC  = CreateCompatibleDC(hdc);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hdc, nScreenWidth, nScreenHeight);
+    HGDIOBJ hOld = SelectObject(hCaptureDC, hBitmap); 
+    BOOL bOK = BitBlt(hCaptureDC,0,0,nScreenWidth, nScreenHeight, hdc,0,0,SRCCOPY|CAPTUREBLT); 
+
+    SelectObject(hCaptureDC, hOld); // always select the previously selected object once done
+    DeleteDC(hCaptureDC);
+    return hBitmap;
+}
+int main() {
+    HDC hdc = GetDC(0);
+
+    HBITMAP hBitmap = GetScreenBmp(hdc);
+
+    BITMAPINFO MyBMInfo = {0};
+    MyBMInfo.bmiHeader.biSize = sizeof(MyBMInfo.bmiHeader); 
+
+    // Get the BITMAPINFO structure from the bitmap
+    if(0 == GetDIBits(hdc, hBitmap, 0, 0, NULL, &MyBMInfo, DIB_RGB_COLORS)) {
+        cout << "error" << endl;
+    }
+
+    // create the bitmap buffer
+    BYTE* lpPixels = new BYTE[MyBMInfo.bmiHeader.biSizeImage];
+
+    // Better do this here - the original bitmap might have BI_BITFILEDS, which makes it
+    // necessary to read the color table - you might not want this.
+    MyBMInfo.bmiHeader.biCompression = BI_RGB;  
+
+    // get the actual bitmap buffer
+    if(0 == GetDIBits(hdc, hBitmap, 0, MyBMInfo.bmiHeader.biHeight, (LPVOID)lpPixels, &MyBMInfo, DIB_RGB_COLORS)) {
+        cout << "error2" << endl;
+    }
+
+    for(int i = 0; i < 100; i++) {
+        cout << (int)lpPixels[i];
+    }
+
+    DeleteObject(hBitmap);
+    ReleaseDC(NULL, hdc);
+    delete[] lpPixels;
+    return 0;
+}
+*/
+
+#ifdef _WINDOWS
+static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle/*HRSRC imageResHandle*/, Renderer& renderer) {
+  if (bitmapHandle == nullptr)
+    return nullptr;
+  std::shared_ptr<video_api::Texture2D> texture = nullptr;
+
+  HDC hdc = GetDC(nullptr);
+  if (hdc != nullptr) {
+    BITMAPINFO bitmapInfo{};
+    bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
+    if (GetDIBits(hdc, bitmapHandle, 0, 0, nullptr, &bitmapInfo, DIB_RGB_COLORS) != 0) { // get bitmap size
+      try {
+        std::unique_ptr<BYTE[]> pixels(new BYTE[bitmapInfo.bmiHeader.biSizeImage]); // create bitmap buffer
+
+        bitmapInfo.bmiHeader.biCompression = BI_RGB;
+        if (GetDIBits(hdc, bitmapHandle, 0, bitmapInfo.bmiHeader.biHeight, (LPVOID)pixels.get(), &bitmapInfo, DIB_RGB_COLORS) != 0) {
+          const uint32_t width = bitmapInfo.bmiHeader.biWidth;
+          const uint32_t height = bitmapInfo.bmiHeader.biHeight;
+          Texture2DParams textureParams(width, height, DataFormat::rgba8_sRGB, 1u, 1u, 0, ResourceUsage::staticGpu, 1u);
+
+          if (bitmapInfo.bmiHeader.biBitCount == 4) {
+            const uint8_t* initData = (const uint8_t*)pixels.get();
+            texture = std::make_shared<Texture2D>(renderer, textureParams, &initData);
+          }
+          else {
+            std::unique_ptr<uint8_t[]> output(new uint8_t[width * height * 4]); // RGBA texture data
+
+            const BYTE* srcIt = pixels.get();
+            uint8_t* destIt = output.get();
+            for (uint32_t remaining = width * height; remaining; --remaining) {
+              *destIt = *srcIt;
+              *(++destIt) = *(++srcIt);
+              *(++destIt) = *(++srcIt);
+              *(++destIt) = (uint8_t)0xFFu;
+              ++srcIt; ++destIt;
+            }
+            const uint8_t* initData = (const uint8_t*)output.get();
+            texture = std::make_shared<Texture2D>(renderer, textureParams, &initData);
+          }
+        }
+      }
+      catch (...) { texture = nullptr; }
+    }
+    ReleaseDC(nullptr, hdc);
+  }
+  DeleteObject(bitmapHandle);
+  return texture;
+
+
+  /*auto imageDataHandle = LoadResource(hInstance, imageResHandle);
   if (imageDataHandle == nullptr)
     return nullptr;
   std::shared_ptr<video_api::Texture2D> texture = nullptr;
@@ -117,21 +237,21 @@ static std::shared_ptr<Texture2D> bitmapToTexture(HINSTANCE hInstance, HRSRC ima
           ((ID3D11Texture2D*)imageRes)->GetDesc(&descriptor);
           texture = std::make_shared<Texture2D>((TextureHandle)imageRes, (TextureView)resourceView, descriptor.Width*4,
                                                 descriptor.Height, (uint8_t)1, ResourceUsage::staticGpu);
-        }*/
+        }*-/
       }
       catch (...) { texture = nullptr; }
     }
     UnlockResource(imageDataHandle);
   }
   FreeResource(imageDataHandle);
-  return texture;
+  return texture;*/
 }
 
 std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const char* id) {
   if (renderer != nullptr) {
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
-    return bitmapToTexture(hInstance, FindResourceA(hInstance, id, (LPCSTR)RT_BITMAP), *renderer);
+    return bitmapToTexture(LoadBitmapA(hInstance, id), *renderer);
   }
   return nullptr;
 }
@@ -139,7 +259,8 @@ std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const wchar_t* id) 
   if (renderer != nullptr) {
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
-    return bitmapToTexture(hInstance, FindResourceW(hInstance, id, (LPCWSTR)RT_BITMAP), *renderer);
+    //return bitmapToTexture(hInstance, FindResourceW(hInstance, id, (LPCWSTR)RT_BITMAP), *renderer);
+    return bitmapToTexture(LoadBitmapW(hInstance, id), *renderer);
   }
   return nullptr;
 }
