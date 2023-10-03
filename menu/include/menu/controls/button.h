@@ -68,9 +68,8 @@ namespace menu {
       void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
 
       /// @brief Draw button background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with control colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      ///          - To add a drop-shadow, add another call before with another uniform (darker color + position offset)
       inline void drawBackground(RendererContext& context) { controlMesh.draw(*context.renderer); }
       /// @brief Draw button label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.

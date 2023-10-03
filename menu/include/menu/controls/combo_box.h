@@ -49,8 +49,9 @@ namespace menu {
       /// @param operationId   Unique combo-box identifier (should be cast from an enum or constant)
       /// @param onClick       Event handler to call (with 'operationId' and value) when the combo-box is clicked
       /// @param enabler       Optional data/config value to which the combo-box state should be bound
-      ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t paddingX, uint32_t paddingY,
-               uint32_t minLabelWidth, uint32_t minBoxWidth, uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
+      ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t paddingX,
+               uint32_t paddingY, uint32_t minLabelWidth, uint32_t minBoxWidth, const float color[4],
+               const float dropdownColor[4], uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
                ComboBoxEntry* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
@@ -60,7 +61,7 @@ namespace menu {
           minBoxWidth(minBoxWidth),
           paddingX(paddingX),
           paddingY(paddingY) {
-        init(context, label, x, y, values, valueCount);
+        init(context, label, x, y, color, dropdownColor, values, valueCount);
       }
 
       ComboBox() = default;
@@ -103,18 +104,10 @@ namespace menu {
         else selectedIndex = -1;
       }
 
-      /// @brief Draw combo-box drop-down background (if open)
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      void drawDropdown(RendererContext& context, const video_api::BufferHandle& backUniform, const video_api::BufferHandle& hoverUniform);
-      /// @brief Draw combo-box background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with control colors) before call.
+      /// @brief Draw combo-box background + drop-down background (if open)
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      ///          - To add a drop-shadow, add another call before with another uniform (darker color + position offset)
-      inline void drawBackground(RendererContext& context) { controlMesh.draw(*context.renderer); }
-      /// @brief Draw combo-box arrow
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with decoration colors) before call.
-      ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawArrow(RendererContext& context) { arrowMesh.draw(*context.renderer); }
+      void drawBackground(RendererContext& context);
       /// @brief Draw combo-box label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
@@ -132,7 +125,8 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y, ComboBoxEntry* values, size_t valueCount);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+                const float color[4], const float dropdownColor[4], ComboBoxEntry* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
@@ -152,7 +146,6 @@ namespace menu {
       };
     private:
       display::controls::ControlMesh controlMesh;
-      display::controls::ControlMesh arrowMesh;
       display::controls::ControlMesh dropdownMesh;
       display::controls::ControlMesh dropdownHoverMesh;
       display::controls::TextMesh labelMesh;

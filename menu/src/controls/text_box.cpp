@@ -25,17 +25,27 @@ using namespace display::controls;
 using namespace menu::controls;
 
 
-static inline void setVertexPosition(float* position, float x, float y) {
+static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
+  float* position = outVertex.position;
   *position = x;
   *(++position) = y;
   *(++position) = 0.f; // z
   *(++position) = 1.f; // w
+  memcpy(outVertex.color, rgba, 4*sizeof(float));
+}
+static inline void fillCaretColor(const float backgroundColor[4], float outColor[4]) {
+  float gray = (backgroundColor[0] + backgroundColor[1] + backgroundColor[2]) * 0.333f;
+  gray *= (gray >= 0.5f) ? 0.5f : 2.f;
+  *outColor = gray;     // r
+  *(++outColor) = gray; // g
+  *(++outColor) = gray; // b
+  *(++outColor) = 0.75f; // a
 }
 
 // ---
 
 void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix, uint32_t fixedWidth,
-                   const char32_t* initValue, int32_t x, int32_t y) {
+                   const float color[4], const char32_t* initValue, int32_t x, int32_t y) {
   auto& inputFont = context.getFont(FontType::inputText);
   const uint32_t height = inputFont.XHeight() + (paddingY << 1);
 
@@ -45,14 +55,31 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
                        x, y + ((int32_t)height - (int32_t)labelFont.XHeight())/2);
 
   // create background
+  const float colorDarker[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
   std::vector<ControlVertex> vertices;
-  vertices.resize(4);
+  vertices.resize(18);
   ControlVertex* vertexIt = vertices.data();
-  setVertexPosition(vertexIt->position,     0.f,               0.f);
-  setVertexPosition((++vertexIt)->position, (float)fixedWidth, 0.f);
-  setVertexPosition((++vertexIt)->position, 0.f,               -(float)height);
-  setVertexPosition((++vertexIt)->position, (float)fixedWidth, -(float)height);
-  std::vector<uint32_t> indices{ 0,1,2, 2,1,3 };
+
+  setControlVertex(*vertexIt,     colorDarker, 0.f,               0.f); // background (gradient from top)
+  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth, 0.f);
+  setControlVertex(*(++vertexIt), color, 0.f,               -(float)((height<<1)/3));
+  setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)((height<<1)/3));
+  setControlVertex(*(++vertexIt), color, 0.f,               -(float)height);
+  setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, 0.f, 0.f); // border left
+  setControlVertex(*(++vertexIt), colorDarker, 1.f, 0.f);
+  setControlVertex(*(++vertexIt), colorDarker, 0.f, -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, 1.f, -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), 0.f); // border right
+  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth,     0.f);
+  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth,     -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, 1.f,                   -(float)(height-1)); // border bottom
+  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)(height-1));
+  setControlVertex(*(++vertexIt), colorDarker, 1.f,                   -(float)height);
+  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)height);
+
+  std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  6,7,8, 8,7,9,  10,11,12, 12,11,13,  14,15,16, 16,15,17 };
 
   const int32_t boxX = (labelMesh.width() != 0) ? (x + (int32_t)labelMesh.width() + (int32_t)labelMargin()) : x;
   controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
@@ -67,19 +94,22 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   }
 
   // create caret
-  const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2);
-  const uint32_t caretHeight = (inputFont.XHeight() << 1);
-  vertices.resize(4);
-  vertexIt = vertices.data();
-  setVertexPosition(vertexIt->position,     0.f, 0.f);
-  setVertexPosition((++vertexIt)->position, 1.f, 0.f);
-  setVertexPosition((++vertexIt)->position, 0.f, -(float)caretHeight);
-  setVertexPosition((++vertexIt)->position, 1.f, -(float)caretHeight);
+  { float caretColor[4];
+    fillCaretColor(color, caretColor);
 
-  caretMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
-                          boxX + paddingX, caretY, fixedWidth, height);
+    const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2);
+    const uint32_t caretHeight = (inputFont.XHeight() << 1);
+    vertices.resize(4);
+    vertexIt = vertices.data();
+    setControlVertex(*vertexIt,     caretColor, 0.f, 0.f);
+    setControlVertex(*(++vertexIt), caretColor, 1.f, 0.f);
+    setControlVertex(*(++vertexIt), caretColor, 0.f, -(float)caretHeight);
+    setControlVertex(*(++vertexIt), caretColor, 1.f, -(float)caretHeight);
 
-  // input/caret management
+    caretMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+                            boxX + paddingX, caretY, fixedWidth, height);
+  }
+  // input value storage
   inputValue.reserve(maxValueLength + 1); // max possible length + ending zero
   if (initValue != nullptr) {
     for (const char32_t* it = initValue; *it; ++it)

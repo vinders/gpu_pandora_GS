@@ -37,7 +37,7 @@ namespace menu {
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth,
+              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
               const char32_t* textValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::text),
@@ -45,13 +45,13 @@ namespace menu {
           minLabelWidth(minLabelWidth),
           paddingX(paddingX),
           paddingY(paddingY) {
-        init(context, label, suffix, fixedWidth, textValue, x, y);
+        init(context, label, suffix, fixedWidth, color, textValue, x, y);
       }
       /// @brief Create text edit control -- integer value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth,
+              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
               uint32_t integerValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::integer),
@@ -60,13 +60,13 @@ namespace menu {
           paddingX(paddingX),
           paddingY(paddingY) {
         char32_t buffer[MAX_INTEGER_LENGTH+1];
-        init(context, label, suffix, fixedWidth, fromInteger(integerValue, buffer), x, y);
+        init(context, label, suffix, fixedWidth, color, fromInteger(integerValue, buffer), x, y);
       }
       /// @brief Create text edit control -- number value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth,
+              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
               double numberValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::number),
@@ -75,7 +75,7 @@ namespace menu {
           paddingX(paddingX),
           paddingY(paddingY) {
         auto buffer = fromNumber(numberValue, maxValueLength);
-        init(context, label, suffix, fixedWidth, buffer.get(), x, y);
+        init(context, label, suffix, fixedWidth, color, buffer.get(), x, y);
       }
 
       TextBox() = default;
@@ -126,12 +126,11 @@ namespace menu {
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
 
       /// @brief Draw text-box background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with control colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      ///          - To add a drop-shadow, add another call before with another uniform (darker color + position offset)
       inline void drawBackground(RendererContext& context) { controlMesh.draw(*context.renderer); }
       /// @brief Draw text-box background
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with caret colors) before call.
+      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' before call.
       void drawCaret(RendererContext& context);
       /// @brief Draw text-box label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
@@ -147,7 +146,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix, uint32_t fixedWidth,
-                const char32_t* initValue, int32_t x, int32_t y);
+                const float color[4], const char32_t* initValue, int32_t x, int32_t y);
       void updateCaretLocation(RendererContext& context);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
       static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; }

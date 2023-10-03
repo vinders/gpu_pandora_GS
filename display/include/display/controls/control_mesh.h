@@ -25,12 +25,13 @@ namespace display {
     __align_type(16, // force 16-byte memory alignment
     struct ControlVertex final {
       float position[4]; // x,y,z,w
+      float color[4];    // r,g,b,a
     });
     
     // ---
     
     /// @brief UI control triangles
-    /// @remarks Use uniform buffer to adjust color
+    /// @remarks Use uniform buffer to use a color multiplier (for hover/pressed/disabled effects)
     class ControlMesh final {
     public:
       /// @brief Create control mesh

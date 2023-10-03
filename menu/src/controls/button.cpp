@@ -11,6 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
+#include <cstring>
 #include <display/image_loader.h>
 #include "menu/controls/button.h"
 
@@ -19,11 +20,13 @@ using namespace display::controls;
 using namespace menu::controls;
 
 
-static inline void setVertexPosition(float* position, float x, float y) {
+static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
+  float* position = outVertex.position;
   *position = x;
   *(++position) = y;
   *(++position) = 0.f; // z
   *(++position) = 1.f; // w
+  memcpy(outVertex.color, rgba, 4*sizeof(float));
 }
 
 // ---
@@ -50,19 +53,26 @@ void Button::init(RendererContext& context, const char32_t* label, const Control
   // create background
   const uint32_t width = (style.paddingX << 1) + labelMesh.width() + iconWidthWithMargin;
   const uint32_t height = (style.paddingY << 1) + labelMesh.height();
-  std::vector<ControlVertex> vertices;
-  vertices.resize(5);
+  {
+    const float shadowColor[4]{ 0.f,0.f,0.f,0.15f };
+    std::vector<ControlVertex> vertices;
+    vertices.resize(10);
+    ControlVertex* vertexIt = vertices.data();
+    setControlVertex(*vertexIt,     shadowColor, -3.f,               -2.f); // drop shadow
+    setControlVertex(*(++vertexIt), shadowColor, static_cast<float>(width - 3 - (style.paddingY << 1)), -2.f);
+    setControlVertex(*(++vertexIt), shadowColor, -3.f,               -(float)(height - 2));
+    setControlVertex(*(++vertexIt), shadowColor, (float)(width - 3), -(float)(style.paddingY - 2));
+    setControlVertex(*(++vertexIt), shadowColor, (float)(width - 3), -(float)(height - 2));
+    setControlVertex(*(++vertexIt), style.color, 0.f,          0.f); // button background
+    setControlVertex(*(++vertexIt), style.color, static_cast<float>(width - (style.paddingY << 1)), 0.f);
+    setControlVertex(*(++vertexIt), style.color, 0.f,          -(float)height);
+    setControlVertex(*(++vertexIt), style.color, (float)width, -(float)style.paddingY);
+    setControlVertex(*(++vertexIt), style.color, (float)width, -(float)height);
+    std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4,  5,6,7, 6,8,7, 7,8,9 };
 
-  ControlVertex* vertexIt = vertices.data();
-  setVertexPosition(vertexIt->position,     0.f,          0.f);
-  setVertexPosition((++vertexIt)->position, static_cast<float>(width - (style.paddingY << 1)), 0.f);
-  setVertexPosition((++vertexIt)->position, 0.f,          -(float)height);
-  setVertexPosition((++vertexIt)->position, (float)width, -(float)style.paddingY);
-  setVertexPosition((++vertexIt)->position, (float)width, -(float)height);
-  std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4 };
-
-  controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
-                            labelMesh.x() - style.paddingX - iconWidthWithMargin, y, width, height);
+    controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+                              labelMesh.x() - style.paddingX - iconWidthWithMargin, y, width, height);
+  }
 
   // create icon (optional)
   if (iconData.texture() != nullptr) {
