@@ -3,3 +3,4 @@
 #define IDR_TITLE_DESC   104
 #define IDR_TEXT_FONT    106
 #define IDR_TEXT_DESC    108
+#define IDR_MENU_ICONS   110
