@@ -18,7 +18,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake_options.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../_libs/pandora_toolbox/_cmake/cwork.cmake")
 cwork_set_default_solution("gpu_pandora_GS" "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
-cwork_read_version_from_file("${CMAKE_CURRENT_SOURCE_DIR}/../build_version.txt" OFF)
+include("${CMAKE_CURRENT_SOURCE_DIR}/../Version.cmake")
 project("${CWORK_SOLUTION_NAME}.display" VERSION ${CWORK_BUILD_VERSION} LANGUAGES C CXX)
 
 # ┌──────────────────────────────────────────────────────────────────┐
@@ -27,9 +27,15 @@ project("${CWORK_SOLUTION_NAME}.display" VERSION ${CWORK_BUILD_VERSION} LANGUAGE
 cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox ON OFF
     system
     time
+    thread
+    hardware
     video
 )
-cwork_set_internal_libs(utils config)
+if(OPTION_VULKAN_RENDERER)
+  cwork_set_external_libs("private" freetype)
+else()
+  cwork_set_external_libs("private" freetype directxtk)
+endif()
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │  Project settings                                                │
