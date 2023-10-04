@@ -58,7 +58,7 @@ void ControlMesh::move(Renderer& renderer, const float pxSizeX, const float pxSi
   this->x_ = x;
   this->y_ = y;
   // set aligned origins
-  const float baseVertexX = ToVertexPositionX(this->x_/*aligned origin*/, pxSizeX);
+  const float baseVertexX = ToVertexPositionX(x, pxSizeX);
   const float baseVertexY = ToVertexPositionY(y, pxSizeY);
   
   // move vertices at requested position

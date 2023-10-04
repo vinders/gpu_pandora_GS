@@ -125,13 +125,10 @@ namespace menu {
       void replaceValueInteger(RendererContext& context, uint32_t integerValue);  ///< Replace text input value (only with TextBoxType::integer or number)
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
 
-      /// @brief Draw text-box background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with color modifier) before call.
+      /// @brief Draw text-box background/caret
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context) { controlMesh.draw(*context.renderer); }
-      /// @brief Draw text-box background
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' before call.
-      void drawCaret(RendererContext& context);
+      void drawBackground(RendererContext& context);
       /// @brief Draw text-box label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.

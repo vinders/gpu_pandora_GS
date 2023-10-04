@@ -261,7 +261,8 @@ void TextBox::updateCaretLocation(RendererContext& context) {
   caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, currentX, caretMesh.y());
 }
 
-void TextBox::drawCaret(RendererContext& context) {
+void TextBox::drawBackground(RendererContext& context) {
+  controlMesh.draw(*context.renderer);
   if (isEditing) {
     if (isEnabled()) {
       if (++caretDrawCount < 30u) // display during 30 frames

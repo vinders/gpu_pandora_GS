@@ -58,6 +58,7 @@ namespace display {
       inline int32_t y() const noexcept { return y_; } ///< Top Y coord
       inline uint32_t width() const noexcept { return width_; } ///< Total width
       inline uint32_t height() const noexcept { return height_; } ///< Total height
+      inline const std::vector<ControlVertex>& relativeVertices() const noexcept { return verticesRelPos; } ///< Unpositionned geometry
 
       // -- operations --
       

@@ -64,10 +64,6 @@ namespace menu {
       }
       void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
 
-      /// @brief Draw label next to check-box
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
-      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
       /// @brief Draw check-box icon
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
@@ -77,6 +73,10 @@ namespace menu {
         else
           uncheckedMesh.draw(*context.renderer);
       }
+      /// @brief Draw label next to check-box
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y);

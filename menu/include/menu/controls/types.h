@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 #include <memory>
 #include <array>
 #include <display/video_api.h>
+#include <display/font.h>
 #include <display/geometry.h>
 #include <display/image_loader.h>
 

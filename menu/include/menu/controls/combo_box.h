@@ -104,8 +104,8 @@ namespace menu {
         else selectedIndex = -1;
       }
 
-      /// @brief Draw combo-box background + drop-down background (if open)
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindFragmentUniforms' (with color modifier) before call.
+      /// @brief Draw combo-box background/arrow + drop-down background/hover (if open)
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       void drawBackground(RendererContext& context);
       /// @brief Draw combo-box label
