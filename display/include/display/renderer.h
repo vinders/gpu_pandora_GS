@@ -13,18 +13,22 @@ GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #pragma once
 
+#include <array>
 #include <video/window.h>
 #include "config/config.h"
 #include "display/types.h"
 #include "display/viewport.h"
 #if defined(_WINDOWS) && defined(_VIDEO_D3D11_SUPPORT)
 # include <video/d3d11/renderer.h>
+# include <video/d3d11/graphics_pipeline.h>
 # include <video/d3d11/depth_stencil_buffer.h>
+# include <video/d3d11/sampler.h>
 # include <video/d3d11/texture.h>
   namespace video_api = pandora::video::d3d11;
 #else
 # include <video/vulkan/renderer.h>
 # include <video/vulkan/depth_stencil_buffer.h>
+# include <video/vulkan/sampler.h>
 # include <video/vulkan/texture.h>
   namespace video_api = pandora::video::vulkan;
 #endif
@@ -58,7 +62,7 @@ namespace display {
     /// @brief Create window/size-dependant rendering components
     void openWindow(pandora::video::Window& window, const config::WindowConfig& windowConfig,
                     const pandora::hardware::DisplayMode& outputArea, unsigned long vramHeight,
-                    const DisplayState& psxDisplayState);
+                    const DisplayState& psxDisplayState, bool useVsync);
     void closeWindow() noexcept;
 
     void onWindowSizeChange(pandora::video::Window& window, const config::WindowConfig& windowConfig);
@@ -66,7 +70,7 @@ namespace display {
 
     // -- operations --
 
-    void swapBuffers(bool useVsync);
+    void swapBuffers() { this->_swapChain.swapBuffers(); }
 
 
   private:
@@ -83,7 +87,7 @@ namespace display {
 
     video_api::DepthStencilBuffer _depthBuffer;
     video_api::RasterizerState _rasterizerState;
-    video_api::FilterStateArray _filterStates;
-    video_api::BlendStateArray<4> _blendStates;
+    std::array<video_api::BlendState,4> _blendStates;
+    video_api::Sampler _sampler;
   };
 }

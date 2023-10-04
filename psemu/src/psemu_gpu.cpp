@@ -175,7 +175,7 @@ extern "C" long CALLBACK GPUopen(unsigned long* displayId, char* caption, char* 
 #   endif
     g_window->clearClientArea();
 
-    g_renderer.openWindow(*g_window, g_windowConfigurator.windowConfig(), outputMode, g_statusRegister.getGpuVramHeight());
+    //g_renderer.openWindow(*g_window, g_windowConfigurator.windowConfig(), outputMode, g_statusRegister.getGpuVramHeight());
     pandora::video::disableScreenSaver();
 
     // configure sync timer

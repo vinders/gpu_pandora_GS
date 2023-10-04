@@ -12,11 +12,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstring>
-#if defined(_WINDOWS) && defined(_VIDEO_D3D11_SUPPORT)
-# include <video/d3d11/renderer_state_factory.h>
-#else
-# include <video/vulkan/renderer_state_factory.h>
-#endif
 #include "display/renderer.h"
 
 using namespace display;
@@ -24,8 +19,9 @@ using video_api::BlendFactor;
 using video_api::BlendOp;
 using video_api::BlendParams;
 using video_api::DataFormat;
-using video_api::FilterParams;
+using video_api::DisplaySurface;
 using video_api::RasterizerParams;
+using video_api::SamplerParams;
 using video_api::SwapChain;
 using video_api::TextureFilter;
 using video_api::TextureWrap;
@@ -50,7 +46,7 @@ static inline uint32_t __computeInternalResFactor(uint32_t clientSize, uint32_t 
 Renderer::Renderer(const pandora::hardware::DisplayMonitor& monitor, config::RendererProfile&& settings) 
   : _renderer(std::make_shared<video_api::Renderer>(monitor)),
     _settings(std::move(settings)) {
-  video_api::RendererStateFactory factory(*_renderer);
+  /*video_api::RendererStateFactory factory(*_renderer);
 
   auto fillMode = (settings.fillMode != config::FillMode::wireframe) ? video_api::FillMode::fill : video_api::FillMode::lines;
   this->_rasterizerState = factory.createRasterizerState(RasterizerParams(video_api::CullMode::none, fillMode, true, false, false));
@@ -71,6 +67,7 @@ Renderer::Renderer(const pandora::hardware::DisplayMonitor& monitor, config::Ren
                                                                  BlendFactor::one, BlendFactor::zero, BlendOp::add))); // subtract
   this->_blendStates.append(factory.createBlendState(BlendParams(BlendFactor::sourceAlpha, BlendFactor::one, BlendOp::add,
                                                                  BlendFactor::one, BlendFactor::zero, BlendOp::add))); // add quarter (with alpha*0.25)
+  */
 }
 
 void Renderer::release() noexcept {
@@ -85,7 +82,7 @@ void Renderer::release() noexcept {
 
 void Renderer::openWindow(pandora::video::Window& window, const config::WindowConfig& windowConfig,
                           const pandora::hardware::DisplayMode& outputMode, unsigned long vramHeight,
-                          const DisplayState& psxDisplayState) {
+                          const DisplayState& psxDisplayState, bool useVsync) {
   this->_internalResX = __computeInternalResFactor<320>(outputMode.width, this->_settings.internalResFactorX);
   this->_internalResY = __computeInternalResFactor<240>(outputMode.height, this->_settings.internalResFactorY);
 
@@ -98,19 +95,20 @@ void Renderer::openWindow(pandora::video::Window& window, const config::WindowCo
 
   // output framebuffer
   this->_outputMode = outputMode;
-  this->_swapChain = SwapChain(this->_renderer, window.handle(),
-                               SwapChain::Descriptor(internalVramWidth, internalVramHeight, 2, outputMode.refreshRate),
+  auto presentMode = useVsync ? pandora::video::PresentMode::fifo : pandora::video::PresentMode::immediate;
+  this->_swapChain = SwapChain(DisplaySurface(*_renderer, window.handle()),
+                               SwapChain::Descriptor(internalVramWidth, internalVramHeight, 2, presentMode, outputMode.refreshRate),
                                DataFormat::rgba8_sRGB);
   _renderer->setCleanActiveRenderTarget(this->_swapChain.getRenderTargetView(), nullptr);
   _renderer->setRasterizerState(this->_rasterizerState);
-  _renderer->setBlendState(this->_blendStates.get()[0]);
+  //_renderer->setBlendState(this->_blendStates.get()[0]);
 
   // output viewport
   auto viewportWidth = this->_internalResX * psxDisplayState.displayAreaSize.x;
   auto viewportHeight = this->_internalResY * psxDisplayState.displayAreaSize.y;
 
 
-  _renderer->setViewport(this->_displayArea);//fractional sizes???
+  //_renderer->setViewport(this->_displayArea);//fractional sizes???
 
   /*
   //---
@@ -154,17 +152,10 @@ void Renderer::onWindowSizeChange(pandora::video::Window& window, const config::
   displayMode.width = windowSize.width;
   displayMode.height = windowSize.height;
   closeWindow();
-  openWindow(window, windowConfig, displayMode);
+  //openWindow(window, windowConfig, displayMode);
 }
 
 void Renderer::onProfileChange(config::RendererProfile&& settings) {
   //TODO: reload shaders/buffers if necessary
   memcpy(&(this->_settings), &settings, sizeof(config::RendererProfile));
-}
-
-
-// -- operations -- ------------------------------------------------------------
-
-void Renderer::swapBuffers(bool useVsync) {
-  this->_swapChain.swapBuffersDiscard(useVsync);
 }
