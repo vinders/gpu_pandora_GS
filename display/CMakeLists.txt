@@ -31,6 +31,7 @@ cwork_set_custom_libs("${CWORK_SOLUTION_PATH}/_libs" pandora_toolbox ON OFF
     hardware
     video
 )
+cwork_set_internal_libs(utils config)
 cwork_set_external_libs("private" freetype)
 
 # ┌──────────────────────────────────────────────────────────────────┐
