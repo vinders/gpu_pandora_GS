@@ -33,9 +33,9 @@ std::string getSystemFontPath() {
 
   std::string path = "%windir%\\Fonts\\";
   if (isSuccess && buffer != nullptr) {
-    size_t length = wcslen((wchar_t*)buffer);
+    size_t length = wcslen((const wchar_t*)buffer);
     path = std::string(length, ' ');
-    wcstombs(path.data(), (wchar_t*)buffer, length+1);
+    wcstombs(path.data(), (const wchar_t*)buffer, length+1);
     if (path.back() != '/' && path.back() != '\\')
       path += '\\';
   }
