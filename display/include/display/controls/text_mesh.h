@@ -28,6 +28,11 @@ namespace display {
       float position[2]; // x,y
       float coords[2];   // u,v
     });
+    enum class TextAlignment : uint32_t { ///< Text alignment with x during TextMesh construction
+      left = 0,
+      center = 1,
+      right = 2
+    };
     
     // ---
     
@@ -39,7 +44,8 @@ namespace display {
       /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
       TextMesh(video_api::Renderer& renderer, Font& font, const char32_t* text,
-               const float pxSizeX, const float pxSizeY, int32_t x, int32_t y);
+               const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
+               TextAlignment align = TextAlignment::left);
       TextMesh() = default;
       TextMesh(TextMesh&&) = default;
       TextMesh& operator=(TextMesh&&) = default;

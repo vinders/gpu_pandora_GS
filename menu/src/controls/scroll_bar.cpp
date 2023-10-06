@@ -160,7 +160,7 @@ void ScrollBar::click(RendererContext& context, int32_t mouseY) {
 
 // ---
 
-void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
+bool ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
                             Buffer<ResourceUsage::staticGpu>& hoverPressedVertexUniform) {
   if (isEnabled()) {
     backMesh.draw(*context.renderer);
@@ -172,7 +172,7 @@ void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mo
         
         context.renderer->bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
         upMesh.draw(*context.renderer);
-        return;
+        return true;
       }
       else if (mouseY >= downMesh.y()) { // DOWN hover/pressed
         thumbMesh.draw(*context.renderer);
@@ -180,7 +180,7 @@ void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mo
         
         context.renderer->bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
         downMesh.draw(*context.renderer);
-        return;
+        return true;
       }
       else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) { // thumb hover/pressed
         upMesh.draw(*context.renderer);
@@ -188,11 +188,12 @@ void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mo
 
         context.renderer->bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
         thumbMesh.draw(*context.renderer);
-        return;
+        return true;
       }
     }
     thumbMesh.draw(*context.renderer);
     upMesh.draw(*context.renderer);
     downMesh.draw(*context.renderer);
   }
+  return false;
 }

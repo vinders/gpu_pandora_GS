@@ -43,7 +43,7 @@ static inline void fillHoverColor(const float dropdownColor[4], float outColor[4
 // ---
 
 void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
-                    const float color[4], const float dropdownColor[4], ComboBoxEntry* values, size_t valueCount) {
+                    const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& optionFont = context.getFont(FontType::inputText);
   const uint32_t boxHeight = optionFont.XHeight() + (paddingY << 1);
 
@@ -57,7 +57,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
   }
 
-  // create option names
+  // create options
   uint32_t longestOptionNameWidth = 0;
   {
     const int32_t optionNameX = x + labelWidthWithMargin + paddingX;
@@ -205,7 +205,7 @@ void ComboBox::click(RendererContext& context) {
 }
 
 void ComboBox::mouseMove(RendererContext& context, int32_t mouseY) {
-  if (!selectableValues.empty()) {
+  if (isListOpen && !selectableValues.empty()) {
     const auto& firstMesh = selectableValues[0].nameMesh;
     mouseY -= firstMesh.y() - (int32_t)paddingY; // absolute to relative
     mouseY /= static_cast<int32_t>(firstMesh.height() + (paddingY << 1)); // height to index (divide by entry height)
@@ -222,7 +222,7 @@ void ComboBox::selectPrevious(RendererContext& context) {
     moveDropdownHover(context, --hoverIndex);
 }
 void ComboBox::selectNext(RendererContext& context) {
-  if (hoverIndex < (int32_t)selectableValues.size())
+  if (hoverIndex + 1 < (int32_t)selectableValues.size())
     moveDropdownHover(context, ++hoverIndex);
 }
 

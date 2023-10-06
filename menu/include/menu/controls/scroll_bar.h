@@ -88,7 +88,8 @@ namespace menu {
 
       /// @brief Draw scroll-bar background
       /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      void drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
+      /// @returns True if 'hoverPressedVertexUniform' has been bound (if mouse hover on special part)
+      bool drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
                        video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform);
 
     private:

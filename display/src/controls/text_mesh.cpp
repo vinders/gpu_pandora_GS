@@ -20,7 +20,7 @@ using namespace display::controls;
 
 
 TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
-                   const float pxSizeX, const float pxSizeY, int32_t x, int32_t y)
+                   const float pxSizeX, const float pxSizeY, int32_t x, int32_t y, TextAlignment align)
   : x_(x),
     y_(y),
     height_(font.XHeight()) {
@@ -55,6 +55,15 @@ TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
   }
   const auto& lastGlyph = glyphs.back();
   width_ = currentX - x - (int32_t)(lastGlyph->advance >> 6) + (int32_t)lastGlyph->width + lastGlyph->offsetLeft;
+
+  if (align != TextAlignment::left) {
+    const uint32_t alignOffsetX = (align == TextAlignment::center) ? (width_ >> 1) : width_;
+    this->x_ -= alignOffsetX;
+
+    const float vertexOffsetX = alignOffsetX * pxSizeX;
+    for (auto& vertex : vertices)
+      vertex.position[0] -= vertexOffsetX;
+  }
   
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
                                                   vertices.size()*sizeof(TextVertex), vertices.data());

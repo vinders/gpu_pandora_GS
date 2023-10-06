@@ -20,39 +20,21 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
 #include "menu/controls/types.h"
+#include "menu/controls/combo_box_option.h"
 
 namespace menu {
   namespace controls {
-    using ComboValue = uint32_t;
-
-    /// @brief Entry for combo-box creation
-    struct ComboBoxEntry final {
-      ComboBoxEntry(const char32_t* name, ComboValue value)
-        : name(display::controls::TextMesh::toString(name)), value(value) {}
-      ComboBoxEntry() = default;
-      ComboBoxEntry(const ComboBoxEntry&) = default;
-      ComboBoxEntry(ComboBoxEntry&&) noexcept = default;
-      ComboBoxEntry& operator=(const ComboBoxEntry&) = default;
-      ComboBoxEntry& operator=(ComboBoxEntry&&) noexcept = default;
-      ~ComboBoxEntry() noexcept = default;
-
-      std::unique_ptr<char32_t[]> name = nullptr;
-      ComboValue value = 0;
-    };
-
-    // ---
-
     /// @brief UI button control
     class ComboBox final {
     public:
       /// @brief Create combo-box control
-      /// @param operationId   Unique combo-box identifier (should be cast from an enum or constant)
-      /// @param onClick       Event handler to call (with 'operationId' and value) when the combo-box is clicked
-      /// @param enabler       Optional data/config value to which the combo-box state should be bound
+      /// @param operationId  Unique combo-box identifier (should be cast from an enum or constant)
+      /// @param onChange     Event handler to call (with 'operationId' and value) when the combo-box value changes
+      /// @param enabler      Optional data/config value to which the combo-box state should be bound
       ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t paddingX,
                uint32_t paddingY, uint32_t minLabelWidth, uint32_t minBoxWidth, const float color[4],
                const float dropdownColor[4], uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
-               ComboBoxEntry* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
+               ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
           onChange(std::move(onChange)),
@@ -87,7 +69,7 @@ namespace menu {
       // -- operations --
 
       void click(RendererContext& context);                     ///< Report click to control (on mouse click with hover / on keyboard/pad action)
-      void mouseMove(RendererContext& context, int32_t mouseY); ///< Report click to control (on mouse move with hover)
+      void mouseMove(RendererContext& context, int32_t mouseY); ///< Report mouse move to control (on mouse move with hover)
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
       inline void close() noexcept { isListOpen = false; } ///< Force-close the dropdown list without changing (if open)
@@ -126,20 +108,19 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
-                const float color[4], const float dropdownColor[4], ComboBoxEntry* values, size_t valueCount);
+                const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
-      struct EntryData final { // selectable value stored
-        EntryData(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)
-          : nameMesh(*context.renderer, font, text, context.pixelSizeX, context.pixelSizeY, x, y),
-            value(value) {}
-        EntryData() = default;
-        EntryData(const EntryData&) = default;
-        EntryData(EntryData&&) noexcept = default;
-        EntryData& operator=(const EntryData&) = default;
-        EntryData& operator=(EntryData&&) noexcept = default;
-        ~EntryData() noexcept = default;
+      struct OptionMesh final { // selectable value stored
+        OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)
+          : nameMesh(*context.renderer, font, text, context.pixelSizeX, context.pixelSizeY, x, y), value(value) {}
+        OptionMesh() = default;
+        OptionMesh(const OptionMesh&) = default;
+        OptionMesh(OptionMesh&&) noexcept = default;
+        OptionMesh& operator=(const OptionMesh&) = default;
+        OptionMesh& operator=(OptionMesh&&) noexcept = default;
+        ~OptionMesh() noexcept = default;
 
         display::controls::TextMesh nameMesh;
         ComboValue value = 0;
@@ -150,7 +131,7 @@ namespace menu {
       display::controls::ControlMesh dropdownHoverMesh;
       display::controls::TextMesh labelMesh;
       display::controls::TextMesh selectedNameMesh;
-      std::vector<EntryData> selectableValues;
+      std::vector<OptionMesh> selectableValues;
       int32_t selectedIndex = -1;
       int32_t hoverIndex = -1;
       const bool* enabler = nullptr;
