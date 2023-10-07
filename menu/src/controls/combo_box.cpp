@@ -64,8 +64,13 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
     int32_t optionNameY = y + (int32_t)boxHeight;
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)boxHeight) {
+#     if defined(_CPP_REVISION) && _CPP_REVISION == 14
+      selectableValues.emplace_back(context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
+      const auto& entry = selectableValues.back();
+#     else
       const auto& entry = selectableValues.emplace_back(context, optionFont, values->name.get(),
                                                         optionNameX, optionNameY, values->value);
+#     endif
       if (entry.nameMesh.width() > longestOptionNameWidth)
         longestOptionNameWidth = entry.nameMesh.width();
     }

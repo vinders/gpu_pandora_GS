@@ -26,9 +26,7 @@ namespace display {
     : texture(std::move(texture)), width(width), height(height),
       offsetLeft(offsetLeft), bearingTop(bearingTop), advance(advance) {}
     FontGlyph() = default;
-    FontGlyph(const FontGlyph&) = default;
     FontGlyph(FontGlyph&&) = default;
-    FontGlyph& operator=(const FontGlyph&) = default;
     FontGlyph& operator=(FontGlyph&&) = default;
     ~FontGlyph() noexcept = default;
 
