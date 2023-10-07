@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #define _CRT_SECURE_NO_WARNINGS
 #include <cstdlib>
 #include <stdexcept>
+#include <memory>
 #ifdef _WINDOWS
 # include <system/api/windows_api.h>
 # include <shlobj.h>
@@ -28,18 +29,21 @@ using namespace display;
 
 std::string getSystemFontPath() {
 # ifdef _WINDOWS
-  PWSTR buffer = nullptr;
-  bool isSuccess = (SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &buffer) == S_OK);
+  PWSTR folderPath = nullptr;
+  bool isSuccess = (SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &folderPath) == S_OK);
 
   std::string path = "%windir%\\Fonts\\";
-  if (isSuccess && buffer != nullptr) {
-    size_t length = wcslen((const wchar_t*)buffer);
-    path = std::string(length, ' ');
-    wcstombs(path.data(), (const wchar_t*)buffer, length+1);
-    if (path.back() != '/' && path.back() != '\\')
-      path += '\\';
+  if (isSuccess && folderPath != nullptr) {
+    size_t bufferSize = wcslen((const wchar_t*)folderPath)*2 + 1;
+    std::unique_ptr<char[]> buffer(new char[bufferSize]);
+
+    if (wcstombs(buffer.get(), (const wchar_t*)folderPath, bufferSize)) {
+      path = buffer.get();
+      if (path.back() != '/' && path.back() != '\\')
+        path += '\\';
+    }
   }
-  CoTaskMemFree((LPVOID)buffer);
+  CoTaskMemFree((LPVOID)folderPath);
 
   return path + "arial.ttf";
 # else
