@@ -13,6 +13,7 @@ GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <cstring>
 #include "menu/controls/ruler.h"
 
 #define THUMB_CIRCLE_VERTICES 16
@@ -98,36 +99,50 @@ void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment 
                           x + (int32_t)labelWidthWithMargin + (int32_t)fixedRulerWidth + (int32_t)labelMargin(), labelY);
   }
 
+  // specify ruler positions
+  uint32_t thumbOffset, stepWidth;
+  if (minValue != maxValue) {
+    const uint32_t valueCount = maxValue - minValue;
+    stepWidth = (fixedRulerWidth - 1u)* step / valueCount;
+    firstStepOffset = (fixedRulerWidth - (stepWidth * valueCount)) >> 1;
+  }
+  else {
+    stepWidth = firstStepOffset = (fixedRulerWidth >> 1);
+    thumbOffset = firstStepOffset - (thumbHeight >> 1);
+  }
+
   // create ruler
   { std::vector<ControlVertex> vertices;
-    vertices.resize(8);
+    vertices.resize(8u + 4u*((maxValue - minValue)+1u));
+    const float rulerHeight = (float)(thumbHeight >> 2);
     ControlVertex* vertexIt = vertices.data();
     setControlVertex(*vertexIt,     rulerColor, 0.f,                    0.f); // border
     setControlVertex(*(++vertexIt), rulerColor, (float)fixedRulerWidth, 0.f);
-    setControlVertex(*(++vertexIt), rulerColor, 0.f,                    -(float)(thumbHeight >> 2));
-    setControlVertex(*(++vertexIt), rulerColor, (float)fixedRulerWidth, -(float)(thumbHeight >> 2));
+    setControlVertex(*(++vertexIt), rulerColor, 0.f,                    -rulerHeight);
+    setControlVertex(*(++vertexIt), rulerColor, (float)fixedRulerWidth, -rulerHeight);
     setControlVertex(*(++vertexIt), rulerColor, 1.f,                        0.f); // ruler
     setControlVertex(*(++vertexIt), rulerColor, (float)(fixedRulerWidth-2), 0.f);
-    setControlVertex(*(++vertexIt), rulerColor, 1.f,                        -(float)((thumbHeight >> 2)-2));
-    setControlVertex(*(++vertexIt), rulerColor, (float)(fixedRulerWidth-2), -(float)((thumbHeight >> 2)-2));
+    setControlVertex(*(++vertexIt), rulerColor, 1.f,                        -rulerHeight+2.f);
+    setControlVertex(*(++vertexIt), rulerColor, (float)(fixedRulerWidth-2), -rulerHeight+2.f);
     std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  4,5,6, 6,5,7 };
+
+    for (uint32_t markX = firstStepOffset, index = 8; markX < fixedRulerWidth; markX += stepWidth, index += 6) { // ruler marks
+      setControlVertex(*(++vertexIt), thumbColor, (float)(markX-1), -rulerHeight-2.f);
+      setControlVertex(*(++vertexIt), thumbColor, (float)markX,     -rulerHeight-2.f);
+      setControlVertex(*(++vertexIt), thumbColor, (float)(markX-1), -rulerHeight-5.f);
+      setControlVertex(*(++vertexIt), thumbColor, (float)markX,     -rulerHeight-5.f);
+      indices.emplace_back(index);
+      indices.emplace_back(index + 1);
+      indices.emplace_back(index + 2);
+      indices.emplace_back(index + 2);
+      indices.emplace_back(index + 1);
+      indices.emplace_back(index + 3);
+    }
 
     controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
                               x + (int32_t)labelWidthWithMargin, y + (int32_t)((thumbHeight*3) >> 3), fixedRulerWidth, (thumbHeight >> 2));
   }
 
-  // specify ruler positions
-  uint32_t thumbOffset;
-  if (minValue != maxValue) {
-    const uint32_t valueCount = maxValue - minValue;
-    const uint32_t stepWidth = fixedRulerWidth * step / valueCount;
-    firstStepOffset = (fixedRulerWidth - (stepWidth * valueCount)) >> 1;
-    thumbOffset = firstStepOffset + (*boundValue - minValue)*stepWidth - (thumbHeight >> 1);
-  }
-  else {
-    firstStepOffset = (fixedRulerWidth >> 1);
-    thumbOffset = firstStepOffset - (thumbHeight >> 1);
-  }
   // create thumb
   std::vector<ControlVertex> vertices;
   vertices.resize((THUMB_CIRCLE_VERTICES+2)*2);

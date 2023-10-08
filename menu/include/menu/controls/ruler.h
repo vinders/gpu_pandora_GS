@@ -102,7 +102,7 @@ namespace menu {
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       void updateThumbPosition(RendererContext& context, uint32_t value);
-      inline uint32_t interStepWidth() noexcept { return controlMesh.width()* step / (maxValue - minValue); }
+      inline uint32_t interStepWidth() noexcept { return (controlMesh.width()-1u) * step / (maxValue - minValue); }
 
     private:
       display::controls::ControlMesh controlMesh;
