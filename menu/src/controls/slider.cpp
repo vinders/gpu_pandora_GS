@@ -64,7 +64,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   setControlVertex(*(++vertexIt), shadowColor, (float)(arrowMargin + arrowWidth - 1),        -(float)(sliderHeight >> 1));
   setControlVertex(*(++vertexIt), shadowColor, (float)(arrowMargin + (arrowWidth << 1) + 1), -(float)(sliderHeight >> 1));
   setControlVertex(*(++vertexIt), shadowColor, arrowEndX,                                    -(float)(sliderHeight - arrowMargin + 1));
-  setControlVertex(*vertexIt,     arrowColor, arrowEndX,                                -(float)arrowMargin); // arrow
+  setControlVertex(*(++vertexIt), arrowColor, arrowEndX,                                -(float)arrowMargin); // arrow
   setControlVertex(*(++vertexIt), arrowColor, (float)(arrowMargin + arrowWidth),        -(float)(sliderHeight >> 1));
   setControlVertex(*(++vertexIt), arrowColor, (float)(arrowMargin + (arrowWidth << 1)), -(float)(sliderHeight >> 1));
   setControlVertex(*(++vertexIt), arrowColor, arrowEndX,                                -(float)(sliderHeight - arrowMargin));

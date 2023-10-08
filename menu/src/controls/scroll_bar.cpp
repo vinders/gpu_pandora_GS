@@ -70,9 +70,9 @@ void ScrollBar::init(RendererContext& context, const float barColor[4], const fl
                        context.pixelSizeX, context.pixelSizeY, x, y, width, width);
   vertices.resize(3);
   vertexIt = vertices.data();
-  setControlVertex(*(++vertexIt), thumbColor, (float)arrowPaddingX,           -(float)arrowPaddingY);
+  setControlVertex(*vertexIt,     thumbColor, (float)arrowPaddingX,           -(float)arrowPaddingY);
   setControlVertex(*(++vertexIt), thumbColor, (float)(width - arrowPaddingX), -(float)arrowPaddingY);
-  setControlVertex(*vertexIt,     thumbColor, (float)(width >> 1),            -(float)(width - arrowPaddingY));
+  setControlVertex(*(++vertexIt), thumbColor, (float)(width >> 1),            -(float)(width - arrowPaddingY));
   downMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
                          x, thumbAreaY + (int32_t)thumbAreaHeight, width, width);
 }
@@ -135,7 +135,7 @@ void ScrollBar::mouseMove(RendererContext& context, int32_t mouseY) {
 
 // ---
 
-void ScrollBar::click(RendererContext& context, int32_t mouseY) {
+void ScrollBar::click(RendererContext& context, int32_t mouseY, bool isMouseDown) {
   if (mouseY < thumbAreaY) { // UP button
     updateThumbPosition(context, (topPosition > scrollStep) ? topPosition - scrollStep : 0);
   }
@@ -143,7 +143,7 @@ void ScrollBar::click(RendererContext& context, int32_t mouseY) {
     updateThumbPosition(context, (topPosition + scrollStep < maxTopPosition) ? topPosition + scrollStep : maxTopPosition);
   }
   else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) { // thumb bar
-    dragThumbOffsetY = mouseY - thumbMesh.y();
+    dragThumbOffsetY = isMouseDown ? mouseY - thumbMesh.y() : noDrag();
   }
   else { // background
     const float targetCenter = (float)totalScrollArea * (static_cast<float>(mouseY - thumbAreaY) / (float)thumbAreaHeight);

@@ -56,19 +56,21 @@ void Button::init(RendererContext& context, const char32_t* label, const Control
   {
     const float shadowColor[4]{ 0.f,0.f,0.f,0.15f };
     std::vector<ControlVertex> vertices;
-    vertices.resize(10);
+    vertices.resize(12);
     ControlVertex* vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     shadowColor, -3.f,               -2.f); // drop shadow
-    setControlVertex(*(++vertexIt), shadowColor, static_cast<float>(width - 3 - (style.paddingY << 1)), -2.f);
-    setControlVertex(*(++vertexIt), shadowColor, -3.f,               -(float)(height - 2));
-    setControlVertex(*(++vertexIt), shadowColor, (float)(width - 3), -(float)(style.paddingY - 2));
-    setControlVertex(*(++vertexIt), shadowColor, (float)(width - 3), -(float)(height - 2));
-    setControlVertex(*(++vertexIt), style.color, 0.f,          0.f); // button background
-    setControlVertex(*(++vertexIt), style.color, static_cast<float>(width - (style.paddingY << 1)), 0.f);
-    setControlVertex(*(++vertexIt), style.color, 0.f,          -(float)height);
-    setControlVertex(*(++vertexIt), style.color, (float)width, -(float)style.paddingY);
-    setControlVertex(*(++vertexIt), style.color, (float)width, -(float)height);
-    std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4,  5,6,7, 6,8,7, 7,8,9 };
+    setControlVertex(*vertexIt,     style.color, -3.f,                                 -(float)(height - style.paddingY + 2)); // drop shadow
+    setControlVertex(*(++vertexIt), style.color, -3.f,                                 -2.f);
+    setControlVertex(*(++vertexIt), style.color, (float)((style.paddingY << 1) - 3),   -(float)(height + 2));
+    setControlVertex(*(++vertexIt), style.color, (float)(width-(style.paddingY<<1)-3), -2.f);
+    setControlVertex(*(++vertexIt), style.color, (float)(width - 3),                   -(float)(height + 2));
+    setControlVertex(*(++vertexIt), style.color, (float)(width - 3),                   -(float)(style.paddingY + 2));
+    setControlVertex(*vertexIt,     style.color, 0.f,                                -(float)(height - style.paddingY)); // button background
+    setControlVertex(*(++vertexIt), style.color, 0.f,                                0.f);
+    setControlVertex(*(++vertexIt), style.color, (float)(style.paddingY << 1),       -(float)height);
+    setControlVertex(*(++vertexIt), style.color, (float)(width-(style.paddingY<<1)), 0.f);
+    setControlVertex(*(++vertexIt), style.color, (float)width,                       -(float)height);
+    setControlVertex(*(++vertexIt), style.color, (float)width,                       -(float)style.paddingY);
+    std::vector<uint32_t> indices{ 0,1,2, 2,1,3, 2,3,4, 4,3,5,  6,7,8, 8,7,9, 8,9,10, 10,9,11 };
 
     controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
                               labelMesh.x() - style.paddingX - iconWidthWithMargin, y, width, height);

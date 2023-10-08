@@ -55,7 +55,7 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return (labelMesh.width() == 0 || isListOpen) ? controlMesh.x() : labelMesh.x(); }
+      inline int32_t x() const noexcept { return controlMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
       inline int32_t width() const noexcept { return controlMesh.width(); }
       inline int32_t height() const noexcept { return isListOpen ? controlMesh.height() : controlMesh.height() + dropdownMesh.height(); }

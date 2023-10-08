@@ -61,7 +61,7 @@ namespace menu {
 
       // -- operations --
 
-      void click(RendererContext& context, int32_t mouseY);           ///< Report click to control (on mouse click with hover)
+      void click(RendererContext& context, int32_t mouseY, bool isMouseDown); ///< Report click to control (on mouse click with hover)
       void mouseMove(RendererContext& context, int32_t mouseY);       ///< Report mouse move to control (on mouse move with mouse down during drag)
       inline void mouseUp(RendererContext& context, int32_t mouseY) { ///< Report end of mouse click (after drag)
         mouseMove(context, mouseY);
