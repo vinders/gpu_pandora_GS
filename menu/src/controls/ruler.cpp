@@ -105,6 +105,7 @@ void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment 
     const uint32_t valueCount = maxValue - minValue;
     stepWidth = (fixedRulerWidth - 1u)* step / valueCount;
     firstStepOffset = (fixedRulerWidth - (stepWidth * valueCount)) >> 1;
+    thumbOffset = firstStepOffset + (*boundValue - minValue)*stepWidth - (thumbHeight >> 1);
   }
   else {
     stepWidth = firstStepOffset = (fixedRulerWidth >> 1);
