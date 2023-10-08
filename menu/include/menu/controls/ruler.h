@@ -27,21 +27,20 @@ namespace menu {
       /// @param operationId Unique ruler operation identifier (should be cast from an enum or constant)
       /// @param onClick     Event handler to call (with 'operationId') when the ruler is clicked
       /// @param enabler     Optional data/config value to which the ruler state should be bound
-      Ruler(RendererContext& context, const char32_t* label, display::controls::TextAlignment labelAlign,
-            float rulerColor[4], float borderColor[4], float thumbColor[4],
-            int32_t x, int32_t y, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedRulerWidth,
-            const char* suffix, uint32_t minValue, uint32_t maxValue, uint32_t step,
-            uint32_t& boundValue, const bool* enabler = nullptr)
+      Ruler(RendererContext& context, const char32_t* label, const char* suffix,
+            display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
+            uint32_t fixedRulerWidth, float borderColor[4], float thumbColor[4],
+            uint32_t minValue, uint32_t maxValue, uint32_t step, uint32_t& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
           lastValue(boundValue),
           minValue(minValue),
           maxValue(maxValue),
           step(step),
-          minLabelWidth(minLabelWidth),
-          paddingY(paddingY) {
-        init(context, label, labelAlign, rulerColor, borderColor, thumbColor,
-             x, y, fixedRulerWidth, suffix);
+          minLabelWidth(style.minLabelWidth),
+          paddingX(style.paddingX),
+          paddingY(style.paddingY) {
+        init(context, label, suffix, labelAlign, x, labelY, style, fixedRulerWidth, borderColor, thumbColor);
       }
 
       Ruler() = default;
@@ -81,7 +80,7 @@ namespace menu {
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
 
-      void move(RendererContext& context, int32_t x, int32_t y, display::controls::TextAlignment labelAlign); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign); ///< Change control location (on window resize)
 
       /// @brief Draw ruler background + thumb
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
@@ -96,13 +95,12 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, display::controls::TextAlignment labelAlign,
-                float rulerColor[4], float borderColor[4], float thumbColor[4],
-                int32_t x, int32_t y, uint32_t fixedRulerWidth, const char* suffix);
+      void init(RendererContext& context, const char32_t* label, const char* suffix,
+                display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
+                uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4]);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       void updateThumbPosition(RendererContext& context, uint32_t value);
-      inline uint32_t interStepWidth() noexcept { return (controlMesh.width()-1u) * step / (maxValue - minValue); }
 
     private:
       display::controls::ControlMesh controlMesh;
@@ -117,8 +115,10 @@ namespace menu {
       uint32_t maxValue = 0;
       uint32_t step = 1;
       uint32_t minLabelWidth = 0;
+      uint32_t paddingX = 0;
       uint32_t paddingY = 0;
       uint32_t firstStepOffset = 0;
+      uint32_t stepWidth = 1;
       bool isDragging = false;
     };
   }

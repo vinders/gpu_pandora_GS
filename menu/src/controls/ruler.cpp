@@ -80,17 +80,17 @@ static void generateRulerThumbIndices(uint32_t* indexIt, uint32_t baseIndex) {
 
 // ---
 
-void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment labelAlign,
-                 float rulerColor[4], float borderColor[4], float thumbColor[4],
-                 int32_t x, int32_t y, uint32_t fixedRulerWidth, const char* suffix) {
+void Ruler::init(RendererContext& context, const char32_t* label, const char* suffix,
+                 display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
+                 uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4]) {
   auto& labelFont = context.getFont(FontType::labels);
   const uint32_t thumbHeight = (labelFont.XHeight() << 1);
+  const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)thumbHeight)/2;
   
   // create label
   uint32_t labelWidthWithMargin = 0;
-  const int32_t labelY = y + paddingY - ((int32_t)labelFont.XHeight() - (int32_t)thumbHeight)/2;
-  if (label != nullptr && *label != (char32_t)0) {
-    labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY, labelAlign);
+  labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY, labelAlign);
+  if (labelMesh.width() != 0) {
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
     x = labelMesh.x(); // in case labelAlign != left
   }
@@ -100,10 +100,10 @@ void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment 
   }
 
   // specify ruler positions
-  uint32_t thumbOffset, stepWidth;
+  uint32_t thumbOffset;
   if (minValue != maxValue) {
     const uint32_t valueCount = maxValue - minValue;
-    stepWidth = (fixedRulerWidth - 1u)* step / valueCount;
+    stepWidth = (fixedRulerWidth - (style.paddingX << 1) - 1u) * step / valueCount;
     firstStepOffset = (fixedRulerWidth - (stepWidth * valueCount)) >> 1;
     thumbOffset = firstStepOffset + (*boundValue - minValue)*stepWidth - (thumbHeight >> 1);
   }
@@ -117,14 +117,14 @@ void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment 
     vertices.resize(8u + 4u*((maxValue - minValue)+1u));
     const float rulerHeight = (float)(thumbHeight >> 2);
     ControlVertex* vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     rulerColor, 0.f,                    0.f); // border
-    setControlVertex(*(++vertexIt), rulerColor, (float)fixedRulerWidth, 0.f);
-    setControlVertex(*(++vertexIt), rulerColor, 0.f,                    -rulerHeight);
-    setControlVertex(*(++vertexIt), rulerColor, (float)fixedRulerWidth, -rulerHeight);
-    setControlVertex(*(++vertexIt), rulerColor, 1.f,                        0.f); // ruler
-    setControlVertex(*(++vertexIt), rulerColor, (float)(fixedRulerWidth-2), 0.f);
-    setControlVertex(*(++vertexIt), rulerColor, 1.f,                        -rulerHeight+2.f);
-    setControlVertex(*(++vertexIt), rulerColor, (float)(fixedRulerWidth-2), -rulerHeight+2.f);
+    setControlVertex(*vertexIt,     borderColor, 0.f,                    0.f); // border
+    setControlVertex(*(++vertexIt), borderColor, (float)fixedRulerWidth, 0.f);
+    setControlVertex(*(++vertexIt), borderColor, 0.f,                    -rulerHeight);
+    setControlVertex(*(++vertexIt), borderColor, (float)fixedRulerWidth, -rulerHeight);
+    setControlVertex(*(++vertexIt), style.color, 1.f,                        0.f); // ruler
+    setControlVertex(*(++vertexIt), style.color, (float)(fixedRulerWidth-2), 0.f);
+    setControlVertex(*(++vertexIt), style.color, 1.f,                        -rulerHeight+2.f);
+    setControlVertex(*(++vertexIt), style.color, (float)(fixedRulerWidth-2), -rulerHeight+2.f);
     std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  4,5,6, 6,5,7 };
 
     for (uint32_t markX = firstStepOffset, index = 8; markX < fixedRulerWidth; markX += stepWidth, index += 6) { // ruler marks
@@ -162,12 +162,13 @@ void Ruler::init(RendererContext& context, const char32_t* label, TextAlignment 
                           controlMesh.x() + (int32_t)thumbOffset, y, fixedRulerWidth, thumbHeight);
 }
 
-void Ruler::move(RendererContext& context, int32_t x, int32_t y, TextAlignment labelAlign) {
+void Ruler::move(RendererContext& context, int32_t x, int32_t labelY, TextAlignment labelAlign) {
+  const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
+
   uint32_t labelWidthWithMargin = 0;
-  const int32_t labelY = y + ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
   if (labelMesh.width()) {
     if (labelAlign != TextAlignment::left)
-      x -= (labelAlign == TextAlignment::right) ? labelMesh.width() : (labelMesh.width() >> 1);
+      x -= (labelAlign == TextAlignment::right) ? (int32_t)labelMesh.width() : (int32_t)(labelMesh.width() >> 1);
     labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
   }
@@ -180,7 +181,7 @@ void Ruler::move(RendererContext& context, int32_t x, int32_t y, TextAlignment l
                    x + (int32_t)labelWidthWithMargin, y + (int32_t)((thumbMesh.height()*3) >> 3));
 
   uint32_t thumbOffset = (minValue != maxValue)
-                       ? firstStepOffset + (*boundValue - minValue)*interStepWidth() - (thumbMesh.height() >> 1)
+                       ? firstStepOffset + (*boundValue - minValue)*stepWidth - (thumbMesh.height() >> 1)
                        : firstStepOffset - (thumbMesh.height() >> 1);
   thumbMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
                  controlMesh.x() + (int32_t)thumbOffset, y);
@@ -189,7 +190,7 @@ void Ruler::move(RendererContext& context, int32_t x, int32_t y, TextAlignment l
 void Ruler::updateThumbPosition(RendererContext& context, uint32_t value) {
   int32_t thumbX = controlMesh.x() + (int32_t)firstStepOffset - (int32_t)(thumbMesh.width() >> 1);
   if (minValue != maxValue)
-    thumbX += (int32_t)((value - minValue) * interStepWidth());
+    thumbX += (int32_t)((value - minValue) * stepWidth);
 
   thumbMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, thumbX, thumbMesh.y());
 }
@@ -202,7 +203,6 @@ void Ruler::mouseMove(RendererContext& context, int32_t mouseX) {
     else if (mouseX >= (int32_t)controlMesh.width() - (int32_t)firstStepOffset)
       mouseX = (int32_t)controlMesh.width() - (int32_t)firstStepOffset - 1;
 
-    const uint32_t stepWidth = interStepWidth();
     *boundValue = lastValue = minValue + (((uint32_t)mouseX + (stepWidth >> 1)) / stepWidth);
     updateThumbPosition(context, lastValue);
   }

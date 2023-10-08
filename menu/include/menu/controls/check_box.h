@@ -26,13 +26,13 @@ namespace menu {
       /// @brief Create check-box control
       /// @param boundValue  Data/config value to bind to the check-box value (get/set)
       /// @param enabler     Optional data/config value to which the button state should be bound
-      CheckBox(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+      CheckBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                bool isLabelBeforeBox, uint32_t minLabelWidth, bool& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
           minLabelWidth(minLabelWidth),
           isLabelBeforeBox(isLabelBeforeBox) {
-        init(context, label, x, y);
+        init(context, label, x, labelY);
       }
 
       CheckBox() = default;
@@ -62,7 +62,7 @@ namespace menu {
         if (isEnabled())
           *boundValue ^= true;
       }
-      void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
       /// @brief Draw check-box icon
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
@@ -79,7 +79,7 @@ namespace menu {
       inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
       inline int32_t getBoxX(int32_t x, uint32_t labelWidth) const noexcept {
         if (isLabelBeforeBox) {

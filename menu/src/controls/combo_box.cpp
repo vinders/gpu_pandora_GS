@@ -42,17 +42,16 @@ static inline void fillHoverColor(const float dropdownColor[4], float outColor[4
 
 // ---
 
-void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                     const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& optionFont = context.getFont(FontType::inputText);
+  auto& labelFont = context.getFont(FontType::labels);
   const uint32_t boxHeight = optionFont.XHeight() + (paddingY << 1);
+  const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)optionFont.XHeight())/2;
 
   // create label
   uint32_t labelWidthWithMargin = 0;
   if (label != nullptr && *label != (char32_t)0) {
-    auto& labelFont = context.getFont(FontType::labels);
-
-    const int32_t labelY = y + paddingY - ((int32_t)labelFont.XHeight() - (int32_t)optionFont.XHeight())/2;
     labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
   }
@@ -156,10 +155,11 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
 
 // ---
 
-void ComboBox::move(RendererContext& context, int32_t x, int32_t y) {
+void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
+  const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
+  
   uint32_t labelWidthWithMargin = 0;
   if (labelMesh.width()) {
-    const int32_t labelY = y + ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
     labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
   }

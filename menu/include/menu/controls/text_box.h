@@ -36,46 +36,46 @@ namespace menu {
       /// @brief Create text edit control -- text value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
+      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
               const char32_t* textValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::text),
           maxValueLength(maxValueLength),
-          minLabelWidth(minLabelWidth),
-          paddingX(paddingX),
-          paddingY(paddingY) {
-        init(context, label, suffix, fixedWidth, color, textValue, x, y);
+          minLabelWidth(style.minLabelWidth),
+          paddingX(style.paddingX),
+          paddingY(style.paddingY) {
+        init(context, label, suffix, x, labelY, fixedWidth, style.color, textValue);
       }
       /// @brief Create text edit control -- integer value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
+      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
               uint32_t integerValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::integer),
           maxValueLength(maxValueLength),
-          minLabelWidth(minLabelWidth),
-          paddingX(paddingX),
-          paddingY(paddingY) {
+          minLabelWidth(style.minLabelWidth),
+          paddingX(style.paddingX),
+          paddingY(style.paddingY) {
         char32_t buffer[MAX_INTEGER_LENGTH+1];
-        init(context, label, suffix, fixedWidth, color, fromInteger(integerValue, buffer), x, y);
+        init(context, label, suffix, x, labelY, fixedWidth, style.color, fromInteger(integerValue, buffer));
       }
       /// @brief Create text edit control -- number value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix, int32_t x, int32_t y,
-              uint32_t paddingX, uint32_t paddingY, uint32_t minLabelWidth, uint32_t fixedWidth, const float color[4], 
+      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
               double numberValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::number),
           maxValueLength(maxValueLength),
-          minLabelWidth(minLabelWidth),
-          paddingX(paddingX),
-          paddingY(paddingY) {
+          minLabelWidth(style.minLabelWidth),
+          paddingX(style.paddingX),
+          paddingY(style.paddingY) {
         auto buffer = fromNumber(numberValue, maxValueLength);
-        init(context, label, suffix, fixedWidth, color, buffer.get(), x, y);
+        init(context, label, suffix, x, labelY, fixedWidth, style.color, buffer.get());
       }
 
       TextBox() = default;
@@ -120,7 +120,7 @@ namespace menu {
       }
       void close() noexcept { isEditing = false; } ///< Force-stop edit mode (on click elsewhere / on keyboard Enter)
 
-      void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
       void replaceValueText(RendererContext& context, const char32_t* textValue); ///< Replace text input value (only with TextBoxType::text)
       void replaceValueInteger(RendererContext& context, uint32_t integerValue);  ///< Replace text input value (only with TextBoxType::integer or number)
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
@@ -142,8 +142,8 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, const char32_t* suffix, uint32_t fixedWidth,
-                const float color[4], const char32_t* initValue, int32_t x, int32_t y);
+      void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
+                int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue);
       void updateCaretLocation(RendererContext& context);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
       static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; }

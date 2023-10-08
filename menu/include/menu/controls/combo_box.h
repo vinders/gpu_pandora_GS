@@ -31,19 +31,19 @@ namespace menu {
       /// @param operationId  Unique combo-box identifier (should be cast from an enum or constant)
       /// @param onChange     Event handler to call (with 'operationId' and value) when the combo-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
-      ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t paddingX,
-               uint32_t paddingY, uint32_t minLabelWidth, uint32_t minBoxWidth, const float color[4],
-               const float dropdownColor[4], uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
-               ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
+      ComboBox(RendererContext& context, const char32_t* label,  int32_t x, int32_t labelY,
+               const ControlStyle& style, uint32_t minBoxWidth, const float dropdownColor[4], uint32_t operationId,
+               std::function<void(uint32_t,ComboValue)> onChange, ComboBoxOption* values, size_t valueCount,
+               int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
           onChange(std::move(onChange)),
           operationId(operationId),
-          minLabelWidth(minLabelWidth),
+          minLabelWidth(style.minLabelWidth),
           minBoxWidth(minBoxWidth),
-          paddingX(paddingX),
-          paddingY(paddingY) {
-        init(context, label, x, y, color, dropdownColor, values, valueCount);
+          paddingX(style.paddingX),
+          paddingY(style.paddingY) {
+        init(context, label, x, labelY, style.color, dropdownColor, values, valueCount);
       }
 
       ComboBox() = default;
@@ -74,7 +74,7 @@ namespace menu {
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
       inline void close() noexcept { isListOpen = false; } ///< Force-close the dropdown list without changing (if open)
 
-      void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
       
       inline void setSelectedIndex(int32_t index) noexcept { ///< Force selection of a specific entry
         if (index >= 0 && index < (int32_t)selectableValues.size()) {
@@ -107,8 +107,8 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
-                const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const float color[4],
+                const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 

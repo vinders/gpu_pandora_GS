@@ -31,7 +31,7 @@ static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4
 
 // ---
 
-void Button::init(RendererContext& context, const char32_t* label, const ControlStyle& style, int32_t x, int32_t y) {
+void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y, const ButtonStyle& style) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
@@ -87,20 +87,20 @@ void Button::init(RendererContext& context, const char32_t* label, const Control
 
 // ---
 
-void Button::move(RendererContext& context, int32_t x, int32_t y) {
+void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
   uint32_t iconWidthWithMargin = 0;
   if (iconMesh.width())
     iconWidthWithMargin = labelMesh.width() ? iconMesh.width() + iconMarginRight() : iconMesh.width();
 
   const int32_t labelX = x + (int32_t)paddingX + (int32_t)iconWidthWithMargin;
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, labelX, y + (int32_t)paddingY);
+  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, labelX, labelY);
 
   controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                   labelMesh.x() - paddingX - iconWidthWithMargin, y);
+                   labelMesh.x() - paddingX - iconWidthWithMargin, labelY - (int32_t)paddingY);
 
   if (iconMesh.width()) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;
-    const int32_t iconY = y + ((int32_t)controlMesh.height() - (int32_t)iconMesh.height())/2;
+    const int32_t iconY = controlMesh.y() + ((int32_t)controlMesh.height() - (int32_t)iconMesh.height())/2;
     iconMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, iconX, iconY);
   }
 }

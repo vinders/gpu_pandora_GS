@@ -19,7 +19,7 @@ using namespace display::controls;
 using namespace menu::controls;
 
 
-void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y) {
+void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY) {
   // load icons
   ControlIcon iconDataOn = context.imageLoader.getIcon(ControlIconType::checked);
   ControlIcon iconDataOff = context.imageLoader.getIcon(ControlIconType::unchecked);
@@ -31,26 +31,26 @@ void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, 
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   const int32_t labelX = isLabelBeforeBox ? x : (x + (int32_t)iconDataOn.width() + (int32_t)labelMargin());
-  const int32_t labelY = y + ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2;
   labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, labelX, labelY);
 
   // create icons
   const int32_t boxX = getBoxX(x, labelMesh.width());
+  const int32_t boxY = labelY - ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2;
   checkedMesh = IconMesh(*context.renderer, std::move(iconDataOn.texture()), context.pixelSizeX, context.pixelSizeY,
-                         boxX, y, iconDataOn.offsetX(), iconDataOn.offsetY(), iconDataOn.width(), iconDataOn.height());
+                         boxX, boxY, iconDataOn.offsetX(), iconDataOn.offsetY(), iconDataOn.width(), iconDataOn.height());
   uncheckedMesh = IconMesh(*context.renderer, std::move(iconDataOff.texture()), context.pixelSizeX, context.pixelSizeY,
-                           boxX, y, iconDataOff.offsetX(), iconDataOff.offsetY(), iconDataOff.width(), iconDataOff.height());
+                           boxX, boxY, iconDataOff.offsetX(), iconDataOff.offsetY(), iconDataOff.width(), iconDataOff.height());
 }
 
 // ---
 
-void CheckBox::move(RendererContext& context, int32_t x, int32_t y) {
+void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t labelX = isLabelBeforeBox ? x : (x + (int32_t)checkedMesh.width() + (int32_t)labelMargin());
-  const int32_t labelY = y + ((int32_t)checkedMesh.height() - (int32_t)labelMesh.height())/2;
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, labelX, labelY);
 
   const uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   const int32_t boxX = getBoxX(x, labelMesh.width());
-  checkedMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, y);
-  uncheckedMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, y);
+  const int32_t boxY = labelY - ((int32_t)checkedMesh.height() - (int32_t)labelMesh.height())/2;
+  checkedMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);
+  uncheckedMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);
 }

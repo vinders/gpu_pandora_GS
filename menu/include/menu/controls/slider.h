@@ -31,18 +31,17 @@ namespace menu {
       /// @param operationId  Unique slider-box identifier (should be cast from an enum or constant)
       /// @param onChange     Event handler to call (with 'operationId' and value) when the slider-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
-      Slider(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t paddingY,
-             uint32_t minLabelWidth, uint32_t fixedSliderWidth, const float arrowColor[4],
-             uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
+      Slider(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ControlStyle& style,
+             uint32_t fixedSliderWidth, uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
              ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
           onChange(std::move(onChange)),
           operationId(operationId),
-          minLabelWidth(minLabelWidth),
-          fixedSliderWidth(fixedSliderWidth),
-          paddingY(paddingY) {
-        init(context, label, x, y, arrowColor, values, valueCount);
+          minLabelWidth(style.minLabelWidth),
+          fixedSliderWidth(fixedSliderWidth + (style.paddingX << 1)),
+          paddingY(style.paddingY) {
+        init(context, label, x, labelY, style.color, values, valueCount);
       }
 
       Slider() = default;
@@ -70,7 +69,7 @@ namespace menu {
       void selectPrevious();     ///< Select previous entry if available (on keyboard/pad action)
       void selectNext();         ///< Select next entry if available (on keyboard/pad action)
 
-      void move(RendererContext& context, int32_t x, int32_t y); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
       /// @brief Draw slider background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
@@ -88,7 +87,7 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                 const float arrowColor[4], ComboBoxOption* values, size_t valueCount);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 

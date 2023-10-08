@@ -44,15 +44,17 @@ static inline void fillCaretColor(const float backgroundColor[4], float outColor
 
 // ---
 
-void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix, uint32_t fixedWidth,
-                   const float color[4], const char32_t* initValue, int32_t x, int32_t y) {
+void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix,
+                   int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue) {
   auto& inputFont = context.getFont(FontType::inputText);
+  auto& labelFont = context.getFont(FontType::labels);
   const uint32_t height = inputFont.XHeight() + (paddingY << 1);
 
   // create label
-  auto& labelFont = context.getFont(FontType::labels);
-  labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY,
-                       x, y + ((int32_t)height - (int32_t)labelFont.XHeight())/2);
+  labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  uint32_t labelWidthWithMargin = 0;
+  if (labelMesh.width() != 0)
+    labelWidthWithMargin = (labelMesh.width() >= minLabelWidth) ? labelMesh.width() + labelMargin() : minLabelWidth + labelMargin();
 
   // create background
   const float colorDarker[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
@@ -81,16 +83,17 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
 
   std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  6,7,8, 8,7,9,  10,11,12, 12,11,13,  14,15,16, 16,15,17 };
 
-  const int32_t boxX = (labelMesh.width() != 0) ? (x + (int32_t)labelMesh.width() + (int32_t)labelMargin()) : x;
+  const int32_t boxX = x + (int32_t)labelWidthWithMargin;
+  const int32_t boxY = labelY - ((int32_t)height - (int32_t)labelFont.XHeight())/2;
   controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
-                            boxX, y, fixedWidth, height);
+                            boxX, boxY, fixedWidth, height);
 
   // create input value
   inputMesh = TextMesh(*context.renderer, inputFont, initValue, context.pixelSizeX, context.pixelSizeY,
-                       boxX + (int32_t)paddingX, y + (int32_t)paddingY);
+                       boxX + (int32_t)paddingX, boxY + (int32_t)paddingY);
   if (suffix != nullptr && *suffix) {
     suffixMesh = TextMesh(*context.renderer, inputFont, label, context.pixelSizeX, context.pixelSizeY,
-                          boxX + (int32_t)fixedWidth + (int32_t)paddingX, y + (int32_t)paddingY);
+                          boxX + (int32_t)fixedWidth + (int32_t)paddingX, labelY);
   }
 
   // create caret
@@ -110,7 +113,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
                             boxX + paddingX, caretY, fixedWidth, height);
   }
   // input value storage
-  inputValue.reserve(maxValueLength + 1); // max possible length + ending zero
+  inputValue.reserve((size_t)maxValueLength + 1u); // max possible length + ending zero
   if (initValue != nullptr) {
     for (const char32_t* it = initValue; *it; ++it)
       inputValue.emplace_back(*it);
@@ -118,18 +121,21 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   inputValue.emplace_back((char32_t)0); // ending zero (to allow value() accessor to treat vector as a C-string)
 }
 
-void TextBox::move(RendererContext& context, int32_t x, int32_t y) {
-  auto& labelFont = context.getFont(FontType::labels);
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                 x, y + ((int32_t)controlMesh.height() - (int32_t)labelFont.XHeight())/2);
+void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
+  const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height())/2;
 
-  const int32_t boxX = (labelMesh.width() != 0) ? (x + (int32_t)labelMesh.width() + (int32_t)labelMargin()) : x;
-  controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, y);
+  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  uint32_t labelWidthWithMargin = 0;
+  if (labelMesh.width() != 0)
+    labelWidthWithMargin = (labelMesh.width() >= minLabelWidth) ? labelMesh.width() + labelMargin() : minLabelWidth + labelMargin();
 
-  inputMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + (int32_t)paddingX, y + (int32_t)paddingY);
+  const int32_t boxX = x + (int32_t)labelWidthWithMargin;
+  controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);
+
+  inputMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + (int32_t)paddingX, boxY + (int32_t)paddingY);
   if (suffixMesh.width()) {
     suffixMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                    boxX + (int32_t)controlMesh.width() + (int32_t)paddingX, y + (int32_t)paddingY);
+                    boxX + (int32_t)controlMesh.width() + (int32_t)paddingX, labelY);
   }
 
   const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2);
@@ -144,7 +150,7 @@ void TextBox::replaceValueText(RendererContext& context, const char32_t* textVal
                        controlMesh.x() + (int32_t)paddingX, controlMesh.y() + (int32_t)paddingY);
 
   inputValue.clear();
-  inputValue.reserve(maxValueLength + 1);
+  inputValue.reserve((size_t)maxValueLength + 1u);
   if (textValue != nullptr) {
     for (const char32_t* it = textValue; *it; ++it)
       inputValue.emplace_back(*it);

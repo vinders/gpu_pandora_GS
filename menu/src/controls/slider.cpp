@@ -31,23 +31,23 @@ static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4
 
 // ---
 
-void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                   const float arrowColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& font = context.getFont(FontType::labels);
   const uint32_t sliderHeight = font.XHeight() + (paddingY << 1); // width==height
-  const uint32_t labelNamesY = y + (int32_t)paddingY;
+  const int32_t y = labelY - (int32_t)paddingY;
 
   // create label
   uint32_t labelWidthWithMargin = 0;
   if (label != nullptr && *label != (char32_t)0) {
-    labelMesh = TextMesh(*context.renderer, font, label, context.pixelSizeX, context.pixelSizeY, x, labelNamesY);
+    labelMesh = TextMesh(*context.renderer, font, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
   }
   // create options
   const uint32_t optionCenterX = x + (int32_t)labelWidthWithMargin + (int32_t)(fixedSliderWidth << 1);
   selectableValues.reserve(valueCount);
   for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
-    selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelNamesY, values->value);
+    selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelY, values->value);
   }
 
   // create arrows
@@ -93,13 +93,14 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
                                 x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y, sliderHeight, sliderHeight);
 }
 
-void Slider::move(RendererContext& context, int32_t x, int32_t y) {
+void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
   const uint32_t oldOriginX = labelMesh.x();
-  const uint32_t labelNamesY = y + (int32_t)paddingY;
+  const int32_t y = labelY - (int32_t)paddingY;
 
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelNamesY);
+  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
   for (auto& option : selectableValues) {
-    option.nameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + option.nameMesh.x() - oldOriginX, labelNamesY);
+    option.nameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+                         x + option.nameMesh.x() - oldOriginX, labelY);
   }
 }
 
