@@ -50,7 +50,7 @@ namespace menu {
       inline uint32_t height() const noexcept { return checkedMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
-      bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
+      inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         const int32_t coordX = x();
         return (mouseY >= y() && mouseX >= coordX && mouseY < y() + (int32_t)height() && mouseX < coordX + (int32_t)width());
       }

@@ -62,8 +62,11 @@ namespace display {
 
       // -- operations --
       
+      /// @brief Update relative vertices (same count as before required!)
+      void update(video_api::Renderer& renderer, std::vector<ControlVertex>&& verticesRelPos,
+                  const float pxSizeX, const float pxSizeY, int32_t x, int32_t y, uint32_t width, uint32_t height);
       /// @brief Change mesh position
-      void move(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x_, int32_t y_);
+      void move(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x, int32_t y);
       /// @brief Render mesh
       /// @warning A rendering pipeline for control rendering should be bound before call
       void draw(video_api::Renderer& renderer);

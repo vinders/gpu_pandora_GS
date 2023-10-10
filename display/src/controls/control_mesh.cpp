@@ -52,6 +52,17 @@ ControlMesh::ControlMesh(Renderer& renderer, std::vector<ControlVertex>&& vertic
                                                  indices.data());
 }
 
+void ControlMesh::update(Renderer& renderer, std::vector<ControlVertex>&& vertices,
+                         const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
+                         uint32_t width, uint32_t height) {
+  if (verticesRelPos.size() == vertices.size()) {
+    this->verticesRelPos = std::move(vertices);
+    this->width_ = width;
+    this->height_ = height;
+    move(renderer, pxSizeX, pxSizeY, x, y);
+  }
+}
+
 void ControlMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x, int32_t y) {
   if (verticesRelPos.empty())
     return;

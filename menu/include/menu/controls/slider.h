@@ -76,7 +76,7 @@ namespace menu {
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       /// @returns True if 'hoverPressedVertexUniform' has been bound (if mouse hover on special part)
       bool drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY,
-        video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform);
+                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform);
       /// @brief Draw slider label + selected option name
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
