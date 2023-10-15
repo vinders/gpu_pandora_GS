@@ -128,10 +128,10 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
   // center labels
   const int32_t offsetTabsX = ((int32_t)barWidth - (tabX - (int32_t)paddingX)) >> 1;
   for (auto& mesh : tabLabelMeshes) {
-    uint32_t tabX = mesh.x() + offsetTabsX;
+    uint32_t tabLabelX = mesh.x() + offsetTabsX;
     if (mesh.width() < minTabWidth)
-      tabX += (int32_t)((minTabWidth - mesh.width()) >> 1);
-    mesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, tabX, mesh.y());
+      tabLabelX += (int32_t)((minTabWidth - mesh.width()) >> 1);
+    mesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, tabLabelX, mesh.y());
   }
 
   // tab bar
@@ -193,7 +193,7 @@ void TabControl::click(RendererContext& context, int32_t mouseX) {
 
   if (currentIndex == -1)
     return;
-  if (currentIndex + 1 == (int32_t)tabLabelMeshes.size()) {
+  if (currentIndex + 1 >= (int32_t)tabLabelMeshes.size()) {
     const auto& lastTabLabel = tabLabelMeshes.back();
     if (mouseX >= lastTabLabel.x() + (int32_t)lastTabLabel.width() + (int32_t)paddingX)
       return;

@@ -51,7 +51,7 @@ namespace menu {
 
       /// @brief Draw label icon (if any)
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
-      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
+      ///          - It's recommended to draw all icons using the same pipeline/uniform before using the other draw calls.
       inline void drawIcon(RendererContext& context) { iconMesh.draw(*context.renderer); }
       /// @brief Draw label text
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.

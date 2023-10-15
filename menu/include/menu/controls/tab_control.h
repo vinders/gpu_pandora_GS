@@ -84,7 +84,6 @@ namespace menu {
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],
                 const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount);
-      static constexpr inline uint32_t keyNameMargin() noexcept { return 6u; }
 
     private:
       display::controls::ControlMesh barMesh;
