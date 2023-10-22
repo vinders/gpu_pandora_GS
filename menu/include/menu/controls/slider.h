@@ -60,10 +60,13 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return arrowLeftMesh.x(); }
+      inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return arrowLeftMesh.y(); }
       inline int32_t middleY() const noexcept { return arrowLeftMesh.y() + (int32_t)(arrowLeftMesh.height() >> 1); }
-      inline uint32_t width() const noexcept { return fixedSliderWidth + (arrowLeftMesh.width() << 1); }
+      inline uint32_t width() const noexcept {
+        const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
+        return (labelWidth + (labelMargin() << 1) + fixedSliderWidth); // add extra padding to improve prev/next button access
+      }
       inline uint32_t height() const noexcept { return arrowLeftMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled

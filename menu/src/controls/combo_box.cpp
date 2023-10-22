@@ -42,16 +42,16 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
   const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)optionFont.XHeight())/2;
 
   // create label
-  uint32_t labelWidthWithMargin = 0;
   labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  if (label != nullptr && *label != (char32_t)0)
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
 
   // create options
   uint32_t longestOptionNameWidth = 0;
   {
     const int32_t optionNameX = x + (int32_t)labelWidthWithMargin + (int32_t)paddingX;
-    int32_t optionNameY = y + (int32_t)boxHeight + (int32_t)paddingY;
+    int32_t optionNameY = y + (int32_t)boxHeight + (int32_t)paddingY + 1;
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)boxHeight) {
 #     if defined(_CPP_REVISION) && _CPP_REVISION == 14
@@ -66,7 +66,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
     }
     if (selectedIndex >= 0) { // copy selected option in combo-box
       selectableValues[selectedIndex].nameMesh.cloneAtLocation(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                                                               optionNameX, y + (int32_t)paddingY, selectedNameMesh);
+                                                               optionNameX, y + (int32_t)paddingY + 1, selectedNameMesh);
     }
   }
 
@@ -164,7 +164,7 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
   {
     auto& optionFont = context.getFont(FontType::inputText);
     const int32_t optionNameX = controlMesh.x() + (int32_t)paddingX;
-    int32_t optionNameY = controlMesh.y() + (int32_t)controlMesh.height() + (int32_t)paddingY;
+    int32_t optionNameY = controlMesh.y() + (int32_t)controlMesh.height() + (int32_t)paddingY + 1;
     selectableValues.reserve(valueCount);
 
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)controlMesh.height()) {
@@ -172,7 +172,7 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
     }
     if (selectedIndex >= 0) { // copy selected option in combo-box
       selectableValues[selectedIndex].nameMesh.cloneAtLocation(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                                                               optionNameX, controlMesh.y() + (int32_t)paddingY, selectedNameMesh);
+                                                               optionNameX, controlMesh.y() + (int32_t)paddingY + 1, selectedNameMesh);
     }
   }
 
@@ -180,8 +180,19 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
   const uint32_t dropdownHeight = (!selectableValues.empty()) ? controlMesh.height()*(uint32_t)selectableValues.size() : paddingY;
   if (dropdownHeight != dropdownMesh.height()) {
     std::vector<ControlVertex> vertices = dropdownMesh.relativeVertices();
-    vertices[2].position[1] = -(float)dropdownHeight;
-    vertices[3].position[1] = -(float)dropdownHeight;
+    ControlVertex* vertexIt = &vertices[2];
+    vertexIt->position[1] = -(float)dropdownHeight;
+    (++vertexIt)->position[1] = -(float)dropdownHeight;
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
+    (++vertexIt)->position[1] = -(float)dropdownHeight;
+    (++vertexIt)->position[1] = -(float)dropdownHeight;
+    ++vertexIt; ++vertexIt;
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
+    ++vertexIt; ++vertexIt;
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
+    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
     dropdownMesh.update(*context.renderer, std::move(vertices), context.pixelSizeX, context.pixelSizeY,
                         dropdownMesh.x(), dropdownMesh.y(), dropdownMesh.width(), dropdownHeight);
   }
@@ -193,11 +204,10 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
 void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
   
-  uint32_t labelWidthWithMargin = 0;
-  if (labelMesh.width()) {
-    labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
-  }
+  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
 
   const int32_t optionNameX = x + labelWidthWithMargin + (int32_t)paddingX;
   int32_t optionNameY = y + (int32_t)controlMesh.height() + (int32_t)paddingY;
@@ -206,7 +216,7 @@ void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
     optionNameY += (int32_t)controlMesh.height();
   }
   if (selectedNameMesh.width())
-    selectedNameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, optionNameX, y + (int32_t)paddingY);
+    selectedNameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, optionNameX, y + (int32_t)paddingY + 1);
 
   controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + (int32_t)labelWidthWithMargin, y);
 
@@ -218,7 +228,7 @@ void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
 void ComboBox::moveDropdownHover(RendererContext& context, int32_t valueIndex) {
   if (valueIndex < 0 || valueIndex >= (int32_t)selectableValues.size())
     return;
-  const int32_t hoverY = selectableValues[valueIndex].nameMesh.y() - (int32_t)paddingY;
+  const int32_t hoverY = selectableValues[valueIndex].nameMesh.y() - (int32_t)paddingY - 1;
   dropdownHoverMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, dropdownHoverMesh.x(), hoverY);
 }
 
@@ -247,8 +257,11 @@ void ComboBox::click(RendererContext& context) {
 void ComboBox::mouseMove(RendererContext& context, int32_t mouseY) {
   if (isListOpen && !selectableValues.empty()) {
     const auto& firstMesh = selectableValues[0].nameMesh;
-    mouseY -= firstMesh.y() - (int32_t)paddingY; // absolute to relative
-    mouseY /= static_cast<int32_t>(firstMesh.height() + (paddingY << 1)); // height to index (divide by entry height)
+    if (mouseY >= firstMesh.y()) {
+      mouseY -= (firstMesh.y() - (int32_t)paddingY); // absolute to relative
+      mouseY /= static_cast<int32_t>(firstMesh.height() + (paddingY << 1)); // height to index (divide by entry height)
+    }
+    else mouseY = selectedIndex; // if mouse on selected name, reset hover position to selected index
 
     if (mouseY != hoverIndex && mouseY >= 0 && mouseY < (int32_t)selectableValues.size()) {
       hoverIndex = mouseY;

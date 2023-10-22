@@ -31,7 +31,8 @@ static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4
 
 // ---
 
-void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y, const ButtonStyle& style) {
+void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+                  const ButtonStyle& style, const float* borderColor) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
@@ -48,38 +49,64 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
   // create label
   const int32_t labelX = x + (int32_t)style.paddingX + (int32_t)iconWidthWithMargin;
   labelMesh = TextMesh(*context.renderer, context.getFont(style.fontType), label,
-                       context.pixelSizeX, context.pixelSizeY, labelX, y + (int32_t)style.paddingY);
+                       context.pixelSizeX, context.pixelSizeY, labelX, labelY);
 
   // create background
-  const uint32_t width = (style.paddingX << 1) + labelMesh.width() + iconWidthWithMargin;
+  uint32_t width = (style.paddingX << 1) + labelMesh.width() + iconWidthWithMargin;
+  if (width < style.minButtonWidth)
+    width = style.minButtonWidth;
   const uint32_t height = (style.paddingY << 1) + labelMesh.height();
   {
-    const float shadowColor[4]{ 0.f,0.f,0.f,0.15f };
+    const float cornerSize = (float)style.paddingY;
     std::vector<ControlVertex> vertices;
-    vertices.resize(12);
+    std::vector<uint32_t> indices;
+    vertices.resize(borderColor ? (6 + 6*4) : 6);
     ControlVertex* vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     style.color, -3.f,                                 -(float)(height - style.paddingY + 2)); // drop shadow
-    setControlVertex(*(++vertexIt), style.color, -3.f,                                 -2.f);
-    setControlVertex(*(++vertexIt), style.color, (float)((style.paddingY << 1) - 3),   -(float)(height + 2));
-    setControlVertex(*(++vertexIt), style.color, (float)(width-(style.paddingY<<1)-3), -2.f);
-    setControlVertex(*(++vertexIt), style.color, (float)(width - 3),                   -(float)(height + 2));
-    setControlVertex(*(++vertexIt), style.color, (float)(width - 3),                   -(float)(style.paddingY + 2));
-    setControlVertex(*vertexIt,     style.color, 0.f,                                -(float)(height - style.paddingY)); // button background
-    setControlVertex(*(++vertexIt), style.color, 0.f,                                0.f);
-    setControlVertex(*(++vertexIt), style.color, (float)(style.paddingY << 1),       -(float)height);
-    setControlVertex(*(++vertexIt), style.color, (float)(width-(style.paddingY<<1)), 0.f);
-    setControlVertex(*(++vertexIt), style.color, (float)width,                       -(float)height);
-    setControlVertex(*(++vertexIt), style.color, (float)width,                       -(float)style.paddingY);
-    std::vector<uint32_t> indices{ 0,1,2, 2,1,3, 2,3,4, 4,3,5,  6,7,8, 8,7,9, 8,9,10, 10,9,11 };
+    setControlVertex(*vertexIt,     style.color, 0.f,                       -cornerSize); // button background
+    setControlVertex(*(++vertexIt), style.color, cornerSize,                0.f);
+    setControlVertex(*(++vertexIt), style.color, 0.f,                       -(float)height);
+    setControlVertex(*(++vertexIt), style.color, (float)width,              0.f);
+    setControlVertex(*(++vertexIt), style.color, (float)width - cornerSize, -(float)height);
+    setControlVertex(*(++vertexIt), style.color, (float)width,              -(float)height + cornerSize);
+    if (borderColor) {
+      setControlVertex(*(++vertexIt), borderColor, cornerSize,   0.f); // border top
+      setControlVertex(*(++vertexIt), borderColor, (float)width, 0.f);
+      setControlVertex(*(++vertexIt), borderColor, cornerSize,   -1.f);
+      setControlVertex(*(++vertexIt), borderColor, (float)width, -1.f);
+      setControlVertex(*(++vertexIt), borderColor, 0.f,                       -(float)(height - 1)); // border bottom
+      setControlVertex(*(++vertexIt), borderColor, (float)width - cornerSize, -(float)(height - 1));
+      setControlVertex(*(++vertexIt), borderColor, 0.f,                       -(float)height);
+      setControlVertex(*(++vertexIt), borderColor, (float)width - cornerSize, -(float)height);
+      setControlVertex(*(++vertexIt), borderColor, 0.f, -cornerSize); // border left
+      setControlVertex(*(++vertexIt), borderColor, 1.f, -cornerSize);
+      setControlVertex(*(++vertexIt), borderColor, 0.f, -(float)(height - 1));
+      setControlVertex(*(++vertexIt), borderColor, 1.f, -(float)(height - 1));
+      setControlVertex(*(++vertexIt), borderColor, (float)(width - 1), -1.f); // border right
+      setControlVertex(*(++vertexIt), borderColor, (float)width,       -1.f);
+      setControlVertex(*(++vertexIt), borderColor, (float)(width - 1), -(float)height + cornerSize);
+      setControlVertex(*(++vertexIt), borderColor, (float)width,       -(float)height + cornerSize);
+      setControlVertex(*(++vertexIt), borderColor, 0.f,        -cornerSize); // corner left
+      setControlVertex(*(++vertexIt), borderColor, cornerSize, 0.f);
+      setControlVertex(*(++vertexIt), borderColor, 0.f,        -cornerSize - 1.f);
+      setControlVertex(*(++vertexIt), borderColor, cornerSize, -1.f);
+      setControlVertex(*(++vertexIt), borderColor, (float)width - cornerSize, -(float)(height - 1)); // corner right
+      setControlVertex(*(++vertexIt), borderColor, (float)width,              -(float)(height - 1) + cornerSize);
+      setControlVertex(*(++vertexIt), borderColor, (float)width - cornerSize, -(float)height);
+      setControlVertex(*(++vertexIt), borderColor, (float)width,              -(float)height + cornerSize);
 
+      indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5,  6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
+                                               18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28,28,27,29 };
+    }
+    else // no border
+      indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5 };
     controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
-                              labelMesh.x() - style.paddingX - iconWidthWithMargin, y, width, height);
+                              labelMesh.x() - style.paddingX - iconWidthWithMargin, labelY - (int32_t)style.paddingY - 1, width, height);
   }
 
   // create icon (optional)
   if (iconData.texture() != nullptr) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;
-    const int32_t iconY = y + ((int32_t)height - (int32_t)iconData.height())/2;
+    const int32_t iconY = controlMesh.y() + ((int32_t)height - (int32_t)iconData.height())/2;
     iconMesh = IconMesh(*context.renderer, std::move(iconData.texture()), context.pixelSizeX, context.pixelSizeY,
                         iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
   }
@@ -96,7 +123,7 @@ void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, labelX, labelY);
 
   controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                   labelMesh.x() - paddingX - iconWidthWithMargin, labelY - (int32_t)paddingY);
+                   labelMesh.x() - paddingX - iconWidthWithMargin, labelY - (int32_t)paddingY - 1);
 
   if (iconMesh.width()) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;

@@ -52,9 +52,9 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
 
   // create label
   labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  uint32_t labelWidthWithMargin = 0;
-  if (labelMesh.width() != 0)
-    labelWidthWithMargin = (labelMesh.width() >= minLabelWidth) ? labelMesh.width() + labelMargin() : minLabelWidth + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
 
   // create background
   const float colorBorder[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
@@ -132,9 +132,9 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height() + 1)/2;
 
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  uint32_t labelWidthWithMargin = 0;
-  if (labelMesh.width() != 0)
-    labelWidthWithMargin = (labelMesh.width() >= minLabelWidth) ? labelMesh.width() + labelMargin() : minLabelWidth + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
 
   const int32_t boxX = x + (int32_t)labelWidthWithMargin;
   controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);

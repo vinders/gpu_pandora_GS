@@ -92,10 +92,9 @@ namespace menu {
 
     /// @brief Visual style properties for a button control
     struct ButtonStyle final {
-      ButtonStyle(FontType fontType, display::ControlIconType icon, uint32_t paddingX = 0, uint32_t paddingY = 0)
-        : fontType(fontType), icon(icon), paddingX(paddingX), paddingY(paddingY) {}
-      ButtonStyle(const float color_[4], FontType fontType, display::ControlIconType icon, uint32_t paddingX = 0, uint32_t paddingY = 0)
-        : fontType(fontType), icon(icon), paddingX(paddingX), paddingY(paddingY) {
+      ButtonStyle(const float color_[4], FontType fontType, display::ControlIconType icon,
+                  uint32_t minButtonWidth = 0, uint32_t paddingX = 0, uint32_t paddingY = 0)
+        : fontType(fontType), icon(icon), minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
         this->color[0] = color_[0];
         this->color[1] = color_[1];
         this->color[2] = color_[2];
@@ -111,6 +110,7 @@ namespace menu {
       float color[4]{ 0.f,0.f,0.f,1.f };    ///< Background color type
       FontType fontType = FontType::titles; ///< Font type to use
       display::ControlIconType icon = display::ControlIconType::none; ///< Icon to display (if available)
+      uint32_t minButtonWidth = 0; ///< Minimum button width (if text + paddingX doesn't reach it)
       uint32_t paddingX = 0; ///< Left/right padding (between border and inner text/icon)
       uint32_t paddingY = 0; ///< Top/bottom padding (between border and inner text/icon)
     };

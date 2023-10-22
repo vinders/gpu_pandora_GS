@@ -88,10 +88,10 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char* su
   const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)thumbHeight)/2;
   
   // create label
-  uint32_t labelWidthWithMargin = 0;
   labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY, labelAlign);
-  if (labelMesh.width() != 0) {
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin) {
+    labelWidthWithMargin += labelMargin();
     x = labelMesh.x(); // in case labelAlign != left
   }
   if (suffix != nullptr && *suffix != (char32_t)0) {
@@ -168,9 +168,9 @@ void Ruler::move(RendererContext& context, int32_t x, int32_t labelY, TextAlignm
   if (labelAlign != TextAlignment::left)
     x -= (labelAlign == TextAlignment::right) ? (int32_t)labelMesh.width() : (int32_t)(labelMesh.width() >> 1);
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  uint32_t labelWidthWithMargin = 0;
-  if (labelMesh.width())
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
   
   if (suffixMesh.width()) {
     suffixMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,

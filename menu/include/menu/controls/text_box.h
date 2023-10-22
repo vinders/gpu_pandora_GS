@@ -98,19 +98,18 @@ namespace menu {
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
+      inline int32_t rightX() const noexcept {
+        return suffixMesh.width() ? (controlMesh.x() + (int32_t)controlMesh.width() + (int32_t)suffixMesh.width() + labelMargin())
+                                  : (controlMesh.x() + (int32_t)controlMesh.width());
+      }
       inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
       inline int32_t paddingTop() const noexcept { return paddingY; }
-      inline uint32_t width() const noexcept {
-        uint32_t labelControlWidth = (labelMesh.width() >= minLabelWidth)
-                                   ? (labelMesh.width() + labelMargin() + controlMesh.width())
-                                   : (minLabelWidth + labelMargin() + controlMesh.width());
-        return (suffixMesh.width()) ? (labelControlWidth + suffixMesh.width() + labelMargin()) : labelControlWidth;
-      }
+      inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
+        return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < rightX());
       }
       inline bool isEditMode() const noexcept { return isEditing; } ///< Verify if control is currently in edit mode
       inline const char32_t* valueText() const noexcept { return inputValue.data(); } ///< Get text value stored in text-box

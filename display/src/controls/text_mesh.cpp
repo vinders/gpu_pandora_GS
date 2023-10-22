@@ -171,7 +171,9 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
 
   const auto glyphAfter = glyphs.begin() + index;
   uint32_t vertexIndex = 0;
+  int32_t insertedCharX = this->x_;
   for (auto glyphIt = glyphs.begin(); glyphIt != glyphAfter; ++glyphIt) {
+    insertedCharX += ((*glyphIt)->advance >> 6);
     if (!(*glyphIt)->texture.isEmpty())
       vertexIndex += 4;
   }
@@ -183,7 +185,7 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
     vertexIt->position[0] += vertexOffsetX;
 
   if (!glyph->texture.isEmpty()) {
-    const float left = ToVertexPositionX(this->x_ + (int32_t)width_ + glyph->offsetLeft, pxSizeX);
+    const float left = ToVertexPositionX(insertedCharX + glyph->offsetLeft, pxSizeX);
     const float right = left + glyph->width*pxSizeX;
     const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph->height - glyph->bearingTop), pxSizeY);
     const float top = bottom + glyph->height*pxSizeY;

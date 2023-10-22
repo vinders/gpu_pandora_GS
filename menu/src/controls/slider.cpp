@@ -38,10 +38,10 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   const int32_t y = labelY - (int32_t)paddingY;
 
   // create label
-  uint32_t labelWidthWithMargin = 0;
   labelMesh = TextMesh(*context.renderer, font, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  if (label != nullptr && *label != (char32_t)0)
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
   
   // create options
   const uint32_t optionCenterX = x + (int32_t)labelWidthWithMargin + (int32_t)(fixedSliderWidth >> 1) - 2;
@@ -92,10 +92,10 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
   const uint32_t oldOriginX = labelMesh.x();
   const int32_t y = labelY - (int32_t)paddingY;
 
-  uint32_t labelWidthWithMargin = 0;
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  if (labelMesh.width())
-    labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
   
   for (auto& option : selectableValues) {
     option.nameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
@@ -111,10 +111,11 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
 // ---
 
 void Slider::click(int32_t mouseX) {
-  if (mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width()) {
+  int32_t extraMargin = (int32_t)(arrowLeftMesh.width() >> 2);
+  if (mouseX >= arrowLeftMesh.x() - extraMargin && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width() + extraMargin) {
     selectPrevious();
   }
-  else if (mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width()) {
+  else if (mouseX >= arrowRightMesh.x() - extraMargin && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width() + extraMargin) {
     selectNext();
   }
 }

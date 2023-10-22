@@ -54,9 +54,8 @@ namespace menu {
       inline int32_t y() const noexcept { return checkedMesh.y(); }
       inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
       inline uint32_t width() const noexcept {
-        return (labelMesh.width() >= minLabelWidth)
-               ? (checkedMesh.width() + labelMesh.width() + labelMargin())
-               : (checkedMesh.width() + minLabelWidth + labelMargin());
+        const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
+        return labelWidth ? (checkedMesh.width() + labelWidth + labelMargin()) : checkedMesh.width();
       }
       inline uint32_t height() const noexcept { return checkedMesh.height(); }
 

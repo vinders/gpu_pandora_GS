@@ -66,16 +66,24 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return controlMesh.x(); }
+      inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
+      inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
-      inline uint32_t width() const noexcept { return controlMesh.width(); }
-      inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() : controlMesh.height() + dropdownMesh.height(); }
+      inline uint32_t width() const noexcept {
+        const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
+        return labelWidth ? (controlMesh.width() + labelWidth + labelMargin()) : controlMesh.width();
+      }
+      inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isOpen() const noexcept { return isListOpen; }           ///< Verify if the dropdown list is open
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseY < y() + (int32_t)height() && mouseX >= x() && mouseX < x() + (int32_t)width());
+        return (isListOpen && mouseX >= controlMesh.x())
+               ? (mouseY >= y() && mouseY < y() + (int32_t)(controlMesh.height() + dropdownMesh.height())
+                                && mouseX < controlMesh.x() + (int32_t)controlMesh.width())
+               : (mouseY >= y() && mouseY < y() + (int32_t)controlMesh.height() && mouseX >= x()
+                                && mouseX < controlMesh.x() + (int32_t)controlMesh.width());
       }
 
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
