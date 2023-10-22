@@ -73,10 +73,10 @@ namespace display {
   class ImageLoader final {
   public:
 #   ifdef _WINDOWS
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpriteId)
-      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId); }
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const wchar_t* iconSpriteId)
-      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId); }
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpriteId, const char* iconSpriteAlphaId)
+      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId); }
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId)
+      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId); }
 #   else
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath);
 #   endif
@@ -86,7 +86,12 @@ namespace display {
     ImageLoader(ImageLoader&&) noexcept = default;
     ImageLoader& operator=(const ImageLoader&) = default;
     ImageLoader& operator=(ImageLoader&&) noexcept = default;
-    ~ImageLoader() noexcept = default;
+    ~ImageLoader() noexcept { release(); }
+
+    inline void release() noexcept {
+      iconsSprite = nullptr;
+      renderer = nullptr;
+    }
     
     /// @brief Load icon to display in a control
     ControlIcon getIcon(ControlIconType type);
@@ -95,8 +100,8 @@ namespace display {
     
 #   ifdef _WINDOWS
     /// @brief Load image file (package)
-    std::shared_ptr<video_api::Texture2D> loadImage(const char* id);
-    std::shared_ptr<video_api::Texture2D> loadImage(const wchar_t* id);
+    std::shared_ptr<video_api::Texture2D> loadImage(const char* id, const char* alphaId);
+    std::shared_ptr<video_api::Texture2D> loadImage(const wchar_t* id, const wchar_t* alphaId);
 #   else
     /// @brief Load image file (path)
     std::shared_ptr<video_api::Texture2D> loadImage(const char* path);

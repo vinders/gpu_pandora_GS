@@ -56,6 +56,7 @@ namespace display {
         indexBuffer.release();
         glyphs.clear();
         vertices.clear();
+        indices.clear();
       }
 
       // -- accessors --

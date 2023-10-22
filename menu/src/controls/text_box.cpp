@@ -57,9 +57,10 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
     labelWidthWithMargin = (labelMesh.width() >= minLabelWidth) ? labelMesh.width() + labelMargin() : minLabelWidth + labelMargin();
 
   // create background
-  const float colorDarker[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
+  const float colorBorder[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
+  const float colorDarker[4]{ color[0]*0.9f, color[1]*0.9f, color[2]*0.9f, color[3] };
   std::vector<ControlVertex> vertices;
-  vertices.resize(18);
+  vertices.resize(22);
   ControlVertex* vertexIt = vertices.data();
 
   setControlVertex(*vertexIt,     colorDarker, 0.f,               0.f); // background (gradient from top)
@@ -68,39 +69,45 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)((height<<1)/3));
   setControlVertex(*(++vertexIt), color, 0.f,               -(float)height);
   setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, 0.f, 0.f); // border left
-  setControlVertex(*(++vertexIt), colorDarker, 1.f, 0.f);
-  setControlVertex(*(++vertexIt), colorDarker, 0.f, -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, 1.f, -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), 0.f); // border right
-  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth,     0.f);
-  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth,     -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, 1.f,                   -(float)(height-1)); // border bottom
-  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)(height-1));
-  setControlVertex(*(++vertexIt), colorDarker, 1.f,                   -(float)height);
-  setControlVertex(*(++vertexIt), colorDarker, (float)(fixedWidth-1), -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, 0.f, 0.f); // border left
+  setControlVertex(*(++vertexIt), colorBorder, 1.f, 0.f);
+  setControlVertex(*(++vertexIt), colorBorder, 0.f, -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, 1.f, -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), 0.f); // border right
+  setControlVertex(*(++vertexIt), colorBorder, (float)fixedWidth,     0.f);
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, (float)fixedWidth,     -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   0.f); // border top
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), 0.f);
+  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -1.f);
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -1.f);
+  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -(float)(height-1)); // border bottom
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)(height-1));
+  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -(float)height);
+  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)height);
 
-  std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  6,7,8, 8,7,9,  10,11,12, 12,11,13,  14,15,16, 16,15,17 };
+  std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  6,7,8, 8,7,9,
+                                 10,11,12, 12,11,13,  14,15,16, 16,15,17, 18,19,20, 20,19,21 };
 
   const int32_t boxX = x + (int32_t)labelWidthWithMargin;
-  const int32_t boxY = labelY - ((int32_t)height - (int32_t)labelFont.XHeight())/2;
+  const int32_t boxY = labelY - ((int32_t)height - (int32_t)labelFont.XHeight() + 1)/2;
   controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
                             boxX, boxY, fixedWidth, height);
 
   // create input value
+  const int32_t inputY = boxY + (int32_t)paddingY + (int32_t)(inputFont.XHeight() >> 2);
   inputMesh = TextMesh(*context.renderer, inputFont, initValue, context.pixelSizeX, context.pixelSizeY,
-                       boxX + (int32_t)paddingX, boxY + (int32_t)paddingY);
+                       boxX + (int32_t)paddingX, inputY);
   if (suffix != nullptr && *suffix) {
-    suffixMesh = TextMesh(*context.renderer, inputFont, label, context.pixelSizeX, context.pixelSizeY,
-                          boxX + (int32_t)fixedWidth + (int32_t)paddingX, labelY);
+    suffixMesh = TextMesh(*context.renderer, inputFont, suffix, context.pixelSizeX, context.pixelSizeY,
+                          boxX + (int32_t)fixedWidth + (int32_t)labelMargin(), inputY);
   }
 
   // create caret
   { float caretColor[4];
     fillCaretColor(color, caretColor);
 
-    const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2);
+    const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2) + 1;
     const uint32_t caretHeight = (inputFont.XHeight() << 1);
     vertices.resize(4);
     vertexIt = vertices.data();
@@ -108,7 +115,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
     setControlVertex(*(++vertexIt), caretColor, 1.f, 0.f);
     setControlVertex(*(++vertexIt), caretColor, 0.f, -(float)caretHeight);
     setControlVertex(*(++vertexIt), caretColor, 1.f, -(float)caretHeight);
-
+    indices = { 0,1,2, 2,1,3 };
     caretMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
                             boxX + paddingX, caretY, fixedWidth, height);
   }
@@ -122,7 +129,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
 }
 
 void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
-  const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height())/2;
+  const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height() + 1)/2;
 
   labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
   uint32_t labelWidthWithMargin = 0;
@@ -132,13 +139,14 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t boxX = x + (int32_t)labelWidthWithMargin;
   controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);
 
-  inputMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + (int32_t)paddingX, boxY + (int32_t)paddingY);
+  const int32_t inputY = boxY + (int32_t)paddingY + (int32_t)(inputMesh.height() >> 2);
+  inputMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + (int32_t)paddingX, inputY);
   if (suffixMesh.width()) {
     suffixMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
-                    boxX + (int32_t)controlMesh.width() + (int32_t)paddingX, labelY);
+                    boxX + (int32_t)controlMesh.width() + (int32_t)labelMargin(), inputY);
   }
 
-  const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2);
+  const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2) + 1;
   caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + paddingX, caretY);
 }
 

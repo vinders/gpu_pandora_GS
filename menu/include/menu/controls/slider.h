@@ -39,7 +39,7 @@ namespace menu {
           onChange(std::move(onChange)),
           operationId(operationId),
           minLabelWidth(style.minLabelWidth),
-          fixedSliderWidth(fixedSliderWidth + (style.paddingX << 1)),
+          fixedSliderWidth(fixedSliderWidth),
           paddingY(style.paddingY) {
         init(context, label, x, labelY, style.color, values, valueCount);
       }
@@ -49,12 +49,20 @@ namespace menu {
       Slider(Slider&&) noexcept = default;
       Slider& operator=(const Slider&) = delete;
       Slider& operator=(Slider&&) noexcept = default;
-      ~Slider() noexcept = default;
+      ~Slider() noexcept { release(); }
+
+      inline void release() noexcept {
+        arrowLeftMesh.release();
+        arrowRightMesh.release();
+        labelMesh.release();
+        selectableValues.clear();
+      }
 
       // -- accessors --
 
       inline int32_t x() const noexcept { return arrowLeftMesh.x(); }
       inline int32_t y() const noexcept { return arrowLeftMesh.y(); }
+      inline int32_t middleY() const noexcept { return arrowLeftMesh.y() + (int32_t)(arrowLeftMesh.height() >> 1); }
       inline int32_t width() const noexcept { return fixedSliderWidth + (arrowLeftMesh.width() << 1); }
       inline int32_t height() const noexcept { return arrowLeftMesh.height(); }
 
@@ -63,11 +71,15 @@ namespace menu {
         return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
       }
 
+      inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
+        return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
+      }
+
       // -- operations --
 
-      void click(int32_t mouse); ///< Report click to control (on mouse click with hover)
-      void selectPrevious();     ///< Select previous entry if available (on keyboard/pad action)
-      void selectNext();         ///< Select next entry if available (on keyboard/pad action)
+      void click(int32_t mouseX); ///< Report click to control (on mouse click with hover)
+      void selectPrevious();      ///< Select previous entry if available (on keyboard/pad action)
+      void selectNext();          ///< Select next entry if available (on keyboard/pad action)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
@@ -76,7 +88,9 @@ namespace menu {
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       /// @returns True if 'hoverPressedVertexUniform' has been bound (if mouse hover on special part)
       bool drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform);
+                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& regularVertexUniform,
+                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform,
+                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& disabledVertexUniform);
       /// @brief Draw slider label + selected option name
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
@@ -101,7 +115,7 @@ namespace menu {
         OptionMesh(OptionMesh&&) noexcept = default;
         OptionMesh& operator=(const OptionMesh&) = default;
         OptionMesh& operator=(OptionMesh&&) noexcept = default;
-        ~OptionMesh() noexcept = default;
+        ~OptionMesh() noexcept { nameMesh.release(); }
 
         display::controls::TextMesh nameMesh;
         ComboValue value = 0;

@@ -44,7 +44,13 @@ namespace menu {
       TabControl(TabControl&&) noexcept = default;
       TabControl& operator=(const TabControl&) = delete;
       TabControl& operator=(TabControl&&) noexcept = default;
-      ~TabControl() noexcept = default;
+      ~TabControl() noexcept { release(); }
+
+      inline void release() noexcept {
+        barMesh.release();
+        activeBarMesh.release();
+        tabLabelMeshes.clear();
+      }
 
       // -- accessors --
 

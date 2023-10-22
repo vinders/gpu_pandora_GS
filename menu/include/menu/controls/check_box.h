@@ -40,13 +40,24 @@ namespace menu {
       CheckBox(CheckBox&&) noexcept = default;
       CheckBox& operator=(const CheckBox&) = delete;
       CheckBox& operator=(CheckBox&&) noexcept = default;
-      ~CheckBox() noexcept = default;
+      ~CheckBox() noexcept { release(); }
+
+      inline void release() noexcept {
+        checkedMesh.release();
+        uncheckedMesh.release();
+        labelMesh.release();
+      }
 
       // -- accessors --
 
       inline int32_t x() const noexcept { return isLabelBeforeBox ? labelMesh.x() : checkedMesh.x(); }
       inline int32_t y() const noexcept { return checkedMesh.y(); }
-      inline uint32_t width() const noexcept { return checkedMesh.width() + labelMesh.width() + labelMargin(); }
+      inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
+      inline uint32_t width() const noexcept {
+        return (labelMesh.width() >= minLabelWidth)
+               ? (checkedMesh.width() + labelMesh.width() + labelMargin())
+               : (checkedMesh.width() + minLabelWidth + labelMargin());
+      }
       inline uint32_t height() const noexcept { return checkedMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
@@ -54,6 +65,8 @@ namespace menu {
         const int32_t coordX = x();
         return (mouseY >= y() && mouseX >= coordX && mouseY < y() + (int32_t)height() && mouseX < coordX + (int32_t)width());
       }
+
+      inline bool isChecked() const noexcept { return *boundValue; } ///< Get checkbox value
 
       // -- operations --
 

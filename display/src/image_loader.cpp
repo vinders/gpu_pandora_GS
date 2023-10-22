@@ -16,7 +16,6 @@ GNU General Public License for more details (LICENSE file).
 #ifdef _WINDOWS
 # include <system/api/windows_app.h>
 # include <system/api/windows_api.h>
-//# include <WICTextureLoader.h>
 #endif
 #include "display/image_loader.h"
 
@@ -63,23 +62,23 @@ ControlIcon ImageLoader::getIcon(ControlIconType type) {
 ControlIcon ImageLoader::generateSquareIcon(bool isFilled) {
   std::unique_ptr<uint8_t[]> imageData(new uint8_t[BASE_ICON_SIZE*BASE_ICON_SIZE*4]);
 
-  if (isFilled) { // filled -> white square
-    memset(imageData.get(), 0xFF, BASE_ICON_SIZE*BASE_ICON_SIZE*4);
+  if (isFilled) { // filled -> square
+    memset(imageData.get(), 0x80, BASE_ICON_SIZE*BASE_ICON_SIZE*4);
   }
-  else { // unchecked -> white border
+  else { // unchecked -> border
     constexpr const intptr_t lineSize = static_cast<intptr_t>(BASE_ICON_SIZE*4);
     uint8_t* lastLine = imageData.get() + static_cast<intptr_t>((BASE_ICON_SIZE-1)*BASE_ICON_SIZE*4);
 
-    memset(imageData.get(), 0xFF, (size_t)lineSize); // top line
+    memset(imageData.get(), 0x80, (size_t)lineSize); // top line
     for (uint8_t* line = imageData.get() + lineSize; line < lastLine;) {
-      *(uint32_t*)line = 0xFFFFFFFFu;
+      *(uint32_t*)line = 0x80808080u;
       line += (intptr_t)4;
       memset(line, 0, (BASE_ICON_SIZE-2)*4);
       line += lineSize - (intptr_t)8;
-      *(uint32_t*)line = 0xFFFFFFFFu;
+      *(uint32_t*)line = 0x80808080u;
       line += (intptr_t)4;
     }
-    memset(lastLine, 0xFF, (size_t)lineSize); // bottom line
+    memset(lastLine, 0x80, (size_t)lineSize); // bottom line
   }
 
   const uint8_t* initData = imageData.get();
@@ -167,100 +166,73 @@ int main() {
 */
 
 #ifdef _WINDOWS
-static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle/*HRSRC imageResHandle*/, Renderer& renderer) {
-  if (bitmapHandle == nullptr)
-    return nullptr;
+static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle, HBITMAP alphaHandle, Renderer& renderer) {
   std::shared_ptr<video_api::Texture2D> texture = nullptr;
 
-  HDC hdc = GetDC(nullptr);
-  if (hdc != nullptr) {
-    BITMAPINFO bitmapInfo{};
-    bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
-    if (GetDIBits(hdc, bitmapHandle, 0, 0, nullptr, &bitmapInfo, DIB_RGB_COLORS) != 0) { // get bitmap size
-      try {
-        std::unique_ptr<BYTE[]> pixels(new BYTE[bitmapInfo.bmiHeader.biSizeImage]); // create bitmap buffer
+  if (bitmapHandle != nullptr) {
+    HDC hdc = GetDC(nullptr);
+    if (hdc != nullptr) {
+      BITMAPINFO bitmapInfo{};
+      bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
+      if (GetDIBits(hdc, bitmapHandle, 0, 0, nullptr, &bitmapInfo, DIB_RGB_COLORS) != 0) { // get bitmap size
+        try {
+          BYTE* pixels = new BYTE[bitmapInfo.bmiHeader.biSizeImage]; // create bitmap buffer
+          bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
-        bitmapInfo.bmiHeader.biCompression = BI_RGB;
-        if (GetDIBits(hdc, bitmapHandle, 0, bitmapInfo.bmiHeader.biHeight, (LPVOID)pixels.get(), &bitmapInfo, DIB_RGB_COLORS) != 0) {
-          const uint32_t width = bitmapInfo.bmiHeader.biWidth;
-          const uint32_t height = bitmapInfo.bmiHeader.biHeight;
-          Texture2DParams textureParams(width, height, DataFormat::rgba8_sRGB, 1u, 1u, 0, ResourceUsage::staticGpu, 1u);
-
-          if (bitmapInfo.bmiHeader.biBitCount == 4) {
-            const uint8_t* initData = (const uint8_t*)pixels.get();
-            texture = std::make_shared<Texture2D>(renderer, textureParams, &initData);
-          }
-          else {
+          if (GetDIBits(hdc, bitmapHandle, 0, bitmapInfo.bmiHeader.biHeight, (LPVOID)pixels, &bitmapInfo, DIB_RGB_COLORS) != 0 && pixels) {
+            const uint32_t width = bitmapInfo.bmiHeader.biWidth;
+            const uint32_t height = bitmapInfo.bmiHeader.biHeight;
+            Texture2DParams textureParams(width, height, DataFormat::rgba8_sRGB, 1u, 1u, 0, ResourceUsage::staticGpu, 1u);
             std::unique_ptr<uint8_t[]> output(new uint8_t[width * height * 4]); // RGBA texture data
 
-            const BYTE* srcIt = pixels.get();
-            uint8_t* destIt = output.get();
-            for (uint32_t remaining = width * height; remaining; --remaining) {
-              *destIt = *srcIt;
-              *(++destIt) = *(++srcIt);
-              *(++destIt) = *(++srcIt);
-              *(++destIt) = (uint8_t)0xFFu;
-              ++srcIt; ++destIt;
+            // read color pixels
+            const uint32_t* srcIt = (const uint32_t*)pixels;
+            for (uint32_t lines = height; lines; --lines) {
+              uint32_t* destIt = ((uint32_t*)output.get()) + (intptr_t)(width*(lines - 1)); // bitmaps are stored from bottom to top -> reverse
+              for (uint32_t rows = width; rows; --rows, ++srcIt, ++destIt) {
+                uint32_t bgr = *srcIt;
+                *destIt = ((bgr >> 16) & 0xFFu) | (bgr & 0xFF00u) | ((bgr << 16) & 0xFF0000u) | 0xFF000000u;
+              }
+            }
+            // if available, read alpha pixels
+            if (alphaHandle != nullptr && GetDIBits(hdc, alphaHandle, 0, bitmapInfo.bmiHeader.biHeight,
+                                                    (LPVOID)pixels, &bitmapInfo, DIB_RGB_COLORS) != 0 && pixels) {
+              const uint32_t* srcAlphaIt = (const uint32_t*)pixels;
+              for (uint32_t lines = height; lines; --lines) {
+                uint32_t* destIt = ((uint32_t*)output.get()) + (intptr_t)(width*(lines - 1));
+                for (uint32_t rows = width; rows; --rows, ++srcAlphaIt, ++destIt)
+                  *destIt = (*destIt & 0xFFFFFFu) | (*srcAlphaIt << 24);
+              }
             }
             const uint8_t* initData = (const uint8_t*)output.get();
             texture = std::make_shared<Texture2D>(renderer, textureParams, &initData);
           }
         }
+        catch (...) { texture = nullptr; }
       }
-      catch (...) { texture = nullptr; }
+      ReleaseDC(nullptr, hdc);
     }
-    ReleaseDC(nullptr, hdc);
+    DeleteObject(bitmapHandle);
   }
-  DeleteObject(bitmapHandle);
+  if (alphaHandle)
+    DeleteObject(alphaHandle);
   return texture;
-
-
-  /*auto imageDataHandle = LoadResource(hInstance, imageResHandle);
-  if (imageDataHandle == nullptr)
-    return nullptr;
-  std::shared_ptr<video_api::Texture2D> texture = nullptr;
-
-  //https://learn.microsoft.com/en-us/windows/win32/wic/-wic-bitmapsources-howto-loadfromresource
-  //https://learn.microsoft.com/en-us/windows/win32/direct2d/how-to-load-a-bitmap-from-a-resource
-  auto imageFile = LockResource(imageDataHandle);
-  if (imageFile != nullptr) {
-    auto imageFileSize = SizeofResource(hInstance, imageResHandle);
-    if (imageFileSize) {
-      try {
-        //ID3D11Resource* imageRes = nullptr;
-        //ID3D11ShaderResourceView* resourceView = nullptr;
-        /*if (SUCCEEDED(DirectX::CreateWICTextureFromMemoryEx((ID3D11Device*)renderer.device(),
-                                                            (const uint8_t*)imageFile, (size_t)imageFileSize, 0, D3D11_USAGE_IMMUTABLE,
-                                                            D3D11_BIND_SHADER_RESOURCE, 0, 0, DirectX::WIC_LOADER_FLAGS::WIC_LOADER_FORCE_SRGB,
-                                                            &imageRes, &resourceView))) {
-          D3D11_TEXTURE2D_DESC descriptor{};
-          ((ID3D11Texture2D*)imageRes)->GetDesc(&descriptor);
-          texture = std::make_shared<Texture2D>((TextureHandle)imageRes, (TextureView)resourceView, descriptor.Width*4,
-                                                descriptor.Height, (uint8_t)1, ResourceUsage::staticGpu);
-        }*-/
-      }
-      catch (...) { texture = nullptr; }
-    }
-    UnlockResource(imageDataHandle);
-  }
-  FreeResource(imageDataHandle);
-  return texture;*/
 }
 
-std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const char* id) {
+std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const char* id, const char* alphaId) {
   if (renderer != nullptr) {
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
-    return bitmapToTexture(LoadBitmapA(hInstance, id), *renderer);
+    return bitmapToTexture(LoadBitmapA(hInstance, id), LoadBitmapA(hInstance, alphaId), *renderer);
   }
   return nullptr;
 }
-std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const wchar_t* id) {
+std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const wchar_t* id, const wchar_t* alphaId) {
   if (renderer != nullptr) {
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
     //return bitmapToTexture(hInstance, FindResourceW(hInstance, id, (LPCWSTR)RT_BITMAP), *renderer);
-    return bitmapToTexture(LoadBitmapW(hInstance, id), *renderer);
+    return bitmapToTexture(LoadBitmapW(hInstance, id), LoadBitmapW(hInstance, alphaId), *renderer);
   }
   return nullptr;
 }

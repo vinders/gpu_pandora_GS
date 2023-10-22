@@ -36,9 +36,9 @@ namespace menu {
       /// @brief Create text edit control -- text value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
-              const char32_t* textValue, uint32_t maxValueLength, const bool* enabler = nullptr)
+      explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       const char32_t* textValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::text),
           maxValueLength(maxValueLength),
@@ -50,9 +50,9 @@ namespace menu {
       /// @brief Create text edit control -- integer value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
-              uint32_t integerValue, uint32_t maxValueLength, const bool* enabler = nullptr)
+      explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       uint32_t integerValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::integer),
           maxValueLength(maxValueLength),
@@ -65,9 +65,9 @@ namespace menu {
       /// @brief Create text edit control -- number value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param enabler     Optional data/config value to which the text-box state should be bound
-      TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-              int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
-              double numberValue, uint32_t maxValueLength, const bool* enabler = nullptr)
+      explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
+                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       double numberValue, uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
           valueType(TextBoxType::number),
           maxValueLength(maxValueLength),
@@ -83,12 +83,22 @@ namespace menu {
       TextBox(TextBox&&) noexcept = default;
       TextBox& operator=(const TextBox&) = delete;
       TextBox& operator=(TextBox&&) noexcept = default;
-      ~TextBox() noexcept = default;
+      ~TextBox() noexcept { release(); }
+
+      inline void release() noexcept {
+        controlMesh.release();
+        caretMesh.release();
+        labelMesh.release();
+        suffixMesh.release();
+        inputMesh.release();
+      }
 
       // -- accessors --
 
       inline int32_t x() const noexcept { return controlMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
+      inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
+      inline int32_t paddingTop() const noexcept { return paddingY; }
       inline int32_t width() const noexcept { return controlMesh.width(); }
       inline int32_t height() const noexcept { return controlMesh.height(); }
 

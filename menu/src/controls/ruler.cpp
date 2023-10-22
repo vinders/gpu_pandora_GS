@@ -165,13 +165,13 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char* su
 void Ruler::move(RendererContext& context, int32_t x, int32_t labelY, TextAlignment labelAlign) {
   const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
 
+  if (labelAlign != TextAlignment::left)
+    x -= (labelAlign == TextAlignment::right) ? (int32_t)labelMesh.width() : (int32_t)(labelMesh.width() >> 1);
+  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
   uint32_t labelWidthWithMargin = 0;
-  if (labelMesh.width()) {
-    if (labelAlign != TextAlignment::left)
-      x -= (labelAlign == TextAlignment::right) ? (int32_t)labelMesh.width() : (int32_t)(labelMesh.width() >> 1);
-    labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  if (labelMesh.width())
     labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth + labelMargin() : labelMesh.width() + labelMargin();
-  }
+  
   if (suffixMesh.width()) {
     suffixMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
                     x + (int32_t)labelWidthWithMargin + (int32_t)controlMesh.width() + (int32_t)labelMargin(), labelY);

@@ -78,8 +78,8 @@ void TextMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
   if (vertices.empty())
     return;
 
-  int32_t currentX = this->x_; // aligned origin
-  const float baseVertexY = ToVertexPositionY(y_, pxSizeY);
+  int32_t currentX = x;
+  const float baseVertexY = ToVertexPositionY(y_ + height_, pxSizeY);
   
   // update coordinates
   auto* vertexIt = &vertices[0];
@@ -95,6 +95,7 @@ void TextMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
       (++vertexIt)->position[0] = right; vertexIt->position[1] = top;
       (++vertexIt)->position[0] = left;  vertexIt->position[1] = bottom;
       (++vertexIt)->position[0] = right; vertexIt->position[1] = bottom;
+      ++vertexIt;
     }
     currentX += (int32_t)(curGlyph->advance >> 6);
   }
@@ -292,8 +293,6 @@ void TextMesh::draw(Renderer& renderer) {
       indexOffset += 6u;
     }
   }
-  TextureView emptyTexture = nullptr; // unbind glyphs after drawing
-  renderer.bindFragmentTextures(0, &emptyTexture, 1);
 }
 
 // ---

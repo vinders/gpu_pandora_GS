@@ -59,7 +59,13 @@ namespace menu {
       VerticalTabControl(VerticalTabControl&&) noexcept = default;
       VerticalTabControl& operator=(const VerticalTabControl&) = delete;
       VerticalTabControl& operator=(VerticalTabControl&&) noexcept = default;
-      ~VerticalTabControl() noexcept = default;
+      ~VerticalTabControl() noexcept { release(); }
+
+      inline void release() noexcept {
+        barMesh.release();
+        activeTabMesh.release();
+        tabMeshes.clear();
+      }
 
       // -- accessors --
 
@@ -114,7 +120,10 @@ namespace menu {
         TabMesh(TabMesh&&) noexcept = default;
         TabMesh& operator=(const TabMesh&) = default;
         TabMesh& operator=(TabMesh&&) noexcept = default;
-        ~TabMesh() noexcept = default;
+        ~TabMesh() noexcept {
+          iconMesh.release();
+          nameMesh.release();
+        }
 
         display::controls::IconMesh iconMesh;
         display::controls::TextMesh nameMesh;

@@ -35,7 +35,12 @@ namespace menu {
       Label(Label&&) noexcept = default;
       Label& operator=(const Label&) = delete;
       Label& operator=(Label&&) noexcept = default;
-      ~Label() noexcept = default;
+      ~Label() noexcept { release(); }
+
+      inline void release() noexcept {
+        iconMesh.release();
+        labelMesh.release();
+      }
 
       // -- accessors --
 

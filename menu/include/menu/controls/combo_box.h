@@ -13,6 +13,7 @@ GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -43,6 +44,7 @@ namespace menu {
           minBoxWidth(minBoxWidth),
           paddingX(style.paddingX),
           paddingY(style.paddingY) {
+        assert(valueCount != 0);
         init(context, label, x, labelY, style.color, dropdownColor, values, valueCount);
       }
 
@@ -51,12 +53,22 @@ namespace menu {
       ComboBox(ComboBox&&) noexcept = default;
       ComboBox& operator=(const ComboBox&) = delete;
       ComboBox& operator=(ComboBox&&) noexcept = default;
-      ~ComboBox() noexcept = default;
+      ~ComboBox() noexcept { release(); }
+
+      inline void release() noexcept {
+        controlMesh.release();
+        dropdownMesh.release();
+        dropdownHoverMesh.release();
+        labelMesh.release();
+        selectedNameMesh.release();
+        selectableValues.clear();
+      }
 
       // -- accessors --
 
       inline int32_t x() const noexcept { return controlMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
+      inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
       inline int32_t width() const noexcept { return controlMesh.width(); }
       inline int32_t height() const noexcept { return isListOpen ? controlMesh.height() : controlMesh.height() + dropdownMesh.height(); }
 
@@ -64,6 +76,10 @@ namespace menu {
       inline bool isOpen() const noexcept { return isListOpen; }           ///< Verify if the dropdown list is open
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         return (mouseY >= y() && mouseY < y() + (int32_t)height() && mouseX >= x() && mouseX < x() + (int32_t)width());
+      }
+
+      inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
+        return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
       }
 
       // -- operations --
@@ -75,6 +91,7 @@ namespace menu {
       inline void close() noexcept { isListOpen = false; } ///< Force-close the dropdown list without changing (if open)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
+      void replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1); ///< Replace selectable values
       
       inline void setSelectedIndex(int32_t index) noexcept { ///< Force selection of a specific entry
         if (index >= 0 && index < (int32_t)selectableValues.size()) {
@@ -120,7 +137,7 @@ namespace menu {
         OptionMesh(OptionMesh&&) noexcept = default;
         OptionMesh& operator=(const OptionMesh&) = default;
         OptionMesh& operator=(OptionMesh&&) noexcept = default;
-        ~OptionMesh() noexcept = default;
+        ~OptionMesh() noexcept { nameMesh.release(); }
 
         display::controls::TextMesh nameMesh;
         ComboValue value = 0;

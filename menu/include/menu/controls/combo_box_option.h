@@ -22,6 +22,8 @@ namespace menu {
 
     /// @brief Option for combo-box creation
     struct ComboBoxOption final {
+      ComboBoxOption(std::unique_ptr<char32_t[]> name, ComboValue value)
+        : name(std::move(name)), value(value) {}
       ComboBoxOption(const char32_t* name, ComboValue value)
         : name(display::controls::TextMesh::toString(name)), value(value) {}
       ComboBoxOption() = default;

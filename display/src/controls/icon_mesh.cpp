@@ -61,7 +61,7 @@ IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
   const float left = ToVertexPositionX(x, pxSizeX);
   const float top = ToVertexPositionY(y, pxSizeY);
   const float right = left + (float)width*pxSizeX;
-  const float bottom = top + (float)height*pxSizeY;
+  const float bottom = top - (float)height*pxSizeY;
   
   const uint32_t textureWidth = this->texture->rowBytes() >> 2;
   const float texLeft = ToTextureCoord(txOffsetX, textureWidth);
@@ -94,7 +94,7 @@ void IconMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
   const float left = ToVertexPositionX(x, pxSizeX);
   const float top = ToVertexPositionY(y, pxSizeY);
   const float right = left + (float)width_*pxSizeX;
-  const float bottom = top + (float)height_*pxSizeY;
+  const float bottom = top - (float)height_*pxSizeY;
   
   // move vertices at requested position
   IconVertex* vertexIt = vertices;
@@ -116,7 +116,4 @@ void IconMesh::draw(Renderer& renderer) {
   renderer.bindVertexArrayBuffer(0, vertexBuffer.handle(), sizeof(IconVertex), 0);
   renderer.bindVertexIndexBuffer(indexBuffer.handle(), VertexIndexFormat::r32_ui, 0);
   renderer.drawIndexed(6, 0);
-
-  TextureView emptyTexture = nullptr; // unbind texture after drawing
-  renderer.bindFragmentTextures(0, &emptyTexture, 1);
 }

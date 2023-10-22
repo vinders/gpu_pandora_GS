@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <memory>
 #include <array>
+#include <video/window.h>
 #include <display/video_api.h>
 #include <display/font.h>
 #include <display/geometry.h>
@@ -36,13 +37,19 @@ namespace menu {
       RendererContext(RendererContext&&) noexcept = default;
       RendererContext& operator=(const RendererContext&) = default;
       RendererContext& operator=(RendererContext&&) noexcept = default;
-      ~RendererContext() noexcept = default;
+      ~RendererContext() noexcept {
+        for (auto& font : fonts)
+          font.reset(nullptr);
+        imageLoader.release();
+        renderer = nullptr;
+      }
 
       inline display::Font& getFont(FontType fontType) noexcept { return *fonts[(size_t)fontType]; }
 
       std::shared_ptr<video_api::Renderer> renderer = nullptr;
       std::array<std::unique_ptr<display::Font>, (size_t)FontType::COUNT> fonts{};
       display::ImageLoader imageLoader;
+      pandora::video::PixelSize clientSize;
       float pixelSizeX = 1.f;
       float pixelSizeY = 1.f;
     };

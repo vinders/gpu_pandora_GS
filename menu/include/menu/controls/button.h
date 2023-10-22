@@ -44,7 +44,13 @@ namespace menu {
       Button(Button&&) noexcept = default;
       Button& operator=(const Button&) = delete;
       Button& operator=(Button&&) noexcept = default;
-      ~Button() noexcept = default;
+      ~Button() noexcept { release(); }
+
+      inline void release() noexcept {
+        controlMesh.release();
+        iconMesh.release();
+        labelMesh.release();
+      }
 
       // -- accessors --
 
