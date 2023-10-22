@@ -55,8 +55,8 @@ namespace menu {
 
       inline int32_t x() const noexcept { return backMesh.x(); }
       inline int32_t y() const noexcept { return backMesh.y(); }
-      inline int32_t width() const noexcept { return backMesh.width(); }
-      inline int32_t height() const noexcept { return backMesh.height(); }
+      inline uint32_t width() const noexcept { return backMesh.width(); }
+      inline uint32_t height() const noexcept { return backMesh.height(); }
       inline uint32_t visibleTop() const noexcept { return topPosition; }
       inline uint32_t visibleBottom() const noexcept { return (topPosition + visibleScrollArea); }
 

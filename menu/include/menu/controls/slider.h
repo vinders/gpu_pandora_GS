@@ -63,8 +63,8 @@ namespace menu {
       inline int32_t x() const noexcept { return arrowLeftMesh.x(); }
       inline int32_t y() const noexcept { return arrowLeftMesh.y(); }
       inline int32_t middleY() const noexcept { return arrowLeftMesh.y() + (int32_t)(arrowLeftMesh.height() >> 1); }
-      inline int32_t width() const noexcept { return fixedSliderWidth + (arrowLeftMesh.width() << 1); }
-      inline int32_t height() const noexcept { return arrowLeftMesh.height(); }
+      inline uint32_t width() const noexcept { return fixedSliderWidth + (arrowLeftMesh.width() << 1); }
+      inline uint32_t height() const noexcept { return arrowLeftMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover

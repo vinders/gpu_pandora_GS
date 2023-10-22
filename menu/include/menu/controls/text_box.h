@@ -95,12 +95,18 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return controlMesh.x(); }
+      inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
+      inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
       inline int32_t paddingTop() const noexcept { return paddingY; }
-      inline int32_t width() const noexcept { return controlMesh.width(); }
-      inline int32_t height() const noexcept { return controlMesh.height(); }
+      inline uint32_t width() const noexcept {
+        uint32_t labelControlWidth = (labelMesh.width() >= minLabelWidth)
+                                   ? (labelMesh.width() + labelMargin() + controlMesh.width())
+                                   : (minLabelWidth + labelMargin() + controlMesh.width());
+        return (suffixMesh.width()) ? (labelControlWidth + suffixMesh.width() + labelMargin()) : labelControlWidth;
+      }
+      inline uint32_t height() const noexcept { return controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover

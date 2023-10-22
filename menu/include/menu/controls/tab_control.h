@@ -56,8 +56,8 @@ namespace menu {
 
       inline int32_t x() const noexcept { return barMesh.x(); }
       inline int32_t y() const noexcept { return barMesh.y(); }
-      inline int32_t width() const noexcept { return barMesh.width(); }
-      inline int32_t height() const noexcept { return barMesh.height(); }
+      inline uint32_t width() const noexcept { return barMesh.width(); }
+      inline uint32_t height() const noexcept { return barMesh.height(); }
       inline uint32_t activeTabIndex() const noexcept { return selectedIndex; }
 
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover

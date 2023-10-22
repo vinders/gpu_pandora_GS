@@ -62,8 +62,8 @@ namespace menu {
       inline int32_t x() const noexcept { return controlMesh.x(); }
       inline int32_t y() const noexcept { return thumbMesh.y(); }
       inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
-      inline int32_t width() const noexcept { return controlMesh.width(); }
-      inline int32_t height() const noexcept { return thumbMesh.height(); }
+      inline uint32_t width() const noexcept { return controlMesh.width(); }
+      inline uint32_t height() const noexcept { return thumbMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isDragged() const noexcept { return isDragging; } ///< Verify if thumb is currently being dragged
