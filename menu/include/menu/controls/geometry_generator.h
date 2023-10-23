@@ -53,6 +53,12 @@ namespace menu {
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                         float x1, float x2, float y1, float y2);
+      /// @brief Generate rectangle with horizontal gradient (in 4 menu control vertices)
+      /// @param outVertexIt  Must point to an array of at least 4 control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillRectangleVertices(display::controls::ControlVertex* outVertexIt,
+                                        const float rgba1[4], const float rgba2[4],
+                                        float x1, float x2, float y1, float y2);
       /// @brief Generate oblique rectangle (in 4 menu control vertices)
       /// @param outVertexIt  Must point to an array of at least 4 control vertices
       /// @param yOffset      Offset at x2 vertices added to y1 & y2

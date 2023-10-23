@@ -20,89 +20,70 @@ using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
+ControlType TabControl::Type() const noexcept { return ControlType::tabControl; }
 
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y, bool isTransparent = false) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
 
-  if (isTransparent) {
-    memcpy(outVertex.color, rgba, 3*sizeof(float));
-    outVertex.color[3] = 0.f;
-  }
-  else
-    memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
+// -- init/resize geometry -- --------------------------------------------------
 
 static std::vector<ControlVertex> generateTabBarGeometry(uint32_t barWidth, uint32_t tabHeight, uint32_t gradientWidth,
                                                          const float* tabsColor, const float barColor[4],
                                                          std::vector<uint32_t>* outIndices) {
-  const float borderColor[4]{ barColor[0]*0.75f, barColor[1]*0.75f, barColor[2]*0.75f, barColor[3] };
   std::vector<ControlVertex> vertices;
   ControlVertex* vertexIt;
   
   if (tabsColor) { // tabs background
     vertices.resize(28);
     vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     tabsColor, 0.f,             0.f);
-    setControlVertex(*(++vertexIt), tabsColor, (float)barWidth, 0.f);
-    setControlVertex(*(++vertexIt), tabsColor, 0.f,             -(float)(tabHeight + 1u));
-    setControlVertex(*(++vertexIt), tabsColor, (float)barWidth, -(float)(tabHeight + 1u));
-    ++vertexIt;
+    GeometryGenerator::fillRectangleVertices(vertexIt, tabsColor, 0.f, (float)barWidth, 0.f, -(float)(tabHeight + 1u));
+    vertexIt += 4;
   }
-  else {
+  else { // active tab bar
     vertices.resize(27);
     vertexIt = vertices.data();
   }
 
-  setControlVertex(*vertexIt,     borderColor, (float)gradientWidth,              -(float)tabHeight); // tab bar border
-  setControlVertex(*(++vertexIt), borderColor, (float)(barWidth - gradientWidth), -(float)tabHeight);
-  setControlVertex(*(++vertexIt), borderColor, (float)gradientWidth,              -(float)(tabHeight + 3u));
-  setControlVertex(*(++vertexIt), borderColor, (float)(barWidth - gradientWidth), -(float)(tabHeight + 3u));
-  setControlVertex(*(++vertexIt), borderColor, 0.f,                  -(float)tabHeight, true); // left gradient
-  setControlVertex(*(++vertexIt), borderColor, (float)gradientWidth, -(float)tabHeight);
-  setControlVertex(*(++vertexIt), borderColor, 0.f,                  -(float)(tabHeight + 3u), true);
-  setControlVertex(*(++vertexIt), borderColor, (float)gradientWidth, -(float)(tabHeight + 3u));
-  setControlVertex(*(++vertexIt), borderColor, (float)(barWidth - gradientWidth), -(float)tabHeight); // right gradient
-  setControlVertex(*(++vertexIt), borderColor, (float)barWidth,                   -(float)tabHeight, true);
-  setControlVertex(*(++vertexIt), borderColor, (float)(barWidth - gradientWidth), -(float)(tabHeight + 3u));
-  setControlVertex(*(++vertexIt), borderColor, (float)barWidth,                   -(float)(tabHeight + 3u), true);
+  const float borderColor[4]{ barColor[0]*0.75f, barColor[1]*0.75f, barColor[2]*0.75f, barColor[3] };
+  const float borderColorTransparent[4]{ borderColor[0], borderColor[1], borderColor[2], 0.f };
+  GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, (float)gradientWidth, (float)(barWidth - gradientWidth),
+                                           -(float)tabHeight, -(float)(tabHeight + 3u));  // tab bar border
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, borderColorTransparent, borderColor, // left gradient border
+                                           0.f, (float)gradientWidth, -(float)tabHeight, -(float)(tabHeight + 3u));
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, borderColorTransparent, // right gradient border
+                                           (float)(barWidth - gradientWidth), (float)barWidth,
+                                           -(float)tabHeight, -(float)(tabHeight + 3u));
+  vertexIt += 4;
 
-  setControlVertex(*(++vertexIt), barColor, 0.f,             -(float)(tabHeight + 1u)); // tab bar center
-  setControlVertex(*(++vertexIt), barColor, (float)barWidth, -(float)(tabHeight + 1u));
-  setControlVertex(*(++vertexIt), barColor, 0.f,             -(float)(tabHeight + 2u));
-  setControlVertex(*(++vertexIt), barColor, (float)barWidth, -(float)(tabHeight + 2u));
-  setControlVertex(*(++vertexIt), barColor, 0.f,                  -(float)(tabHeight + 1u), true); // left gradient
-  setControlVertex(*(++vertexIt), barColor, (float)gradientWidth, -(float)(tabHeight + 1u));
-  setControlVertex(*(++vertexIt), barColor, 0.f,                  -(float)(tabHeight + 2u), true);
-  setControlVertex(*(++vertexIt), barColor, (float)gradientWidth, -(float)(tabHeight + 2u));
-  setControlVertex(*(++vertexIt), barColor, (float)(barWidth - gradientWidth), -(float)(tabHeight + 1u)); // right gradient
-  setControlVertex(*(++vertexIt), barColor, (float)barWidth,                   -(float)(tabHeight + 1u), true);
-  setControlVertex(*(++vertexIt), barColor, (float)(barWidth - gradientWidth), -(float)(tabHeight + 2u));
-  setControlVertex(*(++vertexIt), barColor, (float)barWidth,                   -(float)(tabHeight + 2u), true);
+  const float barColorTransparent[4]{ barColor[0], barColor[1], barColor[2], 0.f };
+  GeometryGenerator::fillRectangleVertices(vertexIt, barColor, (float)gradientWidth, (float)(barWidth - gradientWidth),
+                                           -(float)(tabHeight + 1u), -(float)(tabHeight + 2u));  // tab bar center
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, barColorTransparent, barColor, // left gradient center
+                                           0.f, (float)gradientWidth, -(float)(tabHeight + 1u), -(float)(tabHeight + 2u));
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, barColor, barColorTransparent, // right gradient center
+                                           (float)(barWidth - gradientWidth), (float)barWidth,
+                                           -(float)(tabHeight + 1u), -(float)(tabHeight + 2u));
 
-  if (!tabsColor) { // no tabs background -> active bar -> triangle arrow
-    barWidth >>= 1; // center
-    setControlVertex(*(++vertexIt), barColor, (float)barWidth,   -(float)(tabHeight - 12u));
-    setControlVertex(*(++vertexIt), barColor, (float)(barWidth + 6u), -(float)(tabHeight + 1u));
-    setControlVertex(*(++vertexIt), barColor, (float)(barWidth - 6u), -(float)(tabHeight + 1u));
+  if (!tabsColor) { // active tab bar -> add arrow
+    barWidth >>= 1; // compute bar center
+    vertexIt += 4;
+    GeometryGenerator::fillControlVertex(*vertexIt,     barColor, (float)barWidth,        -(float)(tabHeight - 12u));
+    GeometryGenerator::fillControlVertex(*(++vertexIt), barColor, (float)(barWidth + 6u), -(float)(tabHeight + 1u));
+    GeometryGenerator::fillControlVertex(*(++vertexIt), barColor, (float)(barWidth - 6u), -(float)(tabHeight + 1u));
 
     if (outIndices)
       *outIndices = std::vector<uint32_t>{ 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11,  12,13,14, 14,13,15,
                                           16,17,18, 18,17,19,  20,21,22, 22,21,23,  24,25,26 };
   }
-  else if (outIndices) {
+  else if (outIndices)
     *outIndices = std::vector<uint32_t>{ 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11,  12,13,14, 14,13,15,
                                         16,17,18, 18,17,19,  20,21,22, 22,21,23,  24,25,26, 26,25,27 };
-  }
   return vertices;
 }
 
 // ---
-
-ControlType TabControl::Type() const noexcept { return ControlType::tabControl; }
 
 void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],
                       const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount) {
@@ -150,6 +131,8 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
                               activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), y, barWidth, tabHeight + 3u);
 }
 
+// ---
+
 void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth) {
   if (!tabLabelMeshes.empty()) {
     const auto& lastLabel = tabLabelMeshes.back();
@@ -184,7 +167,8 @@ void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t b
   }
 }
 
-// ---
+
+// -- operations -- ------------------------------------------------------------
 
 void TabControl::click(RendererContext& context, int32_t mouseX) {
   int32_t currentIndex = -1;
@@ -207,6 +191,8 @@ void TabControl::click(RendererContext& context, int32_t mouseX) {
   activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                      activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
 }
+
+// ---
 
 void TabControl::selectPrevious(RendererContext& context) {
   if (selectedIndex != 0)
@@ -240,7 +226,8 @@ void TabControl::selectIndex(RendererContext& context, uint32_t index) {
   }
 }
 
-// ---
+
+// -- rendering -- -------------------------------------------------------------
 
 void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY,
                             Buffer<ResourceUsage::staticGpu>& hoverActiveFragmentUniform) {

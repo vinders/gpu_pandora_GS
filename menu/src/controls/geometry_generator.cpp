@@ -46,6 +46,14 @@ void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const 
   fillControlVertex(*(++outVertexIt), rgba, x2, y2);
 }
 
+void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
+                                              float x1, float x2, float y1, float y2) {
+  fillControlVertex(*outVertexIt,     rgba1, x1, y1);
+  fillControlVertex(*(++outVertexIt), rgba2, x2, y1);
+  fillControlVertex(*(++outVertexIt), rgba1, x1, y2);
+  fillControlVertex(*(++outVertexIt), rgba2, x2, y2);
+}
+
 void GeometryGenerator::fillObliqueRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
                                                      float x1, float x2, float y1, float y2, float yOffset) {
   fillControlVertex(*outVertexIt,     rgba, x1, y1);

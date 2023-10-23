@@ -20,51 +20,30 @@ using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
-
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
-  memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
-
-// ---
-
 ControlType VerticalTabControl::Type() const noexcept { return ControlType::verticalTabControl; }
+
+
+// -- init/resize geometry -- --------------------------------------------------
 
 void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
                               uint32_t paddingY, uint32_t paddingTop, const float barColor[4], const float borderColor[4],
                               const TabOption* tabs, size_t tabCount) {
   // vertical bar
-  std::vector<ControlVertex> vertices;
-  vertices.resize(paddingTop ? 12 : 8);
+  std::vector<ControlVertex> vertices(static_cast<size_t>(paddingTop ? 12 : 8));
   ControlVertex* vertexIt = vertices.data();
-
-  setControlVertex(*vertexIt,     barColor, 0.f,             0.f);
-  setControlVertex(*(++vertexIt), barColor, (float)tabWidth, 0.f);
-  setControlVertex(*(++vertexIt), barColor, 0.f,             -(float)barHeight);
-  setControlVertex(*(++vertexIt), barColor, (float)tabWidth, -(float)barHeight);
-
-  setControlVertex(*(++vertexIt), borderColor, (float)tabWidth,     0.f);
-  setControlVertex(*(++vertexIt), borderColor, (float)(tabWidth+1), 0.f);
-  setControlVertex(*(++vertexIt), borderColor, (float)tabWidth,     -(float)barHeight);
-  setControlVertex(*(++vertexIt), borderColor, (float)(tabWidth+1), -(float)barHeight);
-
+  GeometryGenerator::fillRectangleVertices(vertexIt, barColor, 0.f, (float)tabWidth, 0.f, -(float)barHeight); // background
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, (float)tabWidth, (float)(tabWidth+1), // right border
+                                           0.f, -(float)barHeight);
   std::vector<uint32_t> indices;
   if (paddingTop) {
-    setControlVertex(*(++vertexIt), borderColor, 0.f,             -(float)paddingTop);
-    setControlVertex(*(++vertexIt), borderColor, (float)tabWidth, -(float)paddingTop);
-    setControlVertex(*(++vertexIt), borderColor, 0.f,             -(float)(paddingTop+1u));
-    setControlVertex(*(++vertexIt), borderColor, (float)tabWidth, -(float)(paddingTop+1u));
+    vertexIt += 4;
+    GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, 0.f, (float)tabWidth, // top border
+                                             -(float)paddingTop, -(float)(paddingTop+1u));
     indices = { 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11 };
   }
-  else {
-    vertices.resize(8);
-    vertexIt = vertices.data();
+  else
     indices = { 0,1,2, 2,1,3,  4,5,6, 6,5,7 };
-  }
   barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                         x, y, tabWidth+1u, barHeight);
 
@@ -100,25 +79,25 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
   }
 
   // active tab arrow
-  vertices.resize(3);
-  indices.resize(3);
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(3));
   vertexIt = vertices.data();
-  setControlVertex(*vertexIt,     borderColor, 0.f, 0.f);
-  setControlVertex(*(++vertexIt), borderColor, 6.f, -6.f);
-  setControlVertex(*(++vertexIt), borderColor, 0.f, -12.f);
+  GeometryGenerator::fillControlVertex(*vertexIt,     borderColor, 0.f, 0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, 6.f, -6.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, 0.f, -12.f);
+  indices.resize(3);
   const auto& selectedTab = tabMeshes[selectedIndex];
   activeTabMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                               x + (int32_t)tabWidth - 6, selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6, 6u, 12u);
 }
 
+// ---
+
 void VerticalTabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t barHeight) {
   const int32_t offsetX = x - barMesh.x();
   const int32_t offsetY = y - barMesh.y();
   auto vertices = barMesh.relativeVertices();
-  vertices[2].position[1] = -(float)barHeight;
-  vertices[3].position[1] = -(float)barHeight;
-  vertices[6].position[1] = -(float)barHeight;
-  vertices[7].position[1] = -(float)barHeight;
+  GeometryGenerator::resizeRectangleVerticesY(vertices.data(), -(float)barHeight);
+  GeometryGenerator::resizeRectangleVerticesY(vertices.data() + (intptr_t)4, -(float)barHeight);
   barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                  x, y, barMesh.width(), barHeight);
 
@@ -139,7 +118,8 @@ void VerticalTabControl::move(RendererContext& context, int32_t x, int32_t y, ui
                      activeTabMesh.x() + offsetX, selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
 }
 
-// ---
+
+// -- operations -- ------------------------------------------------------------
 
 void VerticalTabControl::click(RendererContext& context, int32_t mouseY) {
   int32_t currentIndex = -1;
@@ -162,6 +142,8 @@ void VerticalTabControl::click(RendererContext& context, int32_t mouseY) {
   activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                      activeTabMesh.x(), selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
 }
+
+// ---
 
 void VerticalTabControl::selectPrevious(RendererContext& context) {
   if (selectedIndex != 0)
@@ -195,7 +177,8 @@ void VerticalTabControl::selectIndex(RendererContext& context, uint32_t index) {
   }
 }
 
-// ---
+
+// -- rendering -- -------------------------------------------------------------
 
 void VerticalTabControl::drawIcons(RendererContext& context, int32_t mouseX, int32_t mouseY,
                                    Buffer<ResourceUsage::staticGpu>& hoverActiveFragmentUniform) {

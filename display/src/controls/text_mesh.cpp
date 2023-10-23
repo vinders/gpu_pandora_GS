@@ -277,7 +277,8 @@ void TextMesh::removeAt(video_api::Renderer& renderer, const float pxSizeX, uint
   glyphs.erase(glyph);
 }
 
-// ---
+
+// -- rendering -- -------------------------------------------------------------
 
 void TextMesh::draw(Renderer& renderer) {
   if (vertices.empty())
@@ -297,7 +298,8 @@ void TextMesh::draw(Renderer& renderer) {
   }
 }
 
-// ---
+
+// -- utils -- -----------------------------------------------------------------
 
 std::unique_ptr<char32_t[]> TextMesh::toString(const char32_t* text) {
   size_t length = 0;

@@ -25,15 +25,11 @@ using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
+ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
 
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
-  memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
+
+// -- init/resize geometry -- --------------------------------------------------
+
 static inline void fillCaretColor(const float backgroundColor[4], float outColor[4]) {
   float gray = (backgroundColor[0] + backgroundColor[1] + backgroundColor[2]) * 0.333f;
   gray *= (gray >= 0.5f) ? 0.5f : 2.f;
@@ -44,8 +40,6 @@ static inline void fillCaretColor(const float backgroundColor[4], float outColor
 }
 
 // ---
-
-ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
 
 void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                    int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue) {
@@ -59,36 +53,25 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
 
-  // create background
-  const float colorBorder[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
+  // create background + border
   const float colorDarker[4]{ color[0]*0.9f, color[1]*0.9f, color[2]*0.9f, color[3] };
-  std::vector<ControlVertex> vertices;
-  vertices.resize(22);
+  std::vector<ControlVertex> vertices(static_cast<size_t>(22));
   ControlVertex* vertexIt = vertices.data();
+  GeometryGenerator::fillControlVertex(*vertexIt,     colorDarker, 0.f,               0.f); // background (gradient from top)
+  GeometryGenerator::fillControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth, 0.f);
+  GeometryGenerator::fillRectangleVertices(++vertexIt, color, 0.f, (float)fixedWidth, -(float)((height<<1)/3), -(float)height);
+  vertexIt += 4;
 
-  setControlVertex(*vertexIt,     colorDarker, 0.f,               0.f); // background (gradient from top)
-  setControlVertex(*(++vertexIt), colorDarker, (float)fixedWidth, 0.f);
-  setControlVertex(*(++vertexIt), color, 0.f,               -(float)((height<<1)/3));
-  setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)((height<<1)/3));
-  setControlVertex(*(++vertexIt), color, 0.f,               -(float)height);
-  setControlVertex(*(++vertexIt), color, (float)fixedWidth, -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, 0.f, 0.f); // border left
-  setControlVertex(*(++vertexIt), colorBorder, 1.f, 0.f);
-  setControlVertex(*(++vertexIt), colorBorder, 0.f, -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, 1.f, -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), 0.f); // border right
-  setControlVertex(*(++vertexIt), colorBorder, (float)fixedWidth,     0.f);
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, (float)fixedWidth,     -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   0.f); // border top
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), 0.f);
-  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -1.f);
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -1.f);
-  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -(float)(height-1)); // border bottom
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)(height-1));
-  setControlVertex(*(++vertexIt), colorBorder, 1.f,                   -(float)height);
-  setControlVertex(*(++vertexIt), colorBorder, (float)(fixedWidth-1), -(float)height);
-
+  const float colorBorder[4]{ color[0]*0.7f, color[1]*0.7f, color[2]*0.7f, color[3] };
+  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)fixedWidth, 0.f, -1.f); // border top
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)fixedWidth, // border bottom
+                                           -(float)(height-1), -(float)height);
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, 1.f, -1.f, -(float)(height-1)); // border left
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, (float)(fixedWidth-1), (float)fixedWidth, // border right
+                                           -1.f, -(float)(height-1));
   std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  6,7,8, 8,7,9,
                                  10,11,12, 12,11,13,  14,15,16, 16,15,17, 18,19,20, 20,19,21 };
 
@@ -107,21 +90,17 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   }
 
   // create caret
-  { float caretColor[4];
-    fillCaretColor(color, caretColor);
+  float caretColor[4];
+  fillCaretColor(color, caretColor);
+  const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2) + 1;
+  const uint32_t caretHeight = (inputFont.XHeight() << 1);
 
-    const int32_t caretY = inputMesh.y() - inputFont.XHeight() + (inputFont.XHeight() >> 2) + 1;
-    const uint32_t caretHeight = (inputFont.XHeight() << 1);
-    vertices.resize(4);
-    vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     caretColor, 0.f, 0.f);
-    setControlVertex(*(++vertexIt), caretColor, 1.f, 0.f);
-    setControlVertex(*(++vertexIt), caretColor, 0.f, -(float)caretHeight);
-    setControlVertex(*(++vertexIt), caretColor, 1.f, -(float)caretHeight);
-    indices = { 0,1,2, 2,1,3 };
-    caretMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                            boxX + paddingX, caretY, fixedWidth, height);
-  }
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(4));
+  GeometryGenerator::fillRectangleVertices(vertices.data(), caretColor, 0.f, 1.f, 0.f, -(float)caretHeight);
+  indices = { 0,1,2, 2,1,3 };
+  caretMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                          boxX + paddingX, caretY, fixedWidth, height);
+  
   // input value storage
   inputValue.reserve((size_t)maxValueLength + 1u); // max possible length + ending zero
   if (initValue != nullptr) {
@@ -130,6 +109,8 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   }
   inputValue.emplace_back((char32_t)0); // ending zero (to allow value() accessor to treat vector as a C-string)
 }
+
+// ---
 
 void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height() + 1)/2;
@@ -152,6 +133,28 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2) + 1;
   caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX + paddingX, caretY);
 }
+
+// ---
+
+void TextBox::updateCaretLocation(RendererContext& context) {
+  uint32_t currentLocation = 0;
+  int32_t currentX = inputMesh.x();
+  caretDrawCount = 0; // force draw caret
+
+  for (const auto& glyph : inputMesh.meshGlyphs()) {
+    if (currentLocation == caretLocation) {
+      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+      return; // end here
+    }
+    currentX += (int32_t)(glyph->advance >> 6);
+    ++currentLocation;
+  }
+  // caret at the end
+  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+}
+
+
+// -- operations -- ------------------------------------------------------------
 
 void TextBox::replaceValueText(RendererContext& context, const char32_t* textValue) {
   assert(valueType == TextBoxType::text || (textValue != nullptr && *textValue >= U'0' && *textValue <= U'9'));
@@ -208,6 +211,8 @@ void TextBox::click(RendererContext& context, int32_t mouseX) {
   else isEditing = false;
 }
 
+// ---
+
 void TextBox::addChar(RendererContext& context, char32_t code) {
   if (inputValue.size() >= (size_t)(maxValueLength + 1u)) // max possible length + ending zero
     return;
@@ -259,24 +264,8 @@ void TextBox::removeChar(RendererContext& context) {
   updateCaretLocation(context);
 }
 
-// ---
 
-void TextBox::updateCaretLocation(RendererContext& context) {
-  uint32_t currentLocation = 0;
-  int32_t currentX = inputMesh.x();
-  caretDrawCount = 0; // force draw caret
-
-  for (const auto& glyph : inputMesh.meshGlyphs()) {
-    if (currentLocation == caretLocation) {
-      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
-      return; // end here
-    }
-    currentX += (int32_t)(glyph->advance >> 6);
-    ++currentLocation;
-  }
-  // caret at the end
-  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
-}
+// -- rendering -- -------------------------------------------------------------
 
 void TextBox::drawBackground(RendererContext& context) {
   controlMesh.draw(context.renderer());
@@ -292,7 +281,8 @@ void TextBox::drawBackground(RendererContext& context) {
   }
 }
 
-// ---
+
+// -- value parsers/accessors (int/double <-> string) -- -----------------------
 
 uint32_t TextBox::valueInteger() const noexcept {
   assert(valueType == TextBoxType::integer);
@@ -322,6 +312,8 @@ double TextBox::valueNumber() const noexcept {
   }
   return (double)value / (double)divider;
 }
+
+// ---
 
 const char32_t* TextBox::fromInteger(uint32_t integerValue, char32_t buffer[MAX_INTEGER_LENGTH + 1]) noexcept {
   char32_t* it = &buffer[MAX_INTEGER_LENGTH];

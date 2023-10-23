@@ -20,19 +20,10 @@ using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
-
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
-  memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
-
-// ---
-
 ControlType Slider::Type() const noexcept { return ControlType::slider; }
+
+
+// -- init/resize geometry -- --------------------------------------------------
 
 void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                   const float arrowColor[4], ComboBoxOption* values, size_t valueCount) {
@@ -59,37 +50,36 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   const uint32_t arrowNeckBottom = (sliderHeight >> 1) + paddingY - 2;
   const float shadowColor[4]{ arrowColor[0]*0.65,arrowColor[1]*0.65,arrowColor[2]*0.65,1.f };
 
-  std::vector<ControlVertex> vertices;
-  vertices.resize(15);
+  std::vector<ControlVertex> vertices(static_cast<size_t>(15u));
   ControlVertex* vertexIt = vertices.data();
-  setControlVertex(*vertexIt,     shadowColor, 0.f,                     -(float)((sliderHeight >> 1) - 1)); // drop shadow
-  setControlVertex(*(++vertexIt), shadowColor, (float)(arrowWidth + 1), -(float)(sliderHeight - 2));
-  setControlVertex(*(++vertexIt), shadowColor, 0.f,                     -(float)(sliderHeight >> 1));
-  setControlVertex(*(++vertexIt), shadowColor, (float)(arrowWidth + 1), -(float)(sliderHeight - 1));
-  setControlVertex(*(++vertexIt), shadowColor, 0.f,                    -(float)((sliderHeight >> 1) - 1)); // arrow
-  setControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), 0.f);
-  setControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), -(float)(sliderHeight - 2));
-  setControlVertex(*(++vertexIt), shadowColor, (float)(arrowWidth + 1),   -(float)arrowNeckBottom); // arrow neck shadow
-  setControlVertex(*(++vertexIt), shadowColor, (float)(sliderHeight - 1), -(float)arrowNeckBottom);
-  setControlVertex(*(++vertexIt), shadowColor, (float)(arrowWidth + 1),   -(float)(arrowNeckBottom + 1));
-  setControlVertex(*(++vertexIt), shadowColor, (float)(sliderHeight - 1), -(float)(arrowNeckBottom + 1));
-  setControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1),   -(float)arrowNeckTop); // arrow neck
-  setControlVertex(*(++vertexIt), arrowColor, (float)(sliderHeight - 1), -(float)arrowNeckTop);
-  setControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1),   -(float)arrowNeckBottom);
-  setControlVertex(*(++vertexIt), arrowColor, (float)(sliderHeight - 1), -(float)arrowNeckBottom);
-  std::vector<ControlVertex> verticesArrowRight = vertices;
+  GeometryGenerator::fillObliqueRectangleVertices(vertexIt, shadowColor, 0.f, (float)(arrowWidth + 1), // left arrow shadow
+                                                  -(float)((sliderHeight >> 1) - 1), -(float)(sliderHeight >> 1),
+                                                  -(float)((sliderHeight >> 1) - 1));
+  vertexIt += 4;
+  GeometryGenerator::fillControlVertex(*vertexIt,     shadowColor, 0.f, -(float)((sliderHeight >> 1) - 1)); // left arrow
+  GeometryGenerator::fillControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), 0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), -(float)(sliderHeight - 2));
+
+  GeometryGenerator::fillRectangleVertices(++vertexIt, shadowColor, (float)(arrowWidth + 1), (float)(sliderHeight - 1),
+                                           -(float)arrowNeckBottom, -(float)(arrowNeckBottom + 1)); // left arrow neck shadow
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, arrowColor, (float)(arrowWidth + 1), (float)(sliderHeight - 1),
+                                           -(float)arrowNeckTop, -(float)arrowNeckBottom); // left arrow neck
   std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  4,5,6,  7,8,9, 9,8,10,  11,12,13, 13,12,14 };
   arrowLeftMesh = ControlMesh(context.renderer(), std::move(vertices), indices,
                               context.pixelSizeX(), context.pixelSizeY(), x + labelWidthWithMargin, y, sliderHeight, sliderHeight);
 
-  const auto* endIt = verticesArrowRight.data() + (intptr_t)verticesArrowRight.size();
-  for (ControlVertex* it = verticesArrowRight.data(); it < endIt; ++it) { // right arrow = mirrored version of left arrow
+  vertices = arrowLeftMesh.relativeVertices(); // right arrow = mirrored version of left arrow
+  const auto* endIt = vertices.data() + (intptr_t)vertices.size();
+  for (ControlVertex* it = vertices.data(); it < endIt; ++it) { 
     it->position[0] = (float)sliderHeight - it->position[0];
   }
   indices = { 0,2,1, 1,2,3,  4,6,5,  8,7,9, 8,9,10,  12,11,13, 12,13,14 };
-  arrowRightMesh = ControlMesh(context.renderer(), std::move(verticesArrowRight), indices, context.pixelSizeX(), context.pixelSizeY(),
+  arrowRightMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                                 x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y, sliderHeight, sliderHeight);
 }
+
+// ---
 
 void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
   const uint32_t oldOriginX = labelMesh.x();
@@ -111,7 +101,8 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
                       x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y);
 }
 
-// ---
+
+// -- operations -- ------------------------------------------------------------
 
 void Slider::click(int32_t mouseX) {
   int32_t extraMargin = (int32_t)(arrowLeftMesh.width() >> 2);
@@ -137,7 +128,8 @@ void Slider::selectNext() {
   }
 }
 
-// ---
+
+// -- rendering -- -------------------------------------------------------------
 
 bool Slider::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY,
                             Buffer<ResourceUsage::staticGpu>& regularVertexUniform,
