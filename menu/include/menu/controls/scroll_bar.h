@@ -16,7 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <functional>
 #include <display/controls/control_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/renderer_context.h"
 
 namespace menu {
   namespace controls {
@@ -74,6 +74,7 @@ namespace menu {
         mouseMove(context, mouseY);
         dragThumbOffsetY = noDrag();
       }
+      inline void mouseLeave() { dragThumbOffsetY = noDrag(); } ///< Report mouse leaving screen
 
       /// @brief Report click to control (on mouse wheel move / on up/down key)
       inline void scroll(RendererContext& context, int32_t delta) {
@@ -92,6 +93,8 @@ namespace menu {
       /// @brief Change control location + scrolling limits (on window resize)
       void move(RendererContext& context, int32_t x, int32_t y, uint32_t height,
                 uint32_t screenHeightPx, uint32_t totalScrollAreaPx);
+
+      // -- rendering --
 
       /// @brief Draw scroll-bar background
       /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.

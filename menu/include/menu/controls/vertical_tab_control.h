@@ -19,12 +19,12 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/control_mesh.h>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
     /// @brief Option for vertical tab control creation
-    struct TabOption final {
+    struct TabOption final : public Control {
       TabOption(const char32_t* name, display::ControlIconType icon)
         : name(display::controls::TextMesh::toString(name)), icon(icon) {}
       TabOption() = default;
@@ -41,7 +41,7 @@ namespace menu {
     // ---
 
     /// @brief UI vertical tab management control (with icons)
-    class VerticalTabControl final {
+    class VerticalTabControl final : public Control {
     public:
       /// @brief Create vertical tab management control
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
@@ -66,6 +66,7 @@ namespace menu {
         activeTabMesh.release();
         tabMeshes.clear();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -88,12 +89,14 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t y, uint32_t barHeight); ///< Change control location (on window resize)
 
+      // -- rendering --
+
       /// @brief Draw tab bar background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       inline void drawBackground(RendererContext& context) {
-        barMesh.draw(*context.renderer);
-        activeTabMesh.draw(*context.renderer);
+        barMesh.draw(context.renderer());
+        activeTabMesh.draw(context.renderer());
       }
       /// @brief Draw tab icons
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.

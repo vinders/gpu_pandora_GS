@@ -16,12 +16,12 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI check-box control
-    class CheckBox final {
+    class CheckBox final : public Control {
     public:
       /// @brief Create check-box control
       /// @param boundValue  Data/config value to bind to the check-box value (get/set)
@@ -47,6 +47,7 @@ namespace menu {
         uncheckedMesh.release();
         labelMesh.release();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -76,19 +77,21 @@ namespace menu {
       }
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
+      // -- rendering --
+
       /// @brief Draw check-box icon
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       inline void drawIcon(RendererContext& context) {
         if (*boundValue)
-          checkedMesh.draw(*context.renderer);
+          checkedMesh.draw(context.renderer());
         else
-          uncheckedMesh.draw(*context.renderer);
+          uncheckedMesh.draw(context.renderer());
       }
       /// @brief Draw label next to check-box
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY);

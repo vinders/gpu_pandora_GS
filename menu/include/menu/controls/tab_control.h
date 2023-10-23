@@ -18,12 +18,12 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI tab management control
-    class TabControl final {
+    class TabControl final : public Control {
     public:
       /// @brief Create tab management control
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
@@ -51,6 +51,7 @@ namespace menu {
         activeBarMesh.release();
         tabLabelMeshes.clear();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -73,12 +74,14 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth); ///< Change control location (on window resize)
 
+      // -- rendering --
+
       /// @brief Draw tab bar background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       inline void drawBackground(RendererContext& context) {
-        barMesh.draw(*context.renderer);
-        activeBarMesh.draw(*context.renderer);
+        barMesh.draw(context.renderer());
+        activeBarMesh.draw(context.renderer());
       }
       /// @brief Draw tab labels
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.

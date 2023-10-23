@@ -19,13 +19,13 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 #include "menu/controls/combo_box_option.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI slider-box control
-    class Slider final {
+    class Slider final : public Control {
     public:
       /// @brief Create slider-box control
       /// @param operationId  Unique slider-box identifier (should be cast from an enum or constant)
@@ -57,6 +57,7 @@ namespace menu {
         labelMesh.release();
         selectableValues.clear();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -86,6 +87,8 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
+      // -- rendering --
+
       /// @brief Draw slider background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
@@ -98,9 +101,9 @@ namespace menu {
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       inline void drawLabels(RendererContext& context) {
-        labelMesh.draw(*context.renderer);
+        labelMesh.draw(context.renderer());
         if (selectedIndex >= 0)
-          selectableValues[selectedIndex].nameMesh.draw(*context.renderer);
+          selectableValues[selectedIndex].nameMesh.draw(context.renderer());
       }
 
     private:
@@ -110,7 +113,7 @@ namespace menu {
 
       struct OptionMesh final { // selectable value stored
         OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)
-          : nameMesh(*context.renderer, font, text, context.pixelSizeX, context.pixelSizeY,
+          : nameMesh(context.renderer(), font, text, context.pixelSizeX(), context.pixelSizeY(),
                      x, y, display::controls::TextAlignment::center),
             value(value) {}
         OptionMesh() = default;

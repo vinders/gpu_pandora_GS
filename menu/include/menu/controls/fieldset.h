@@ -16,7 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/renderer_context.h"
 
 namespace menu {
   namespace controls {
@@ -57,14 +57,16 @@ namespace menu {
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 uint32_t width, uint32_t contentHeight);
 
+      // -- rendering --
+
       /// @brief Draw fieldset decoration control
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context) { controlMesh.draw(*context.renderer); }
+      inline void drawBackground(RendererContext& context) { controlMesh.draw(context.renderer()); }
       /// @brief Draw fieldset text
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
 
     private:
       display::controls::ControlMesh controlMesh;

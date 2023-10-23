@@ -15,7 +15,8 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 #include <system/align.h>
-#include "menu/controls/types.h"
+#include "menu/renderer_context.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   /// @brief UI color modifier buffer
@@ -81,18 +82,19 @@ namespace menu {
     // -- window event --
     
     /// @brief Report page resize event
+    /// @remarks Implementation should internally call protected parent 'move'
     virtual void move(int32_t x, int32_t y, uint32_t width, uint32_t height) = 0;
   
     // -- user interactions --
   
     /// @brief Report mouse down (click) -- coords relative to window
-    virtual void mouseDown(int32_t mouseX, int32_t mouseY) = 0;
+    void mouseDown(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse move -- coords relative to window
-    virtual void mouseMove(int32_t mouseX, int32_t mouseY) = 0;
+    void mouseMove(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse up (end of click) -- coords relative to window
-    virtual void mouseUp(int32_t mouseX, int32_t mouseY) = 0;
+    void mouseUp(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse wheel delta
-    virtual void mouseScroll(int32_t deltaY) = 0;
+    void mouseScroll(int32_t deltaY);
     
     /// @brief Report key down (keyboard)
     virtual void keyDown(char32_t keyCode) = 0;
@@ -119,5 +121,26 @@ namespace menu {
     /// @brief Draw page control foreground labels (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
     virtual void drawForegroundLabels(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+
+  protected:
+    Page(std::shared_ptr<RendererContext> context, int32_t x, int32_t y,
+         uint32_t width, uint32_t visibleHeight, uint32_t totalPageHeight);
+    void move(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, uint32_t totalPageHeight);
+    static constexpr inline int32_t noLineSelection() noexcept { return 0x7FFFFFFF; }
+
+  protected:
+    /*std::shared_ptr<RendererContext> context;
+    video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
+    video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
+
+    controls::ScrollBar scrollbarMesh;
+    display::controls::ControlMesh lineHoverMesh;
+    uint32_t scroll = 0;
+
+    controls::Control* activeControl = nullptr;
+    int32_t activeLineIndex = noLineSelection();
+
+    int32_t x = 0;
+    uint32_t width = 0;*/
   };
 }

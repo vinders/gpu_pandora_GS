@@ -18,7 +18,7 @@ GNU General Public License for more details (LICENSE file).
 #include <memory>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 
 #define MAX_INTEGER_LENGTH 10
 
@@ -31,7 +31,7 @@ namespace menu {
     };
 
     /// @brief UI text edit control
-    class TextBox final {
+    class TextBox final : public Control {
     public:
       /// @brief Create text edit control -- text value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
@@ -92,6 +92,7 @@ namespace menu {
         suffixMesh.release();
         inputMesh.release();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -99,11 +100,12 @@ namespace menu {
       inline int32_t y() const noexcept { return controlMesh.y(); }
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t rightX() const noexcept {
-        return suffixMesh.width() ? (controlMesh.x() + (int32_t)controlMesh.width() + (int32_t)suffixMesh.width() + labelMargin())
+        return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
                                   : (controlMesh.x() + (int32_t)controlMesh.width());
       }
       inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
       inline int32_t paddingTop() const noexcept { return paddingY; }
+
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }
 
@@ -140,6 +142,8 @@ namespace menu {
       void replaceValueInteger(RendererContext& context, uint32_t integerValue);  ///< Replace text input value (only with TextBoxType::integer or number)
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
 
+      // -- rendering --
+
       /// @brief Draw text-box background/caret
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
@@ -147,13 +151,13 @@ namespace menu {
       /// @brief Draw text-box label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
       /// @brief Draw text-box input text
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with input text colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       inline void drawInput(RendererContext& context) {
-        inputMesh.draw(*context.renderer);
-        suffixMesh.draw(*context.renderer);
+        inputMesh.draw(context.renderer());
+        suffixMesh.draw(context.renderer());
       }
 
     private:

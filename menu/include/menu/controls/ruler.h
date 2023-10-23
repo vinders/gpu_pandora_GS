@@ -16,20 +16,20 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI sliding ruler control
-    class Ruler final {
+    class Ruler final : public Control {
     public:
       /// @brief Create sliding ruler control
       /// @param operationId Unique ruler operation identifier (should be cast from an enum or constant)
       /// @param onClick     Event handler to call (with 'operationId') when the ruler is clicked
       /// @param enabler     Optional data/config value to which the ruler state should be bound
-      Ruler(RendererContext& context, const char32_t* label, const char* suffix,
+      Ruler(RendererContext& context, const char32_t* label, const char32_t* suffix,
             display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
-            uint32_t fixedRulerWidth, float borderColor[4], float thumbColor[4],
+            uint32_t fixedRulerWidth, float borderColor[4], float thumbColor[4], float leftFillColor[4],
             uint32_t minValue, uint32_t maxValue, uint32_t step, uint32_t& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
@@ -40,7 +40,8 @@ namespace menu {
           minLabelWidth(style.minLabelWidth),
           paddingX(style.paddingX),
           paddingY(style.paddingY) {
-        init(context, label, suffix, labelAlign, x, labelY, style, fixedRulerWidth, borderColor, thumbColor);
+        init(context, label, suffix, labelAlign, x, labelY, style,
+             fixedRulerWidth, borderColor, thumbColor, leftFillColor);
       }
 
       Ruler() = default;
@@ -56,16 +57,19 @@ namespace menu {
         labelMesh.release();
         suffixMesh.release();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return thumbMesh.y(); }
-      inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
-      inline uint32_t width() const noexcept {
-        const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
-        return labelWidth ? (controlMesh.width() + labelWidth + labelMargin()) : controlMesh.width();
+      inline int32_t rightX() const noexcept {
+        return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
+                                  : (controlMesh.x() + (int32_t)controlMesh.width());
       }
+      inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
+
+      inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return thumbMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
@@ -91,7 +95,10 @@ namespace menu {
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
 
-      void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign); ///< Change control location (on window resize)
+      /// @brief Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign);
+
+      // -- rendering --
 
       /// @brief Draw ruler background + thumb
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
@@ -101,20 +108,21 @@ namespace menu {
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       inline void drawLabels(RendererContext& context) {
-        labelMesh.draw(*context.renderer);
-        suffixMesh.draw(*context.renderer);
+        labelMesh.draw(context.renderer());
+        suffixMesh.draw(context.renderer());
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, const char* suffix,
+      void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                 display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
-                uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4]);
+                uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4], float leftFillColor[4]);
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       void updateThumbPosition(RendererContext& context, uint32_t value);
 
     private:
       display::controls::ControlMesh controlMesh;
+      display::controls::ControlMesh fillerMesh;
       display::controls::ControlMesh thumbMesh;
       display::controls::TextMesh labelMesh;
       display::controls::TextMesh suffixMesh;

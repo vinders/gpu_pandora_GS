@@ -20,13 +20,13 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/controls/control.h"
 #include "menu/controls/combo_box_option.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI button control
-    class ComboBox final {
+    class ComboBox final : public Control {
     public:
       /// @brief Create combo-box control
       /// @param operationId  Unique combo-box identifier (should be cast from an enum or constant)
@@ -63,6 +63,7 @@ namespace menu {
         selectedNameMesh.release();
         selectableValues.clear();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -71,20 +72,13 @@ namespace menu {
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
       inline uint32_t width() const noexcept {
-        const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
-        return labelWidth ? (controlMesh.width() + labelWidth + labelMargin()) : controlMesh.width();
+        return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x());
       }
       inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
-      inline bool isOpen() const noexcept { return isListOpen; }           ///< Verify if the dropdown list is open
-      inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (isListOpen && mouseX >= controlMesh.x())
-               ? (mouseY >= y() && mouseY < y() + (int32_t)(controlMesh.height() + dropdownMesh.height())
-                                && mouseX < controlMesh.x() + (int32_t)controlMesh.width())
-               : (mouseY >= y() && mouseY < y() + (int32_t)controlMesh.height() && mouseX >= x()
-                                && mouseX < controlMesh.x() + (int32_t)controlMesh.width());
-      }
+      inline bool isOpen() const noexcept { return isListOpen; }   ///< Verify if the dropdown list is open
+      bool isHover(int32_t mouseX, int32_t mouseY) const noexcept; ///< Verify mouse hover
 
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
         return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
@@ -111,6 +105,8 @@ namespace menu {
         else selectedIndex = -1;
       }
 
+      // -- rendering --
+
       /// @brief Draw combo-box background/arrow + drop-down background/hover (if open)
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
@@ -118,16 +114,16 @@ namespace menu {
       /// @brief Draw combo-box label
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
       /// @brief Draw combo-box selected option name + drop-down option names (if open)
       /// @remarks - Use 'bindGraphicsPipeline' (for control input text) and 'bindFragmentUniforms' (with input text colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       inline void drawOptionNames(RendererContext& context) {
-        selectedNameMesh.draw(*context.renderer);
+        selectedNameMesh.draw(context.renderer());
         if (isListOpen) {
           const auto* endEntries = &selectableValues[0] + (intptr_t)selectableValues.size();
           for (auto* entry = &selectableValues[0]; entry < endEntries; ++entry)
-            entry->nameMesh.draw(*context.renderer);
+            entry->nameMesh.draw(context.renderer());
         }
       }
 
@@ -139,7 +135,7 @@ namespace menu {
 
       struct OptionMesh final { // selectable value stored
         OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)
-          : nameMesh(*context.renderer, font, text, context.pixelSizeX, context.pixelSizeY, x, y), value(value) {}
+          : nameMesh(context.renderer(), font, text, context.pixelSizeX(), context.pixelSizeY(), x, y), value(value) {}
         OptionMesh() = default;
         OptionMesh(const OptionMesh&) = default;
         OptionMesh(OptionMesh&&) noexcept = default;

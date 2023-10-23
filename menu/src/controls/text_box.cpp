@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include "menu/controls/geometry_generator.h"
 #include "menu/controls/text_box.h"
 #ifdef _WINDOWS
 # define itoa(...) _itoa(__VA_ARGS__)
@@ -44,6 +45,8 @@ static inline void fillCaretColor(const float backgroundColor[4], float outColor
 
 // ---
 
+ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
+
 void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                    int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue) {
   auto& inputFont = context.getFont(FontType::inputText);
@@ -51,7 +54,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   const uint32_t height = inputFont.XHeight() + (paddingY << 1);
 
   // create label
-  labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
@@ -91,15 +94,15 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
 
   const int32_t boxX = x + (int32_t)labelWidthWithMargin;
   const int32_t boxY = labelY - ((int32_t)height - (int32_t)labelFont.XHeight() + 1)/2;
-  controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+  controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                             boxX, boxY, fixedWidth, height);
 
   // create input value
   const int32_t inputY = boxY + (int32_t)paddingY + (int32_t)(inputFont.XHeight() >> 2);
-  inputMesh = TextMesh(*context.renderer, inputFont, initValue, context.pixelSizeX, context.pixelSizeY,
+  inputMesh = TextMesh(context.renderer(), inputFont, initValue, context.pixelSizeX(), context.pixelSizeY(),
                        boxX + (int32_t)paddingX, inputY);
   if (suffix != nullptr && *suffix) {
-    suffixMesh = TextMesh(*context.renderer, inputFont, suffix, context.pixelSizeX, context.pixelSizeY,
+    suffixMesh = TextMesh(context.renderer(), inputFont, suffix, context.pixelSizeX(), context.pixelSizeY(),
                           boxX + (int32_t)fixedWidth + (int32_t)labelMargin(), inputY);
   }
 
@@ -116,7 +119,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
     setControlVertex(*(++vertexIt), caretColor, 0.f, -(float)caretHeight);
     setControlVertex(*(++vertexIt), caretColor, 1.f, -(float)caretHeight);
     indices = { 0,1,2, 2,1,3 };
-    caretMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+    caretMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                             boxX + paddingX, caretY, fixedWidth, height);
   }
   // input value storage
@@ -131,30 +134,30 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
 void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   const int32_t boxY = labelY - ((int32_t)controlMesh.height() - (int32_t)labelMesh.height() + 1)/2;
 
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
 
   const int32_t boxX = x + (int32_t)labelWidthWithMargin;
-  controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX, boxY);
+  controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
 
   const int32_t inputY = boxY + (int32_t)paddingY + (int32_t)(inputMesh.height() >> 2);
-  inputMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + (int32_t)paddingX, inputY);
+  inputMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX + (int32_t)paddingX, inputY);
   if (suffixMesh.width()) {
-    suffixMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+    suffixMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                     boxX + (int32_t)controlMesh.width() + (int32_t)labelMargin(), inputY);
   }
 
   const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2) + 1;
-  caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, boxX + paddingX, caretY);
+  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX + paddingX, caretY);
 }
 
 void TextBox::replaceValueText(RendererContext& context, const char32_t* textValue) {
   assert(valueType == TextBoxType::text || (textValue != nullptr && *textValue >= U'0' && *textValue <= U'9'));
   isEditing = false;
-  inputMesh = TextMesh(*context.renderer, context.getFont(FontType::inputText), textValue,
-                       context.pixelSizeX, context.pixelSizeY,
+  inputMesh = TextMesh(context.renderer(), context.getFont(FontType::inputText), textValue,
+                       context.pixelSizeX(), context.pixelSizeY(),
                        controlMesh.x() + (int32_t)paddingX, controlMesh.y() + (int32_t)paddingY);
 
   inputValue.clear();
@@ -192,7 +195,7 @@ void TextBox::click(RendererContext& context, int32_t mouseX) {
     for (const auto& glyph : inputMesh.meshGlyphs()) {
       uint32_t charWidth = (glyph->advance >> 6);
       if (mouseX <= currentX + (int32_t)(charWidth >> 1)) {
-        caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, currentX, caretMesh.y());
+        caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
         isCaretMoved = true;
         break;
       }
@@ -200,7 +203,7 @@ void TextBox::click(RendererContext& context, int32_t mouseX) {
       ++caretLocation;
     }
     if (!isCaretMoved) // caret at the end
-      caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, currentX, caretMesh.y());
+      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
   }
   else isEditing = false;
 }
@@ -224,13 +227,13 @@ void TextBox::addChar(RendererContext& context, char32_t code) {
 
   auto& font = context.getFont(FontType::inputText);
   if (caretLocation >= (uint32_t)inputValue.size() - 1u/*ignore ending zero*/) {
-    if (!inputMesh.push(*context.renderer, font, context.pixelSizeX, context.pixelSizeY, code))
+    if (!inputMesh.push(context.renderer(), font, context.pixelSizeX(), context.pixelSizeY(), code))
       return;
     inputValue.back() = code;
     inputValue.emplace_back((char32_t)0); // new ending zero
   }
   else {
-    if (!inputMesh.insertBefore(*context.renderer, font, context.pixelSizeX, context.pixelSizeY, code, caretLocation))
+    if (!inputMesh.insertBefore(context.renderer(), font, context.pixelSizeX(), context.pixelSizeY(), code, caretLocation))
       return;
     inputValue.insert(inputValue.begin()+caretLocation, code);
   }
@@ -243,14 +246,14 @@ void TextBox::removeChar(RendererContext& context) {
     return;
 
   if (caretLocation >= (uint32_t)inputValue.size() - 1u/*ignore ending zero*/) {
-    inputMesh.pop(*context.renderer);
+    inputMesh.pop(context.renderer());
     inputValue.pop_back();
     inputValue.back() = (char32_t)0; // new ending zero
     --caretLocation;
   }
   else {
     --caretLocation;
-    inputMesh.removeAt(*context.renderer, context.pixelSizeX, caretLocation);
+    inputMesh.removeAt(context.renderer(), context.pixelSizeX(), caretLocation);
     inputValue.erase(inputValue.begin()+caretLocation);
   }
   updateCaretLocation(context);
@@ -265,22 +268,22 @@ void TextBox::updateCaretLocation(RendererContext& context) {
 
   for (const auto& glyph : inputMesh.meshGlyphs()) {
     if (currentLocation == caretLocation) {
-      caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, currentX, caretMesh.y());
+      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
       return; // end here
     }
     currentX += (int32_t)(glyph->advance >> 6);
     ++currentLocation;
   }
   // caret at the end
-  caretMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, currentX, caretMesh.y());
+  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
 }
 
 void TextBox::drawBackground(RendererContext& context) {
-  controlMesh.draw(*context.renderer);
+  controlMesh.draw(context.renderer());
   if (isEditing) {
     if (isEnabled()) {
       if (++caretDrawCount < 30u) // display during 30 frames
-        caretMesh.draw(*context.renderer);
+        caretMesh.draw(context.renderer());
       else if (caretDrawCount >= 60u) // hide during 30 frames, then reset counter
         caretDrawCount = 0;
     }

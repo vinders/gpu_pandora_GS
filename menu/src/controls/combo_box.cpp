@@ -12,151 +12,154 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstring>
+#include "menu/controls/geometry_generator.h"
 #include "menu/controls/combo_box.h"
+
+#if defined(_CPP_REVISION) && _CPP_REVISION == 14
+# define EMPLACE_AND_GET(collection, result, ...)  collection.emplace_back(__VA_ARGS__); \
+                                                   const auto& result = selectableValues.back()
+#else
+# define EMPLACE_AND_GET(collection, result, ...)  const auto& result = collection.emplace_back(__VA_ARGS__)
+#endif
 
 using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
+ControlType ComboBox::Type() const noexcept { return ControlType::comboBox; }
+
+
+// -- init/resize geometry -- --------------------------------------------------
+
 #define ARROW_WIDTH  9
 #define ARROW_HEIGHT 5
 
-
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
-  memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
-
-// ---
-
 void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                     const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount) {
-  auto& optionFont = context.getFont(FontType::inputText);
-  auto& labelFont = context.getFont(FontType::labels);
-  const uint32_t boxHeight = optionFont.XHeight() + (paddingY << 1);
-  const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)optionFont.XHeight())/2;
-
   // create label
-  labelMesh = TextMesh(*context.renderer, labelFont, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  auto& labelFont = context.getFont(FontType::labels);
+  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
 
-  // create options
+  // create drop-down options
+  auto& optionFont = context.getFont(FontType::inputText);
+  const uint32_t boxHeight = optionFont.XHeight() + (paddingY << 1);
+  const int32_t y = labelY - paddingY + ((int32_t)labelFont.XHeight() - (int32_t)optionFont.XHeight())/2;
+
   uint32_t longestOptionNameWidth = 0;
   {
     const int32_t optionNameX = x + (int32_t)labelWidthWithMargin + (int32_t)paddingX;
     int32_t optionNameY = y + (int32_t)boxHeight + (int32_t)paddingY + 1;
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)boxHeight) {
-#     if defined(_CPP_REVISION) && _CPP_REVISION == 14
-      selectableValues.emplace_back(context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
-      const auto& entry = selectableValues.back();
-#     else
-      const auto& entry = selectableValues.emplace_back(context, optionFont, values->name.get(),
-                                                        optionNameX, optionNameY, values->value);
-#     endif
-      if (entry.nameMesh.width() > longestOptionNameWidth)
-        longestOptionNameWidth = entry.nameMesh.width();
+      EMPLACE_AND_GET(selectableValues, result,
+                      context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
+      if (result.nameMesh.width() > longestOptionNameWidth)
+        longestOptionNameWidth = result.nameMesh.width();
     }
-    if (selectedIndex >= 0) { // copy selected option in combo-box
-      selectableValues[selectedIndex].nameMesh.cloneAtLocation(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+    if (selectedIndex >= 0) { // copy selected option as combo-box value
+      selectableValues[selectedIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                                                                optionNameX, y + (int32_t)paddingY + 1, selectedNameMesh);
     }
   }
-
-  // create background
   uint32_t boxWidth = longestOptionNameWidth + (paddingX << 2);
   if (boxWidth < minBoxWidth)
     boxWidth = minBoxWidth;
-  {
-    const float semiFactor = 1.f - (paddingY / boxHeight) * 0.2f;
-    const float colorSemi[4]{ color[0]*semiFactor, color[1]*semiFactor, color[2]*semiFactor, color[3] };
-    const float colorDarker[4]{ color[0]*0.8f, color[1]*0.8f, color[2]*0.8f, color[3] };
-    const uint32_t cornerCutWidth = boxWidth - paddingY;
-    std::vector<ControlVertex> vertices;
-    vertices.resize(24);
-    ControlVertex* vertexIt = vertices.data();
-    setControlVertex(*vertexIt,     color,       0.f,                   0.f); // box background
-    setControlVertex(*(++vertexIt), color,       (float)cornerCutWidth, 0.f);
-    setControlVertex(*(++vertexIt), colorDarker, 0.f,                   -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorSemi,   (float)boxWidth,       -(float)paddingY);
-    setControlVertex(*(++vertexIt), colorDarker, (float)boxWidth,       -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorDarker, 0.f, 0.f); // border left
-    setControlVertex(*(++vertexIt), colorDarker, 1.f, 0.f);
-    setControlVertex(*(++vertexIt), colorDarker, 0.f, -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorDarker, 1.f, -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorDarker, (float)(boxWidth-1), -(float)paddingY); // border right
-    setControlVertex(*(++vertexIt), colorDarker, (float)boxWidth,     -(float)paddingY);
-    setControlVertex(*(++vertexIt), colorDarker, (float)(boxWidth-1), -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorDarker, (float)boxWidth,     -(float)boxHeight);
-    setControlVertex(*(++vertexIt), colorDarker, 1.f,                   0.f); // border top
-    setControlVertex(*(++vertexIt), colorDarker, (float)cornerCutWidth, 0.f);
-    setControlVertex(*(++vertexIt), colorDarker, 1.f,                   -1.f);
-    setControlVertex(*(++vertexIt), colorDarker, (float)cornerCutWidth, -1.f);
-    setControlVertex(*(++vertexIt), colorDarker, (float)cornerCutWidth, 0.f); // border corner
-    setControlVertex(*(++vertexIt), colorDarker, (float)boxWidth,       -(float)paddingY);
-    setControlVertex(*(++vertexIt), colorDarker, (float)cornerCutWidth, -1.f);
-    setControlVertex(*(++vertexIt), colorDarker, (float)(boxWidth-1),   -(float)(paddingY+1));
-    const float colorArrow[4]{ color[0]*0.3f, color[1]*0.3f, color[2]*0.3f, 0.525f };
-    const int32_t arrowX = static_cast<int32_t>(boxWidth - paddingY - ARROW_WIDTH) - 2;
-    const int32_t arrowY = static_cast<int32_t>((boxHeight - ARROW_HEIGHT) >> 1) + 1;
-    setControlVertex(*(++vertexIt), colorArrow, (float)arrowX,                     -(float)arrowY); // down arrow
-    setControlVertex(*(++vertexIt), colorArrow, (float)(arrowX + ARROW_WIDTH),     -(float)arrowY);
-    setControlVertex(*(++vertexIt), colorArrow, (float)arrowX + ARROW_WIDTH*0.5f, -(float)(arrowY + ARROW_HEIGHT));
-    std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4,  5,6,7, 7,6,8,  9,10,11, 11,10,12,
-                                   13,14,15, 15,14,16,  17,18,19, 19,18,20,  21,22,23 };
 
-    controlMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
-                              x + (int32_t)labelWidthWithMargin, y, boxWidth, boxHeight);
-  }
+  // create background
+  std::vector<ControlVertex> vertices(static_cast<size_t>(5 + 20 + 3));
+  ControlVertex* vertexIt = vertices.data();
+  GeometryGenerator::fillTopRightCutRectangleVertices(vertexIt, color, 0.f, (float)boxWidth,    // background
+                                                      0.f, -(float)boxHeight, (float)paddingY);
+  vertexIt += 5;
+  const float colorBorder[4]{ color[0]*0.75f, color[1]*0.75f, color[2]*0.75f, color[3] };
+  GeometryGenerator::fillTopRightCutBorderVertices(vertexIt, colorBorder, 0.f, (float)boxWidth, // borders
+                                                    0.f, -(float)boxHeight, (float)paddingY);
+  vertexIt += 20;
+  const float colorArrow[4]{ color[0]*0.3f, color[1]*0.3f, color[2]*0.3f, 0.525f };
+  GeometryGenerator::fillInvertedTriangleVertices(vertexIt, colorArrow,                         // arrow
+                                                  static_cast<float>(boxWidth - paddingY - ARROW_WIDTH - 2),
+                                                  -static_cast<float>((boxHeight + 2 - ARROW_HEIGHT) >> 1),
+                                                  (float)ARROW_WIDTH, (float)ARROW_HEIGHT);
+  std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4,  5,6,7,7,6,8,        9,10,11,11,10,12,
+                                 13,14,15,15,14,16,    17,18,19,19,18,20,  21,22,23,23,22,24,  25,26,27 };
+
+  controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                            x + (int32_t)labelWidthWithMargin, y, boxWidth, boxHeight);
 
   // create drop-down area
-  const float dropdownDarker[4]{ dropdownColor[0]*0.85f, dropdownColor[1]*0.85f, dropdownColor[2]*0.85f, dropdownColor[3] };
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(4 + 3*4));
+  vertexIt = vertices.data();
   const uint32_t dropdownHeight = (!selectableValues.empty()) ? boxHeight*(uint32_t)selectableValues.size() : paddingY;
-  std::vector<ControlVertex> vertices;
-  vertices.resize(16);
-  ControlVertex* vertexIt = vertices.data();
-  setControlVertex(*vertexIt,     dropdownColor, 0.f,             0.f);
-  setControlVertex(*(++vertexIt), dropdownColor, (float)boxWidth, 0.f);
-  setControlVertex(*(++vertexIt), dropdownColor, 0.f,             -(float)dropdownHeight);
-  setControlVertex(*(++vertexIt), dropdownColor, (float)boxWidth, -(float)dropdownHeight);
-  setControlVertex(*(++vertexIt), dropdownDarker, 0.f,             -(float)(dropdownHeight - 1)); // border bottom
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth, -(float)(dropdownHeight - 1));
-  setControlVertex(*(++vertexIt), dropdownDarker, 0.f,             -(float)dropdownHeight);
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth, -(float)dropdownHeight);
-  setControlVertex(*(++vertexIt), dropdownDarker, 0.f, 0.f); // border left
-  setControlVertex(*(++vertexIt), dropdownDarker, 1.f, 0.f);
-  setControlVertex(*(++vertexIt), dropdownDarker, 0.f, -(float)(dropdownHeight - 1));
-  setControlVertex(*(++vertexIt), dropdownDarker, 1.f, -(float)(dropdownHeight - 1));
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)(boxWidth - 1), 0.f); // border right
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth, 0.f);
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)(boxWidth - 1),       -(float)(dropdownHeight - 1));
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth,       -(float)(dropdownHeight - 1));
-  std::vector<uint32_t> indices = { 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11,  12,13,14, 14,13,15 };
+  GeometryGenerator::fillRectangleVertices(vertexIt, dropdownColor,   // drop-down background
+                                           0.f, (float)boxWidth, 0.f, -(float)dropdownHeight);
+  vertexIt += 4;
+  const float dropdownBorder[4]{ dropdownColor[0]*0.85f, dropdownColor[1]*0.85f, dropdownColor[2]*0.85f, dropdownColor[3] };
+  GeometryGenerator::fillRectangleVertices(vertexIt, dropdownBorder,  // drop-down border bottom
+                                           0.f, (float)boxWidth, -(float)(dropdownHeight-1), -(float)dropdownHeight);
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, dropdownBorder,  // drop-down border left
+                                           0.f, 1.f, 0.f, -(float)(dropdownHeight-1));
+  vertexIt += 4;
+  GeometryGenerator::fillRectangleVertices(vertexIt, dropdownBorder,  // drop-down border right
+                                           (float)(boxWidth-1), (float)boxWidth, 0.f, -(float)(dropdownHeight-1));
+  indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11,  12,13,14,14,13,15 };
 
-  dropdownMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+  dropdownMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                               x + (int32_t)labelWidthWithMargin, y + (int32_t)boxHeight, boxWidth, dropdownHeight);
   
-  vertices.resize(4);
-  vertexIt = vertices.data();
-  setControlVertex(*vertexIt,     dropdownDarker, 0.f,             0.f);
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth, 0.f);
-  setControlVertex(*(++vertexIt), dropdownDarker, 0.f,             -(float)boxHeight);
-  setControlVertex(*(++vertexIt), dropdownDarker, (float)boxWidth, -(float)boxHeight);
-  indices = { 0,1,2, 2,1,3 };
+  // create drop-down hover area
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(4));
+  GeometryGenerator::fillRectangleVertices(vertices.data(), dropdownBorder,  // drop-down hover background
+                                           0.f, (float)boxWidth, 0.f, -(float)boxHeight);
+  indices = { 0,1,2,2,1,3 };
 
   const uint32_t dropdownHoverY = (selectedIndex >= 0) ? (y + (int32_t)boxHeight*(selectedIndex+1)) : (y + (int32_t)boxHeight);
-  dropdownHoverMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+  dropdownHoverMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                                   x + (int32_t)labelWidthWithMargin, dropdownHoverY, boxWidth, boxHeight);
 }
 
+// ---
+
+void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
+  const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
+  
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY);
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
+
+  const int32_t optionNameX = x + labelWidthWithMargin + (int32_t)paddingX;
+  int32_t optionNameY = y + (int32_t)controlMesh.height() + (int32_t)paddingY;
+  for (auto& value : selectableValues) {
+    value.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), optionNameX, optionNameY);
+    optionNameY += (int32_t)controlMesh.height();
+  }
+  if (selectedNameMesh.width())
+    selectedNameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), optionNameX, y + (int32_t)paddingY + 1);
+
+  controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + (int32_t)labelWidthWithMargin, y);
+
+  const uint32_t dropdownHoverY = (selectedIndex >= 0) ? (y + (int32_t)controlMesh.height()*(selectedIndex+1)) : (y + (int32_t)controlMesh.height());
+  dropdownMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + (int32_t)labelWidthWithMargin, y + (int32_t)controlMesh.height());
+  dropdownHoverMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + (int32_t)labelWidthWithMargin, dropdownHoverY);
+}
+
+void ComboBox::moveDropdownHover(RendererContext& context, int32_t valueIndex) {
+  if (valueIndex < 0 || valueIndex >= (int32_t)selectableValues.size())
+    return;
+  const int32_t hoverY = selectableValues[valueIndex].nameMesh.y() - (int32_t)paddingY - 1;
+  dropdownHoverMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), dropdownHoverMesh.x(), hoverY);
+}
+
+// ---
+
 void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex_) {
+  if (controlMesh.width() == 0)
+    return;
   this->selectedIndex = (selectedIndex_ < (int32_t)valueCount) ? selectedIndex_ : -1;
 
   // re-create options
@@ -171,7 +174,7 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
       selectableValues.emplace_back(context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
     }
     if (selectedIndex >= 0) { // copy selected option in combo-box
-      selectableValues[selectedIndex].nameMesh.cloneAtLocation(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+      selectableValues[selectedIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                                                                optionNameX, controlMesh.y() + (int32_t)paddingY + 1, selectedNameMesh);
     }
   }
@@ -180,66 +183,40 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
   const uint32_t dropdownHeight = (!selectableValues.empty()) ? controlMesh.height()*(uint32_t)selectableValues.size() : paddingY;
   if (dropdownHeight != dropdownMesh.height()) {
     std::vector<ControlVertex> vertices = dropdownMesh.relativeVertices();
-    ControlVertex* vertexIt = &vertices[2];
-    vertexIt->position[1] = -(float)dropdownHeight;
-    (++vertexIt)->position[1] = -(float)dropdownHeight;
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    (++vertexIt)->position[1] = -(float)dropdownHeight;
-    (++vertexIt)->position[1] = -(float)dropdownHeight;
-    ++vertexIt; ++vertexIt;
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    ++vertexIt; ++vertexIt;
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    (++vertexIt)->position[1] = -(float)(dropdownHeight - 1);
-    dropdownMesh.update(*context.renderer, std::move(vertices), context.pixelSizeX, context.pixelSizeY,
+    ControlVertex* vertexIt = vertices.data();
+    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)dropdownHeight); // drop-down background
+    vertexIt += 4;
+    GeometryGenerator::moveRectangleVerticesY(vertexIt, -(float)(dropdownHeight-1), -(float)dropdownHeight); // drop-down border bottom
+    vertexIt += 4;
+    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)(dropdownHeight-1)); // drop-down border left
+    vertexIt += 4;
+    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)(dropdownHeight-1)); // drop-down border right
+    dropdownMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                         dropdownMesh.x(), dropdownMesh.y(), dropdownMesh.width(), dropdownHeight);
   }
   moveDropdownHover(context, selectedIndex);
 }
 
-// ---
 
-void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
-  const int32_t y = labelY - ((int32_t)labelMesh.y() - (int32_t)controlMesh.y());
-  
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
-  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidthWithMargin)
-    labelWidthWithMargin += labelMargin();
+// -- accessors -- -------------------------------------------------------------
 
-  const int32_t optionNameX = x + labelWidthWithMargin + (int32_t)paddingX;
-  int32_t optionNameY = y + (int32_t)controlMesh.height() + (int32_t)paddingY;
-  for (auto& value : selectableValues) {
-    value.nameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, optionNameX, optionNameY);
-    optionNameY += (int32_t)controlMesh.height();
-  }
-  if (selectedNameMesh.width())
-    selectedNameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, optionNameX, y + (int32_t)paddingY + 1);
-
-  controlMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + (int32_t)labelWidthWithMargin, y);
-
-  const uint32_t dropdownHoverY = (selectedIndex >= 0) ? (y + (int32_t)controlMesh.height()*(selectedIndex+1)) : (y + (int32_t)controlMesh.height());
-  dropdownMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + (int32_t)labelWidthWithMargin, y + (int32_t)controlMesh.height());
-  dropdownHoverMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + (int32_t)labelWidthWithMargin, dropdownHoverY);
+bool ComboBox::isHover(int32_t mouseX, int32_t mouseY) const noexcept {
+  return (isListOpen && mouseX >= controlMesh.x())
+          ? (mouseY >= y() && mouseY < y() + (int32_t)(controlMesh.height() + dropdownMesh.height())
+                           && mouseX < controlMesh.x() + (int32_t)controlMesh.width())
+          : (mouseY >= y() && mouseY < y() + (int32_t)controlMesh.height() && mouseX >= x()
+                           && mouseX < controlMesh.x() + (int32_t)controlMesh.width());
 }
 
-void ComboBox::moveDropdownHover(RendererContext& context, int32_t valueIndex) {
-  if (valueIndex < 0 || valueIndex >= (int32_t)selectableValues.size())
-    return;
-  const int32_t hoverY = selectableValues[valueIndex].nameMesh.y() - (int32_t)paddingY - 1;
-  dropdownHoverMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, dropdownHoverMesh.x(), hoverY);
-}
 
-// ---
+// -- operations -- ------------------------------------------------------------
 
 void ComboBox::click(RendererContext& context) {
   if (isEnabled()) {
     if (isListOpen) {
       if (hoverIndex > -1 && selectedIndex != hoverIndex && hoverIndex < (int32_t)selectableValues.size()) {
         selectedIndex = hoverIndex; // change selected index + update selected text
-        selectableValues[hoverIndex].nameMesh.cloneAtLocation(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+        selectableValues[hoverIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                                                               selectedNameMesh.x(), selectedNameMesh.y(), selectedNameMesh);
 
         onChange(operationId, selectableValues[selectedIndex].value); // report value change
@@ -279,16 +256,17 @@ void ComboBox::selectNext(RendererContext& context) {
     moveDropdownHover(context, ++hoverIndex);
 }
 
-// ---
+
+// -- rendering -- -------------------------------------------------------------
 
 void ComboBox::drawBackground(RendererContext& context) {
   if (isListOpen) {
     if (isEnabled()) {
-      dropdownMesh.draw(*context.renderer);
+      dropdownMesh.draw(context.renderer());
       if (hoverIndex >= 0) // hover entry background
-        dropdownHoverMesh.draw(*context.renderer);
+        dropdownHoverMesh.draw(context.renderer());
     }
     else isListOpen = false;
   }
-  controlMesh.draw(*context.renderer);
+  controlMesh.draw(context.renderer());
 }

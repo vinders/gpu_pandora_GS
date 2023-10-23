@@ -11,6 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
+#include <cassert>
 #include <cstring>
 #include <memory>
 #ifdef _WINDOWS
@@ -60,6 +61,7 @@ ControlIcon ImageLoader::getIcon(ControlIconType type) {
 }
 
 ControlIcon ImageLoader::generateSquareIcon(bool isFilled) {
+  assert(renderer != nullptr);
   std::unique_ptr<uint8_t[]> imageData(new uint8_t[BASE_ICON_SIZE*BASE_ICON_SIZE*4]);
 
   if (isFilled) { // filled -> square
@@ -89,81 +91,6 @@ ControlIcon ImageLoader::generateSquareIcon(bool isFilled) {
 
 
 // -- load image -- ------------------------------------------------------------
-
-/*//https://stackoverflow.com/questions/8657155/getting-bitmap-pixel-values-using-the-windows-getdibits-function
-//HBITMAP bitmapHandle = (HBITMAP)LoadImage(0, L"C:/tmp/Foo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-  BITMAP bitmap;
-  if (bitmapHandle == nullptr || GetObject(bitmapHandle , sizeof(bitmap) , &bitmap) == 0)
-    return nullptr;
-
-  HDC dcBitmap = CreateCompatibleDC(NULL);
-  auto region = SelectObject(dcBitmap, bitmapHandle);
-  if (region == nullptr || region == HGDI_ERROR)
-    return nullptr;
-
-  BITMAPINFO bmpInfo{};
-  bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  bmpInfo.bmiHeader.biWidth = bitmap.bmWidth;
-  bmpInfo.bmiHeader.biHeight = -bitmap.bmHeight;
-  bmpInfo.bmiHeader.biPlanes = 1;
-  bmpInfo.bmiHeader.biBitCount = 24;
-  bmpInfo.bmiHeader.biCompression = BI_RGB;
-
-  COLORREF* pixel = new COLORREF [ bitmap.bmWidth * bitmap.bmHeight ];
-  GetDIBits(dcBitmap, bitmapHandle, 0, bitmap.bmHeight, pixel, &bmpInfo, DIB_RGB_COLORS);
-*/
-
-/*//https://stackoverflow.com/questions/26233848/c-read-pixels-with-getdibits
-HBITMAP GetScreenBmp( HDC hdc) {
-    // Get screen dimensions
-    int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-    int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-    // Create compatible DC, create a compatible bitmap and copy the screen using BitBlt()
-    HDC hCaptureDC  = CreateCompatibleDC(hdc);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hdc, nScreenWidth, nScreenHeight);
-    HGDIOBJ hOld = SelectObject(hCaptureDC, hBitmap); 
-    BOOL bOK = BitBlt(hCaptureDC,0,0,nScreenWidth, nScreenHeight, hdc,0,0,SRCCOPY|CAPTUREBLT); 
-
-    SelectObject(hCaptureDC, hOld); // always select the previously selected object once done
-    DeleteDC(hCaptureDC);
-    return hBitmap;
-}
-int main() {
-    HDC hdc = GetDC(0);
-
-    HBITMAP hBitmap = GetScreenBmp(hdc);
-
-    BITMAPINFO MyBMInfo = {0};
-    MyBMInfo.bmiHeader.biSize = sizeof(MyBMInfo.bmiHeader); 
-
-    // Get the BITMAPINFO structure from the bitmap
-    if(0 == GetDIBits(hdc, hBitmap, 0, 0, NULL, &MyBMInfo, DIB_RGB_COLORS)) {
-        cout << "error" << endl;
-    }
-
-    // create the bitmap buffer
-    BYTE* lpPixels = new BYTE[MyBMInfo.bmiHeader.biSizeImage];
-
-    // Better do this here - the original bitmap might have BI_BITFILEDS, which makes it
-    // necessary to read the color table - you might not want this.
-    MyBMInfo.bmiHeader.biCompression = BI_RGB;  
-
-    // get the actual bitmap buffer
-    if(0 == GetDIBits(hdc, hBitmap, 0, MyBMInfo.bmiHeader.biHeight, (LPVOID)lpPixels, &MyBMInfo, DIB_RGB_COLORS)) {
-        cout << "error2" << endl;
-    }
-
-    for(int i = 0; i < 100; i++) {
-        cout << (int)lpPixels[i];
-    }
-
-    DeleteObject(hBitmap);
-    ReleaseDC(NULL, hdc);
-    delete[] lpPixels;
-    return 0;
-}
-*/
 
 #ifdef _WINDOWS
 static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle, HBITMAP alphaHandle, Renderer& renderer) {
@@ -236,8 +163,10 @@ std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const wchar_t* id, 
   }
   return nullptr;
 }
+
 #else
 std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const char* path) {
-  
+  //...
+  return nullptr;
 }
 #endif

@@ -16,7 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/types.h"
+#include "menu/renderer_context.h"
 
 namespace menu {
   namespace controls {
@@ -54,14 +54,16 @@ namespace menu {
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 display::controls::TextAlignment align = display::controls::TextAlignment::left);
 
+      // -- rendering --
+
       /// @brief Draw label icon (if any)
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
       ///          - It's recommended to draw all icons using the same pipeline/uniform before using the other draw calls.
-      inline void drawIcon(RendererContext& context) { iconMesh.draw(*context.renderer); }
+      inline void drawIcon(RendererContext& context) { iconMesh.draw(context.renderer()); }
       /// @brief Draw label text
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(*context.renderer); }
+      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,

@@ -78,7 +78,8 @@ namespace display {
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId)
       : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId); }
 #   else
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath);
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath)
+      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpritePath); }
 #   endif
 
     ImageLoader() = default;

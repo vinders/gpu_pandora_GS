@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstring>
+#include "menu/controls/geometry_generator.h"
 #include "menu/controls/slider.h"
 
 using namespace video_api;
@@ -31,6 +32,8 @@ static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4
 
 // ---
 
+ControlType Slider::Type() const noexcept { return ControlType::slider; }
+
 void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                   const float arrowColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& font = context.getFont(FontType::labels);
@@ -38,7 +41,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   const int32_t y = labelY - (int32_t)paddingY;
 
   // create label
-  labelMesh = TextMesh(*context.renderer, font, label, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  labelMesh = TextMesh(context.renderer(), font, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
@@ -76,15 +79,15 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   setControlVertex(*(++vertexIt), arrowColor, (float)(sliderHeight - 1), -(float)arrowNeckBottom);
   std::vector<ControlVertex> verticesArrowRight = vertices;
   std::vector<uint32_t> indices{ 0,1,2, 2,1,3,  4,5,6,  7,8,9, 9,8,10,  11,12,13, 13,12,14 };
-  arrowLeftMesh = ControlMesh(*context.renderer, std::move(vertices), indices,
-                              context.pixelSizeX, context.pixelSizeY, x + labelWidthWithMargin, y, sliderHeight, sliderHeight);
+  arrowLeftMesh = ControlMesh(context.renderer(), std::move(vertices), indices,
+                              context.pixelSizeX(), context.pixelSizeY(), x + labelWidthWithMargin, y, sliderHeight, sliderHeight);
 
   const auto* endIt = verticesArrowRight.data() + (intptr_t)verticesArrowRight.size();
   for (ControlVertex* it = verticesArrowRight.data(); it < endIt; ++it) { // right arrow = mirrored version of left arrow
     it->position[0] = (float)sliderHeight - it->position[0];
   }
   indices = { 0,2,1, 1,2,3,  4,6,5,  8,7,9, 8,9,10,  12,11,13, 12,13,14 };
-  arrowRightMesh = ControlMesh(*context.renderer, std::move(verticesArrowRight), indices, context.pixelSizeX, context.pixelSizeY,
+  arrowRightMesh = ControlMesh(context.renderer(), std::move(verticesArrowRight), indices, context.pixelSizeX(), context.pixelSizeY(),
                                 x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y, sliderHeight, sliderHeight);
 }
 
@@ -92,19 +95,19 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
   const uint32_t oldOriginX = labelMesh.x();
   const int32_t y = labelY - (int32_t)paddingY;
 
-  labelMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x, labelY);
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   if (labelWidthWithMargin)
     labelWidthWithMargin += labelMargin();
   
   for (auto& option : selectableValues) {
-    option.nameMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+    option.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                          x + option.nameMesh.x() - oldOriginX, labelY);
   }
 
   const uint32_t sliderHeight = labelMesh.height() + (paddingY << 1);
-  arrowLeftMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, x + labelWidthWithMargin, y);
-  arrowRightMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+  arrowLeftMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + labelWidthWithMargin, y);
+  arrowRightMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                       x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y);
 }
 
@@ -143,42 +146,42 @@ bool Slider::drawBackground(RendererContext& context, int32_t mouseX, int32_t mo
   if (isEnabled() && mouseY >= arrowLeftMesh.y() && mouseY < arrowLeftMesh.y() + (int32_t)arrowLeftMesh.height()) { // hover
     if (selectedIndex > 0 && mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width()) {
       if (selectedIndex + 1 == (int32_t)selectableValues.size())
-        context.renderer->bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-      arrowRightMesh.draw(*context.renderer);
+        context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
+      arrowRightMesh.draw(context.renderer());
 
-      context.renderer->bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-      arrowLeftMesh.draw(*context.renderer);
+      context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
+      arrowLeftMesh.draw(context.renderer());
       return true;
     }
     else if (selectedIndex + 1 < (int32_t)selectableValues.size()
           && mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width()) {
       if (selectedIndex == 0)
-        context.renderer->bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-      arrowLeftMesh.draw(*context.renderer);
+        context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
+      arrowLeftMesh.draw(context.renderer());
 
-      context.renderer->bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-      arrowRightMesh.draw(*context.renderer);
+      context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
+      arrowRightMesh.draw(context.renderer());
       return true;
     }
   }
 
   bool isBufferBound = false;
   if (selectedIndex == 0) {
-    context.renderer->bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
+    context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
     isBufferBound = true;
   }
-  arrowLeftMesh.draw(*context.renderer);
+  arrowLeftMesh.draw(context.renderer());
 
   if (selectedIndex + 1 == (int32_t)selectableValues.size()) {
     if (!isBufferBound) {
-      context.renderer->bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
+      context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
       isBufferBound = true;
     }
   }
   else if (isBufferBound) {
-    context.renderer->bindVertexUniforms(0, regularVertexUniform.handlePtr(), 1);
+    context.renderer().bindVertexUniforms(0, regularVertexUniform.handlePtr(), 1);
     isBufferBound = false;
   }
-  arrowRightMesh.draw(*context.renderer);
+  arrowRightMesh.draw(context.renderer());
   return isBufferBound;
 }

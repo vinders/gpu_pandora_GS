@@ -31,7 +31,7 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   class GeneralSettingsPage final : public Page {
   public:
-    GeneralSettingsPage(std::shared_ptr<controls::RendererContext> context, const ColorTheme& theme,
+    GeneralSettingsPage(std::shared_ptr<RendererContext> context, const ColorTheme& theme,
                         const pandora::hardware::DisplayMonitor& monitor,
                         int32_t x, int32_t y, uint32_t width, uint32_t height);
     ~GeneralSettingsPage() noexcept { release(); }
@@ -45,13 +45,18 @@ namespace menu {
     // -- user interactions --
 
     /// @brief Report mouse down (click) -- coords relative to window
-    void mouseDown(int32_t mouseX, int32_t mouseY) override;
+    void mouseDown(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse move -- coords relative to window
-    void mouseMove(int32_t mouseX, int32_t mouseY) override;
+    void mouseMove(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse up (end of click) -- coords relative to window
-    void mouseUp(int32_t mouseX, int32_t mouseY) override;
+    void mouseUp(int32_t mouseX, int32_t mouseY);
     /// @brief Report mouse wheel delta
-    void mouseScroll(int32_t deltaY) override;
+    void mouseScroll(int32_t deltaY);
+    /// @brief Report mouse leaving screen
+    void mouseLeave() {
+      if (scrollbar.isDragged())
+        scrollbar.mouseLeave();
+    }
 
     /// @brief Report key down (keyboard)
     void keyDown(char32_t keyCode) override;
@@ -87,7 +92,7 @@ namespace menu {
     static constexpr inline int32_t noLineSelection() noexcept { return 0x7FFFFFFF; }
 
   private:
-    std::shared_ptr<controls::RendererContext> context;
+    std::shared_ptr<RendererContext> context;
     video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
     video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
     int32_t x = 0;

@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstring>
+#include "menu/controls/geometry_generator.h"
 #include "menu/controls/tab_control.h"
 
 using namespace video_api;
@@ -101,6 +102,8 @@ static std::vector<ControlVertex> generateTabBarGeometry(uint32_t barWidth, uint
 
 // ---
 
+ControlType TabControl::Type() const noexcept { return ControlType::tabControl; }
+
 void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],
                       const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount) {
   auto& font = context.getFont(FontType::labels);
@@ -112,8 +115,8 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
   tabLabelMeshes.reserve(tabCount);
   while (tabCount) {
 #   if !defined(_CPP_REVISION) || _CPP_REVISION != 14
-    const auto& mesh = tabLabelMeshes.emplace_back(*context.renderer, font, *tabLabels,
-                                                   context.pixelSizeX, context.pixelSizeY, tabX, tabY);
+    const auto& mesh = tabLabelMeshes.emplace_back(context.renderer(), font, *tabLabels,
+                                                   context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
 #   else
     tabLabelMeshes.emplace_back(*context.renderer, font, *tabLabels, context.pixelSizeX, context.pixelSizeY, tabX, tabY);
     const auto& mesh = tabLabelMeshes.back();
@@ -131,19 +134,19 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
     uint32_t tabLabelX = mesh.x() + offsetTabsX;
     if (mesh.width() < minTabWidth)
       tabLabelX += (int32_t)((minTabWidth - mesh.width()) >> 1);
-    mesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, tabLabelX, mesh.y());
+    mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabLabelX, mesh.y());
   }
 
   // tab bar
   std::vector<uint32_t> indices;
   auto vertices = generateTabBarGeometry(barWidth, tabHeight, (barWidth >= 800u) ? 200u : (barWidth >> 2),
                                          tabsColor, barColor, &indices);
-  barMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+  barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                         x, y, barWidth, tabHeight + 3u);
 
   vertices = generateTabBarGeometry(minTabWidth + (paddingX << 1), tabHeight, paddingX, nullptr, activeBarColor, &indices);
   const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh = ControlMesh(*context.renderer, std::move(vertices), indices, context.pixelSizeX, context.pixelSizeY,
+  activeBarMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                               activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), y, barWidth, tabHeight + 3u);
 }
 
@@ -154,12 +157,12 @@ void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t b
     int32_t tabX = ((barWidth - (lastLabel.x() + (int32_t)lastLabel.width() - tabLabelMeshes[0].x())) >> 1) + paddingX;
     for (auto& mesh : tabLabelMeshes) {
       if (mesh.width() >= minTabWidth) {
-        mesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, tabX, tabY);
+        mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
         tabX += mesh.width();
       }
       else {
         tabX += (minTabWidth >> 1);
-        mesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY, tabX, tabY);
+        mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
         tabX += (minTabWidth >> 1);
       }
       tabX += (paddingX << 1);
@@ -172,11 +175,11 @@ void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t b
     const float* barColor = barMesh.relativeVertices()[barMesh.relativeVertices().size() - 2u].color;
     auto vertices = generateTabBarGeometry(barWidth, tabHeight, (barWidth >= 800u) ? 200u : (barWidth >> 2),
                                            tabsColor, barColor, nullptr);
-    barMesh.update(*context.renderer, std::move(vertices), context.pixelSizeX, context.pixelSizeY,
+    barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                    x, y, barWidth, barMesh.height());
 
     const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-    activeBarMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+    activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                        activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), y);
   }
 }
@@ -201,7 +204,7 @@ void TabControl::click(RendererContext& context, int32_t mouseX) {
   selectedIndex = (uint32_t)currentIndex;
 
   const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                      activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
 }
 
@@ -212,7 +215,7 @@ void TabControl::selectPrevious(RendererContext& context) {
     selectedIndex = (uint32_t)tabLabelMeshes.size() - 1u;
 
   const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                      activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
 }
 
@@ -223,7 +226,7 @@ void TabControl::selectNext(RendererContext& context) {
     selectedIndex = 0;
 
   const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                      activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
 }
 
@@ -232,7 +235,7 @@ void TabControl::selectIndex(RendererContext& context, uint32_t index) {
     this->selectedIndex = index;
 
     const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-    activeBarMesh.move(*context.renderer, context.pixelSizeX, context.pixelSizeY,
+    activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                        activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
   }
 }
@@ -249,22 +252,22 @@ void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mo
         hoverIndex = (int32_t)currentIndex;
       }
       else if (currentIndex != selectedIndex)
-        mesh.draw(*context.renderer);
+        mesh.draw(context.renderer());
       ++currentIndex;
     }
   }
   else {
     for (auto& mesh : tabLabelMeshes) {
       if (currentIndex != selectedIndex)
-        mesh.draw(*context.renderer);
+        mesh.draw(context.renderer());
       ++currentIndex;
     }
   }
 
-  context.renderer->bindFragmentUniforms(0, hoverActiveFragmentUniform.handlePtr(), 1);
-  tabLabelMeshes[selectedIndex].draw(*context.renderer);
+  context.renderer().bindFragmentUniforms(0, hoverActiveFragmentUniform.handlePtr(), 1);
+  tabLabelMeshes[selectedIndex].draw(context.renderer());
   if (hoverIndex >= 0 && hoverIndex != (int32_t)selectedIndex)
-    tabLabelMeshes[hoverIndex].draw(*context.renderer);
+    tabLabelMeshes[hoverIndex].draw(context.renderer());
 }
 
 
