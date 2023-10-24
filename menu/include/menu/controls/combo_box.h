@@ -20,6 +20,7 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
+#include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
 #include "menu/controls/combo_box_option.h"
 
@@ -107,25 +108,26 @@ namespace menu {
 
       // -- rendering --
 
-      /// @brief Draw combo-box background/arrow + drop-down background/hover (if open)
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @brief Draw combo-box background/arrow
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      void drawBackground(RendererContext& context);
-      /// @brief Draw combo-box label
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
-      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
-      /// @brief Draw combo-box selected option name + drop-down option names (if open)
-      /// @remarks - Use 'bindGraphicsPipeline' (for control input text) and 'bindFragmentUniforms' (with input text colors) before call.
-      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawOptionNames(RendererContext& context) {
-        selectedNameMesh.draw(context.renderer());
-        if (isListOpen) {
-          const auto* endEntries = &selectableValues[0] + (intptr_t)selectableValues.size();
-          for (auto* entry = &selectableValues[0]; entry < endEntries; ++entry)
-            entry->nameMesh.draw(context.renderer());
-        }
+      inline void drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+        buffers.bindControlBuffer(context.renderer(), isEnabled() ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+                                                                  : ControlBufferType::disabled);
+        controlMesh.draw(context.renderer());
       }
+      /// @brief Draw combo-box drop-down background/hover (if open)
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
+      ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
+      void drawDropdown(RendererContext& context, RendererStateBuffers& buffers);
+      /// @brief Draw combo-box label + selected option name
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
+      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
+      void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
+      /// @brief Draw drop-down option names (if open)
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
+      ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
+      void drawOptions(RendererContext& context, RendererStateBuffers& buffers);
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const float color[4],

@@ -259,14 +259,42 @@ void ComboBox::selectNext(RendererContext& context) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void ComboBox::drawBackground(RendererContext& context) {
+void ComboBox::drawDropdown(RendererContext& context, RendererStateBuffers& buffers) {
   if (isListOpen) {
     if (isEnabled()) {
+      buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
       dropdownMesh.draw(context.renderer());
       if (hoverIndex >= 0) // hover entry background
         dropdownHoverMesh.draw(context.renderer());
     }
     else isListOpen = false;
   }
-  controlMesh.draw(context.renderer());
+}
+
+void ComboBox::drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  LabelBufferType labelBuffer, valueBuffer;
+  if (isEnabled()) {
+    labelBuffer = isActive ? LabelBufferType::active : LabelBufferType::regular;
+    valueBuffer = LabelBufferType::comboBoxValue;
+  }
+  else {
+    labelBuffer = LabelBufferType::disabled;
+    valueBuffer = LabelBufferType::comboBoxValueDisabled;
+  }
+
+  if (labelMesh.width()) {
+    buffers.bindLabelBuffer(context.renderer(), labelBuffer);
+    labelMesh.draw(context.renderer());
+  }
+  buffers.bindLabelBuffer(context.renderer(), valueBuffer);
+  selectedNameMesh.draw(context.renderer());
+}
+
+void ComboBox::drawOptions(RendererContext& context, RendererStateBuffers& buffers) {
+  if (isListOpen) {
+    buffers.bindLabelBuffer(context.renderer(), LabelBufferType::dropdownValue);
+    const auto* endEntries = &selectableValues[0] + (intptr_t)selectableValues.size();
+    for (auto* entry = &selectableValues[0]; entry < endEntries; ++entry)
+      entry->nameMesh.draw(context.renderer());
+  }
 }

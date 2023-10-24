@@ -18,6 +18,7 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/control_mesh.h>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
+#include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
 
 namespace menu {
@@ -77,20 +78,17 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw button background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context) { controlMesh.draw(context.renderer()); }
+      void drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
       /// @brief Draw button icon (if any)
-      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and and 'bindFragmentUniforms' (with on/off info) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawIcon(RendererContext& context) {
-        if (iconMesh.width())
-          iconMesh.draw(context.renderer());
-      }
-      /// @brief Draw button label
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      void drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
+      /// @brief Draw button label (if any)
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
+      void drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,

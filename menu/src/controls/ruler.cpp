@@ -211,12 +211,24 @@ void Ruler::selectNext(RendererContext& context) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void Ruler::drawBackground(RendererContext& context) {
+void Ruler::drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
   if (*boundValue != lastValue) { // bound value changed elsewhere -> refresh display
     lastValue = *boundValue;
     updateThumbPosition(context, lastValue);
   }
+
+  buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
   controlMesh.draw(context.renderer());
   fillerMesh.draw(context.renderer());
   thumbMesh.draw(context.renderer());
+}
+
+void Ruler::drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  if (labelMesh.width() || suffixMesh.width()) {
+    buffers.bindLabelBuffer(context.renderer(), isEnabled()
+                                                ? (isActive ? LabelBufferType::active : LabelBufferType::regular)
+                                                : LabelBufferType::disabled);
+    labelMesh.draw(context.renderer());
+    suffixMesh.draw(context.renderer());
+  }
 }

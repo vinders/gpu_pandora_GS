@@ -16,62 +16,59 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <system/align.h>
 #include "menu/renderer_context.h"
+#include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
 
 namespace menu {
-  /// @brief UI color modifier buffer
-  __align_type(16, // force 16-byte memory alignment
-  struct ColorUniform final {
-    float modifier[4]; // r,g,b,a
-  });
-  /// @brief UI text color buffer
-  __align_type(16, // force 16-byte memory alignment
-  struct TextColorUniform final {
-    float color[4]; // r,g,b,a
-  });
-  /// @brief UI scroll position buffer
-  __align_type(16, // force 16-byte memory alignment
-  struct ScrollUniform final {
-    float offset[4]; // x,y,z,w
-  });
+  class ControlRegistration final {
+  public:
+    template <typename CtrlT>
+    ControlRegistration(CtrlT& control, bool isInScrollableArea) noexcept
+      : target(&control),
+        top(control.y()),
+        bottom(control.y() + (int32_t)control.height())
+        left(control.x()),
+        right(control.x() + (int32_t)control.width()),
+        isScrollable(isInScrollableArea) {}
+    ControlRegistration() noexcept = default;
+    ControlRegistration(const ControlRegistration&) = default;
+    ControlRegistration(ControlRegistration&&) noexcept = default;
+    ControlRegistration& operator=(const ControlRegistration&) = default;
+    ControlRegistration& operator=(ControlRegistration&&) noexcept = default;
+    ~ControlRegistration() noexcept = default;
 
-  struct StateBuffers final { ///< UI state uniform buffers
-    ~StateBuffers() noexcept { clear(); }
+    // -- accessors --
 
-    // vertex slot 0
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> regularControl; ///< neutral vertex color
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> disabledControl;///< color modifier for disabled controls
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> activeControl;  ///< color modifier for active/hover controls
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> activeSpecialControl; ///< color modifier for special active/hover controls
-    // vertex slot 1
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> fixedPosition;  ///< neutral scroll for fixed geometry
-    //fragment slot 0
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> regularIcon;    ///< neutral icon opacity
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> disabledIcon;   ///< disabled icon opacity
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> fieldsetLabel;  ///< fieldset group label text color
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> regularLabel;   ///< neutral label text color
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> activeLabel;    ///< active/hover label text color
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> textInput;      ///< text input color
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> selectedValue;  ///< selected control text value
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> dropdownValue;  ///< drop-down control text option
-
-    void clear() noexcept {
-      regularControl.release();
-      disabledControl.release();
-      activeControl.release();
-      activeSpecialControl.release();
-
-      fixedPosition.release();
-
-      regularIcon.release();
-      disabledIcon.release();
-      fieldsetLabel.release();
-      regularLabel.release();
-      activeLabel.release();
-      textInput.release();
-      selectedValue.release();
-      dropdownValue.release();
+    /// @brief Compare mouse location with control location
+    /// @return * -1 if mouse is located before control (higher or to the left);
+    ///         * 0 if mouse is located on control;
+    ///         * 1 if mouse is located after control (lower or to the right).
+    inline int compareLocation(int32_t mouseX, int32_t mouseY, int32_t scrollY) const noexcept {
+      if (isScrollable)
+        mouseY += scrollY;
+      return (mouseY < top) ? -1 : ( (mouseY >= bottom || mouseX >= right) ? 1 : ( (mouseX < left) ? -1 : 0) );
     }
+    bool isEnabled() const noexcept; ///< Verify if a control can be clicked/hovered/selected
+    
+    // -- operations --
+
+    /// @brief Update control location (on window resize event)
+    /// @warning Open controls must be closed BEFORE calling this
+    template <typename CtrlT>
+    inline void move(CtrlT& control) const noexcept {
+      top = control.y();
+      bottom = control.y() + (int32_t)control.height();
+      left = control.x();
+      right = control.x() + (int32_t)control.width();
+    }
+
+  private:
+    controls::Control* target = nullptr;
+    int32_t top = 0;
+    int32_t bottom = 0;
+    int32_t left = 0;
+    int32_t right = 0;
+    bool isScrollable = false;
   };
 
   // ---
@@ -108,19 +105,19 @@ namespace menu {
     /// @brief Draw page control backgrounds
     /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
     /// @returns Presence of foregrounds to draw (true) or not
-    virtual bool drawBackgrounds(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+    virtual bool drawBackgrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
     /// @brief Draw page control foregrounds (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-    virtual void drawForegrounds(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+    virtual void drawForegrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
     /// @brief Draw page control icons
     /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
-    virtual void drawIcons(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+    virtual void drawIcons(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
     /// @brief Draw page control labels
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    virtual void drawLabels(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+    virtual void drawLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
     /// @brief Draw page control foreground labels (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    virtual void drawForegroundLabels(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
+    virtual void drawForegroundLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) = 0;
 
   protected:
     Page(std::shared_ptr<RendererContext> context, int32_t x, int32_t y,
@@ -130,8 +127,7 @@ namespace menu {
 
   protected:
     /*std::shared_ptr<RendererContext> context;
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
-    video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
+    std::shared_ptr<RendererStateBuffers> buffers;
 
     controls::ScrollBar scrollbarMesh;
     display::controls::ControlMesh lineHoverMesh;

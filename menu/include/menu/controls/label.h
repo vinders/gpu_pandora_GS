@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
 #include "menu/renderer_context.h"
+#include "menu/renderer_state_buffers.h"
 
 namespace menu {
   namespace controls {
@@ -57,13 +58,23 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw label icon (if any)
-      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindFragmentUniforms' (with on/off info) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       ///          - It's recommended to draw all icons using the same pipeline/uniform before using the other draw calls.
-      inline void drawIcon(RendererContext& context) { iconMesh.draw(context.renderer()); }
+      inline void drawIcon(RendererContext& context, RendererStateBuffers& buffers) {
+        if (iconMesh.width()) {
+          buffers.bindIconBuffer(context.renderer(), ControlBufferType::regular);
+          iconMesh.draw(context.renderer());
+        }
+      }
       /// @brief Draw label text
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
+      inline void drawLabel(RendererContext& context, RendererStateBuffers& buffers) {
+        if (labelMesh.width()) {
+          buffers.bindLabelBuffer(context.renderer(), LabelBufferType::regular);
+          labelMesh.draw(context.renderer());
+        }
+      }
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,

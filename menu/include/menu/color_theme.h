@@ -14,60 +14,135 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
-#include "menu/controls/fieldset.h"
+#include <display/video_api.h>
 
 namespace menu {
-  /// @brief UI color theme -- used to customize controls
-  struct ColorTheme final {
-    float baseLabel[4]{ 64.f/255.f,64.f/255.f,64.f/255.f, 1.f };            ///< Regular control label color
-    float baseHoverLabel[4]{ 82.f/255.f,82.f/255.f,82.f/255.f, 1.f };       ///< Regular active/hover control label color
-    float sectionLabel[4]{ 22.f/255.f,22.f/255.f,22.f/255.f, 1.f };         ///< Main section label color
-    float tooltipBackground[4]{ 220.f/255.f,220.f/255.f,220.f/255.f, 1.f };         ///< Tooltip label color
-    float tooltipLabel[4]{ 64.f/255.f,64.f/255.f,64.f/255.f, 1.f };         ///< Tooltip label color
-    float titleLabel[4]{ 22.f/255.f,22.f/255.f,22.f/255.f, 1.f };           ///< Fieldset title label color
-    float hoverArea[4]{ 138.f/255.f,174.f/255.f,208.f/255.f, 0.25f };            ///< Hover/selected line area color
-    
-    // ---
-    
-    float scrollbarControl[4]{ 240.f/255.f,240.f/255.f,240.f/255.f, 1.f };     ///< Scroll-bar background color
-    float scrollbarThumb[4]{ 205.f/255.f,205.f/255.f,205.f/255.f, 1.f };       ///< Scroll-bar thumb color
-    uint32_t scrollbarWidth = 16;
+  enum class ColorThemeType : uint32_t { ///< Menu color theme type
+    lightBlue = 0, ///< light background, blue controls
+    lightGreen,    ///< light background, green controls
+    darkBlue,      ///< dark background, blue controls
+    darkGreen,     ///< dark background, green controls
+    darkYellow     ///< dark background, yellow controls
+  };
+  enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
+    classic = 0, ///< Contour border with a title bar
+    title        ///< Title with underline decoration and vertical line
+  };
 
-    float fieldsetControl[4]{ 213.f/255.f,223.f/255.f,229.f/255.f, 1.f };      ///< Fieldset decoration color
-    float fieldsetText[4]{ 100.f/255.f,103.f/255.f,105.f/255.f, 1.f };         ///< Fieldset text color
-    controls::FieldsetStyle fieldsetStyle = controls::FieldsetStyle::classic;
+  // ---
+
+  /// @brief UI color theme -- used to customize controls
+  class ColorTheme final {
+  public:
+    inline ColorTheme(video_api::Renderer& renderer, ColorThemeType type_) {
+      updateTheme(renderer, type_);
+    }
+    ColorTheme(const ColorTheme&) = default;
+    ColorTheme& operator=(const ColorTheme&) = default;
+    ~ColorTheme() noexcept = default;
+
+    // -- theme selection --
+
+    ColorThemeType themeType() const noexcept { return themeType_; } ///< Current theme type
+    void updateTheme(video_api::Renderer& renderer, ColorThemeType type); ///< Change theme type
+
+    // -- control size accessors --
+
+    constexpr inline uint32_t scrollbarWidth() const noexcept { return 16; }   ///< Total scroll-bar width
+    constexpr inline uint32_t fieldsetPaddingY() const noexcept { return 5; }  ///< Fieldset padding above first and below last item
+    constexpr inline uint32_t fieldsetBottom() const noexcept { return 12; }   ///< Fieldset margin after last item (before next fieldset)
+
+    constexpr inline uint32_t pageLineHeight() const noexcept { return 26; }   ///< Content line height (includes inter-line space)
+    constexpr inline uint32_t pageLabelWidth() const noexcept { return 200; }  ///< Minimum label width (before controls)
+    constexpr inline uint32_t pageControlWidth() const noexcept { return 300; }///< Fixed control/value width
+
+    // -- control color accessors --
+
+    inline const float* disabledControlModifier() const noexcept { return disabledControl; }///< Color modifier for disabled control backgrounds/icons
+    inline const float* activeControlModifier() const noexcept { return activeControl; }    ///< Color modifier for active/hover control backgrounds/icons
+    inline const float* specialControlModifier() const noexcept { return specialControl; }  ///< Color modifier for special-state control backgrounds/icons
+    inline const float* regularLabelColor() const noexcept { return regularLabel; }      ///< Regular control label color
+    inline const float* disabledLabelColor() const noexcept { return disabledLabel; }    ///< Disabled control label color
+    inline const float* activeLabelColor() const noexcept { return activeLabel; }        ///< Active/hover control label color
+
+    inline const float* scrollbarControlColor() const noexcept { return scrollbarControl; } ///< Page scroll-bar background color
+    inline const float* scrollbarThumbColor() const noexcept { return scrollbarThumb; }     ///< Page scroll-bar thumb color
+    inline const float* lineSelectorControlColor() const noexcept{ return lineSelectorControl; }///< Page active/hover line selector background color
+    inline const float* tooltipControlColor() const noexcept { return tooltipControl; }  ///< Page tooltip background color
+    inline const float* tooltipLabelColor() const noexcept { return tooltipLabel; }      ///< Page tooltip label color
+    inline const float* titleLabelColor() const noexcept { return titleLabel; }          ///< Page title label color
+    inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
+    inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
+    inline FieldsetStyle fieldsetStyle() const noexcept{ return fieldsetType; }///< Fieldset visual style
+
+    inline const float* tabControlColor() const noexcept { return tabControl; }          ///< Tab-control tab background color
+    inline const float* tabLineColor() const noexcept { return tabLine; }                ///< Tab-control bar color
+    inline const float* tabActiveLineColor() const noexcept { return tabActiveLine; }    ///< Tab-control bar active area color
+    inline const float* tabLabelColor() const noexcept { return tabLabel; }              ///< Tab-control tab text color
+    inline const float* tabActiveLabelColor() const noexcept { return tabActiveLabel; }  ///< Tab-control active/hover tab text color
+    inline const float* verticalTabControlColor() const noexcept { return verticalTabControl; }///< Vertical tab bar color
+    inline const float* verticalTabBorderColor() const noexcept { return verticalTabBorder; }  ///< Vertical tab border color
+    inline const float* verticalTabLabelColor() const noexcept { return verticalTabLabel; }    ///< Vertical tab text color
+    inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; }///< Vertical active/hover tab text color
+
+    inline const float* buttonControlColor() const noexcept { return buttonControl; }    ///< Regular button background color
+    inline const float* buttonLabelColor() const noexcept { return buttonLabel; }        ///< Regular button text color
+    inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
+    inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
+    inline const float* comboBoxControlColor() const noexcept { return comboBoxControl; }///< Combo-box control background color
+    inline const float* comboBoxDropdownColor() const noexcept { return comboBoxDropdown; }///< Combo-box drop-down background color
+    inline const float* comboBoxLabelColor() const noexcept { return comboBoxLabel; }    ///< Combo-box control text color
+    inline const float* comboBoxDropdownLabelColor() const noexcept{ return comboBoxDropdownLabel; }///< Combo-box drop-down text color
+    inline const float* rulerControlColor() const noexcept { return rulerControl; }      ///< Sliding-ruler background color
+    inline const float* rulerBorderColor() const noexcept { return rulerBorder; }        ///< Sliding-ruler border color
+    inline const float* rulerThumbColor() const noexcept { return rulerThumb; }          ///< Sliding-ruler thumb color
+    inline const float* rulerFillerColor() const noexcept { return rulerFiller; }        ///< Sliding-ruler filler color
+    inline const float* sliderArrowColor() const noexcept { return sliderArrow; }        ///< Slider-box arrow color
+    inline const float* sliderLabelColor() const noexcept { return sliderLabel; }        ///< Slider-box text color
+
+  private:
+    float disabledControl[4];
+    float activeControl[4];
+    float specialControl[4];
+    float regularLabel[4];
+    float disabledLabel[4];
+    float activeLabel[4];
+
+    float scrollbarControl[4];
+    float scrollbarThumb[4];
+    float lineSelectorControl[4];
+    float tooltipControl[4];
+    float tooltipLabel[4];
+    float titleLabel[4];
+    float fieldsetControl[4];
+    float fieldsetLabel[4];
+
+    float tabControl[4];
+    float tabLine[4];
+    float tabActiveLine[4];
+    float tabLabel[4];
+    float tabActiveLabel[4];
+    float verticalTabControl[4];
+    float verticalTabBorder[4];
+    float verticalTabLabel[4];
+    float verticalTabActiveLabel[4];
+
+    float buttonControl[4];
+    float buttonLabel[4];
+    float textBoxControl[4];
+    float textBoxLabel[4];
+    float comboBoxControl[4];
+    float comboBoxDropdown[4];
+    float comboBoxLabel[4];
+    float comboBoxDropdownLabel[4];
+    float rulerControl[4];
+    float rulerBorder[4];
+    float rulerThumb[4];
+    float rulerFiller[4];
+    float sliderArrow[4];
+    float sliderLabel[4];
     
-    float textBoxControl[4]{ 240.f/255.f,240.f/255.f,240.f/255.f, 1.f };       ///< Text-box background color
-    float textBoxText[4]{ 112.f/255.f,112.f/255.f,112.f/255.f, 1.f };          ///< Text-box text color
-    
-    float buttonControl[4]{ 138.f/255.f,174.f/255.f,208.f/255.f, 1.f };        ///< Regular button background color
-    float buttonText[4]{ 67.f/255.f,82.f/255.f,97.f/255.f, 1.f };           ///< Regular button text color
-    float specialButtonControl[4]{ 74.f/255.f,120.f/255.f,166.f/255.f, 1.f }; ///< Special button background color
-    float specialButtonText[4]{ 63.f/255.f,81.f/255.f,98.f/255.f, 1.f };    ///< Special button text color
-    
-    float comboBoxControl[4]{ 138.f/255.f,174.f/255.f,208.f/255.f, 1.f };      ///< Combo-box control background color
-    float comboBoxDropdown[4]{ 233.f/255.f,239.f/255.f,244.f/255.f, 1.f };     ///< Combo-box drop-down background color
-    float comboBoxText[4]{ 67.f/255.f,82.f/255.f,97.f/255.f, 1.f };         ///< Combo-box control text color
-    float comboBoxDropdownText[4]{ 88.f/255.f,100.f/255.f,116.f/255.f, 1.f }; ///< Combo-box drop-down text color
-    
-    float rulerControl[4]{ 138.f/255.f,174.f/255.f,208.f/255.f, 1.f };         ///< Sliding-ruler background color
-    float rulerBorder[4]{ 88.f/255.f,100.f/255.f,116.f/255.f, 1.f };          ///< Sliding-ruler border color
-    float rulerThumb[4]{ 63.f/255.f,81.f/255.f,98.f/255.f, 1.f };           ///< Sliding-ruler thumb color
-    
-    float sliderArrows[4]{ 74.f/255.f,120.f/255.f,166.f/255.f, 1.f };         ///< Slider-box arrow color
-    float sliderText[4]{ 67.f/255.f,82.f/255.f,97.f/255.f, 1.f };           ///< Slider-box text color
-    
-    // ---
-    
-    float tabControlTabs[4];       ///< Tab-control tab background color
-    float tabControlBar[4];        ///< Tab-control bar color
-    float tabControlActiveBar[4];  ///< Tab-control bar active area color
-    float tabControlText[4];       ///< Tab-control tab text color
-    float tabControlActiveText[4]; ///< Tab-control active/hover tab text color
-    
-    float verticalTabBar[4];       ///< Vertical tab-control bar color
-    float verticalTabBorder[4];    ///< Vertical tab-control border color
-    float verticalTabText[4];      ///< Vertical tab-control tab text color
-    float verticalTabActiveText[4];///< Vertical tab-control active/hover tab text color
+    FieldsetStyle fieldsetType = FieldsetStyle::classic;
+    ColorThemeType themeType_ = (ColorThemeType)-1;
   };
 }

@@ -46,11 +46,19 @@ void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const 
   fillControlVertex(*(++outVertexIt), rgba, x2, y2);
 }
 
-void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
+void GeometryGenerator::fillHorizontalRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
                                               float x1, float x2, float y1, float y2) {
   fillControlVertex(*outVertexIt,     rgba1, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba2, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba1, x1, y2);
+  fillControlVertex(*(++outVertexIt), rgba2, x2, y2);
+}
+
+void GeometryGenerator::fillVerticalRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
+  float x1, float x2, float y1, float y2) {
+  fillControlVertex(*outVertexIt,     rgba1, x1, y1);
+  fillControlVertex(*(++outVertexIt), rgba1, x2, y1);
+  fillControlVertex(*(++outVertexIt), rgba2, x1, y2);
   fillControlVertex(*(++outVertexIt), rgba2, x2, y2);
 }
 
@@ -162,6 +170,20 @@ void GeometryGenerator::fillDoubleCutBorderVertices(ControlVertex* outVertexIt, 
   outVertexIt += 4;
   GeometryGenerator::fillObliqueRectangleVertices(outVertexIt, rgba, // corner right
                                                   x2-cornerSize, x2, y2+1.f, y2, cornerSize);
+}
+
+// ---
+
+void GeometryGenerator::fillCornerCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
+                                                       float x1, float x2, float y1, float y2, float cornerSize) {
+  fillControlVertex(*outVertexIt,     rgba, x1 + cornerSize, y1);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - cornerSize, y1);
+  fillControlVertex(*(++outVertexIt), rgba, x1,              y1 - cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba, x2,              y1 - cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba, x1,              y2 + cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba, x2,              y2 + cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba, x1 + cornerSize, y2);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - cornerSize, y2);
 }
 
 

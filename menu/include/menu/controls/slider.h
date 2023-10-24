@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
+#include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
 #include "menu/controls/combo_box_option.h"
 
@@ -90,21 +91,13 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw slider background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      /// @returns True if 'hoverPressedVertexUniform' has been bound (if mouse hover on special part)
-      bool drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& regularVertexUniform,
-                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform,
-                          video_api::Buffer<video_api::ResourceUsage::staticGpu>& disabledVertexUniform);
+      void drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
       /// @brief Draw slider label + selected option name
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabels(RendererContext& context) {
-        labelMesh.draw(context.renderer());
-        if (selectedIndex >= 0)
-          selectableValues[selectedIndex].nameMesh.draw(context.renderer());
-      }
+      void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,

@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 #include <unordered_map>
 #include <hardware/display_monitor.h>
 #include "menu/color_theme.h"
+#include "menu/renderer_state_buffers.h"
 #include "menu/page.h"
 #include "menu/controls/button.h"
 #include "menu/controls/check_box.h"
@@ -27,6 +28,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/scroll_bar.h"
 #include "menu/controls/slider.h"
 #include "menu/controls/text_box.h"
+#include "menu/controls/tooltip.h"
 
 namespace menu {
   class GeneralSettingsPage final : public Page {
@@ -70,19 +72,19 @@ namespace menu {
     /// @brief Draw page control backgrounds
     /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
     /// @returns Presence of foregrounds to draw (true) or not
-    bool drawBackgrounds(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    bool drawBackgrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
     /// @brief Draw page control foregrounds (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-    void drawForegrounds(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawForegrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
     /// @brief Draw page control icons
     /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
-    void drawIcons(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawIcons(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
     /// @brief Draw page control labels
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    void drawLabels(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
     /// @brief Draw page control foreground labels (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    void drawForegroundLabels(StateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawForegroundLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
 
   private:
     void onScroll(uint32_t visibleTopY);
@@ -93,8 +95,8 @@ namespace menu {
 
   private:
     std::shared_ptr<RendererContext> context;
-    video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
-    video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
+    //video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
+    //video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
     int32_t x = 0;
     uint32_t width = 0;
     uint32_t scroll = 0;
@@ -103,9 +105,8 @@ namespace menu {
 
     // page decoration
     controls::ScrollBar scrollbar;
+    controls::Tooltip tooltip;
     display::controls::TextMesh title;
-    display::controls::ControlMesh tooltipBar;
-    display::controls::TextMesh tooltip;
     display::controls::ControlMesh lineHoverArea;
 
     // display mode

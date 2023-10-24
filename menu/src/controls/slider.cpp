@@ -131,49 +131,31 @@ void Slider::selectNext() {
 
 // -- rendering -- -------------------------------------------------------------
 
-bool Slider::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                            Buffer<ResourceUsage::staticGpu>& regularVertexUniform,
-                            Buffer<ResourceUsage::staticGpu>& hoverPressedVertexUniform,
-                            Buffer<ResourceUsage::staticGpu>& disabledVertexUniform) {
-  if (isEnabled() && mouseY >= arrowLeftMesh.y() && mouseY < arrowLeftMesh.y() + (int32_t)arrowLeftMesh.height()) { // hover
-    if (selectedIndex > 0 && mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width()) {
-      if (selectedIndex + 1 == (int32_t)selectableValues.size())
-        context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-      arrowRightMesh.draw(context.renderer());
+void Slider::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
+  ControlBufferType leftBuffer = ControlBufferType::disabled;
+  ControlBufferType rightBuffer = ControlBufferType::disabled;
+  if (isEnabled()) {
+    bool isLineHover = (mouseY >= arrowLeftMesh.y() && mouseY < arrowLeftMesh.y() + (int32_t)arrowLeftMesh.height());
 
-      context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-      arrowLeftMesh.draw(context.renderer());
-      return true;
-    }
-    else if (selectedIndex + 1 < (int32_t)selectableValues.size()
-          && mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width()) {
-      if (selectedIndex == 0)
-        context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-      arrowLeftMesh.draw(context.renderer());
-
-      context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-      arrowRightMesh.draw(context.renderer());
-      return true;
-    }
+    if (selectedIndex > 0)
+      leftBuffer = (isLineHover && mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width())
+                 ? ControlBufferType::active : ControlBufferType::regular;
+    if (selectedIndex + 1 < (int32_t)selectableValues.size())
+      rightBuffer = (isLineHover && mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width())
+                  ? ControlBufferType::active : ControlBufferType::regular;
   }
 
-  bool isBufferBound = false;
-  if (selectedIndex == 0) {
-    context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-    isBufferBound = true;
-  }
+  buffers.bindControlBuffer(context.renderer(), leftBuffer);
   arrowLeftMesh.draw(context.renderer());
-
-  if (selectedIndex + 1 == (int32_t)selectableValues.size()) {
-    if (!isBufferBound) {
-      context.renderer().bindVertexUniforms(0, disabledVertexUniform.handlePtr(), 1);
-      isBufferBound = true;
-    }
-  }
-  else if (isBufferBound) {
-    context.renderer().bindVertexUniforms(0, regularVertexUniform.handlePtr(), 1);
-    isBufferBound = false;
-  }
+  buffers.bindControlBuffer(context.renderer(), rightBuffer);
   arrowRightMesh.draw(context.renderer());
-  return isBufferBound;
+}
+
+void Slider::drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  buffers.bindLabelBuffer(context.renderer(), isEnabled()
+                                              ? (isActive ? LabelBufferType::active : LabelBufferType::regular)
+                                              : LabelBufferType::disabled);
+  labelMesh.draw(context.renderer());
+  if (selectedIndex >= 0)
+    selectableValues[selectedIndex].nameMesh.draw(context.renderer());
 }

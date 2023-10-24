@@ -41,7 +41,7 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
   // create label
   const int32_t labelX = x + (int32_t)style.paddingX + (int32_t)iconWidthWithMargin;
   labelMesh = TextMesh(context.renderer(), context.getFont(style.fontType), label,
-                       context.pixelSizeX(), context.pixelSizeY(), labelX, labelY);
+                       context.pixelSizeX(), context.pixelSizeY(), labelX, labelY, TextAlignment::left);
 
   // compute control size (based on label)
   uint32_t width = (style.paddingX << 1) + labelMesh.width() + iconWidthWithMargin;
@@ -65,8 +65,7 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
   else // no borders
     indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5 };
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(),
-                            context.pixelSizeY(), labelMesh.x() - style.paddingX - iconWidthWithMargin,
-                            labelY - (int32_t)style.paddingY - 1, width, height);
+                            context.pixelSizeY(), x, labelY - (int32_t)style.paddingY - 1, width, height);
 
   // create icon (optional)
   if (iconData.texture() != nullptr) {
@@ -94,5 +93,30 @@ void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;
     const int32_t iconY = controlMesh.y() + ((int32_t)controlMesh.height() - (int32_t)iconMesh.height())/2;
     iconMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), iconX, iconY);
+  }
+}
+
+
+// -- rendering -- -------------------------------------------------------------
+
+void Button::drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  buffers.bindControlBuffer(context.renderer(), isEnabled() ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+                                                            : ControlBufferType::disabled);
+  controlMesh.draw(context.renderer());
+}
+
+void Button::drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  if (iconMesh.width()) {
+    buffers.bindIconBuffer(context.renderer(), isEnabled() ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+                                                            : ControlBufferType::disabled);
+    iconMesh.draw(context.renderer());
+  }
+}
+
+void Button::drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  if (labelMesh.width()) {
+    buffers.bindLabelBuffer(context.renderer(), isEnabled() ? (isActive ? LabelBufferType::buttonActive : LabelBufferType::button)
+                                                            : LabelBufferType::buttonDisabled);
+    labelMesh.draw(context.renderer());
   }
 }

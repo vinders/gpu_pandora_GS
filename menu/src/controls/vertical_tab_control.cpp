@@ -20,8 +20,6 @@ using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
 
-ControlType VerticalTabControl::Type() const noexcept { return ControlType::verticalTabControl; }
-
 
 // -- init/resize geometry -- --------------------------------------------------
 
@@ -181,9 +179,10 @@ void VerticalTabControl::selectIndex(RendererContext& context, uint32_t index) {
 // -- rendering -- -------------------------------------------------------------
 
 void VerticalTabControl::drawIcons(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                                   Buffer<ResourceUsage::staticGpu>& hoverActiveFragmentUniform) {
+                                   RendererStateBuffers& buffers) {
   uint32_t currentIndex = 0;
   int32_t hoverIndex = -1;
+  buffers.bindIconBuffer(context.renderer(), ControlBufferType::regular);
   if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.height()) {
     for (auto& mesh : tabMeshes) {
       if (mouseY >= mesh.y && mouseY < mesh.y + (int32_t)mesh.height) {
@@ -202,16 +201,17 @@ void VerticalTabControl::drawIcons(RendererContext& context, int32_t mouseX, int
     }
   }
 
-  context.renderer().bindFragmentUniforms(0, hoverActiveFragmentUniform.handlePtr(), 1);
+  buffers.bindIconBuffer(context.renderer(), ControlBufferType::active);
   tabMeshes[selectedIndex].iconMesh.draw(context.renderer());
   if (hoverIndex >= 0 && hoverIndex != (int32_t)selectedIndex)
     tabMeshes[hoverIndex].iconMesh.draw(context.renderer());
 }
 
 void VerticalTabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                                    Buffer<ResourceUsage::staticGpu>& hoverActiveFragmentUniform) {
+                                    RendererStateBuffers& buffers) {
   uint32_t currentIndex = 0;
   int32_t hoverIndex = -1;
+  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::verticalTab);
   if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.height()) {
     for (auto& mesh : tabMeshes) {
       if (mouseY >= mesh.y && mouseY < mesh.y + (int32_t)mesh.height) {
@@ -230,7 +230,7 @@ void VerticalTabControl::drawLabels(RendererContext& context, int32_t mouseX, in
     }
   }
 
-  context.renderer().bindFragmentUniforms(0, hoverActiveFragmentUniform.handlePtr(), 1);
+  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::verticalTabActive);
   tabMeshes[selectedIndex].nameMesh.draw(context.renderer());
   if (hoverIndex >= 0 && hoverIndex != (int32_t)selectedIndex)
     tabMeshes[hoverIndex].nameMesh.draw(context.renderer());

@@ -58,3 +58,25 @@ void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   checkedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
   uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
 }
+
+
+// -- rendering -- -------------------------------------------------------------
+
+void CheckBox::drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  buffers.bindIconBuffer(context.renderer(), isEnabled()
+                                             ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+                                             : ControlBufferType::disabled);
+  if (*boundValue)
+    checkedMesh.draw(context.renderer());
+  else
+    uncheckedMesh.draw(context.renderer());
+}
+
+void CheckBox::drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  if (labelMesh.width()) {
+    buffers.bindLabelBuffer(context.renderer(), isEnabled()
+                                                ? (isActive ? LabelBufferType::active : LabelBufferType::regular)
+                                                : LabelBufferType::disabled);
+    labelMesh.draw(context.renderer());
+  }
+}

@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include "menu/renderer_context.h"
+#include "menu/renderer_state_buffers.h"
 
 namespace menu {
   namespace controls {
@@ -98,9 +99,7 @@ namespace menu {
 
       /// @brief Draw scroll-bar background
       /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      /// @returns True if 'hoverPressedVertexUniform' has been bound (if mouse hover on special part)
-      bool drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                       video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverPressedVertexUniform);
+      void drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
 
     private:
       void init(RendererContext& context, const float barColor[4], const float thumbColor[4],

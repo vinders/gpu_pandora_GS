@@ -149,40 +149,28 @@ void ScrollBar::click(RendererContext& context, int32_t mouseY, bool isMouseDown
 
 // -- rendering -- -------------------------------------------------------------
 
-bool ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                            Buffer<ResourceUsage::staticGpu>& hoverPressedVertexUniform) {
+void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
   if (isEnabled()) {
+    buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
     backMesh.draw(context.renderer());
 
+    ControlBufferType upBuffer = ControlBufferType::regular;
+    ControlBufferType downBuffer = ControlBufferType::regular;
+    ControlBufferType thumbBuffer = ControlBufferType::regular;
     if (isHover(mouseX, mouseY)) {
-      if (mouseY < thumbAreaY) { // UP hover/pressed
-        thumbMesh.draw(context.renderer());
-        downMesh.draw(context.renderer());
-        
-        context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-        upMesh.draw(context.renderer());
-        return true;
-      }
-      else if (mouseY >= downMesh.y()) { // DOWN hover/pressed
-        thumbMesh.draw(context.renderer());
-        upMesh.draw(context.renderer());
-        
-        context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-        downMesh.draw(context.renderer());
-        return true;
-      }
-      else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) { // thumb hover/pressed
-        upMesh.draw(context.renderer());
-        downMesh.draw(context.renderer());
-
-        context.renderer().bindVertexUniforms(0, hoverPressedVertexUniform.handlePtr(), 1);
-        thumbMesh.draw(context.renderer());
-        return true;
-      }
+      if (mouseY < thumbAreaY) // UP hover/pressed
+        upBuffer = ControlBufferType::special;
+      else if (mouseY >= downMesh.y()) // DOWN hover/pressed
+        downBuffer = ControlBufferType::special;
+      else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) // thumb hover/pressed
+        thumbBuffer = ControlBufferType::special;
     }
-    thumbMesh.draw(context.renderer());
+
+    buffers.bindControlBuffer(context.renderer(), upBuffer);
     upMesh.draw(context.renderer());
+    buffers.bindControlBuffer(context.renderer(), downBuffer);
     downMesh.draw(context.renderer());
+    buffers.bindControlBuffer(context.renderer(), thumbBuffer);
+    thumbMesh.draw(context.renderer());
   }
-  return false;
 }

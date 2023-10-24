@@ -25,9 +25,7 @@ namespace menu {
       comboBox, ///< Combo-box dropdown selector (with optional label)
       textBox,  ///< Text edit box (with optional label and suffix)
       ruler,    ///< Sliding ruler (with optional label)
-      slider,   ///< Left/right slider selector (with optional label)
-      tabControl,        ///< Standard horizontal tab control
-      verticalTabControl ///< Vertical tab control with icons
+      slider    ///< Left/right slider selector (with optional label)
     };
 
     /// @brief Selectable menu control -- interface

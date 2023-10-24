@@ -208,7 +208,7 @@ void TextBox::click(RendererContext& context, int32_t mouseX) {
     if (!isCaretMoved) // caret at the end
       caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
   }
-  else isEditing = false;
+  else close();
 }
 
 // ---
@@ -267,18 +267,43 @@ void TextBox::removeChar(RendererContext& context) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void TextBox::drawBackground(RendererContext& context) {
-  controlMesh.draw(context.renderer());
-  if (isEditing) {
-    if (isEnabled()) {
+void TextBox::drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
+  if (isEnabled()) {
+    buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
+    controlMesh.draw(context.renderer());
+
+    if (isEditing) {
       if (++caretDrawCount < 30u) // display during 30 frames
         caretMesh.draw(context.renderer());
       else if (caretDrawCount >= 60u) // hide during 30 frames, then reset counter
         caretDrawCount = 0;
     }
-    else
-      isEditing = false;
   }
+  else {
+    buffers.bindControlBuffer(context.renderer(), ControlBufferType::disabled);
+    controlMesh.draw(context.renderer());
+  }
+}
+
+void TextBox::drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
+  LabelBufferType labelBuffer, inputBuffer;
+  if (isEnabled()) {
+    labelBuffer = isActive ? LabelBufferType::active : LabelBufferType::regular;
+    inputBuffer = LabelBufferType::textInput;
+  }
+  else {
+    labelBuffer = LabelBufferType::disabled;
+    inputBuffer = LabelBufferType::textInputDisabled;
+  }
+
+  if (labelMesh.width()) {
+    buffers.bindLabelBuffer(context.renderer(), labelBuffer);
+    labelMesh.draw(context.renderer());
+  }
+
+  buffers.bindLabelBuffer(context.renderer(), inputBuffer);
+  inputMesh.draw(context.renderer());
+  suffixMesh.draw(context.renderer());
 }
 
 

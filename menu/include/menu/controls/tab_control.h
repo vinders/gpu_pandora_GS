@@ -18,12 +18,13 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/controls/control.h"
+#include "menu/renderer_context.h"
+#include "menu/renderer_state_buffers.h"
 
 namespace menu {
   namespace controls {
     /// @brief UI tab management control
-    class TabControl final : public Control {
+    class TabControl final {
     public:
       /// @brief Create tab management control
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
@@ -51,7 +52,6 @@ namespace menu {
         activeBarMesh.release();
         tabLabelMeshes.clear();
       }
-      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -77,18 +77,17 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw tab bar background
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context) {
+      inline void drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
+        buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
         barMesh.draw(context.renderer());
         activeBarMesh.draw(context.renderer());
       }
       /// @brief Draw tab labels
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      /// @warning 'hoverPressedVertexUniform' will always be bound (at least for active tab + optionally for hover)
-      void drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY,
-                      video_api::Buffer<video_api::ResourceUsage::staticGpu>& hoverActiveFragmentUniform);
+      void drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
 
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],

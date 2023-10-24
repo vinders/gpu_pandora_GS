@@ -16,15 +16,12 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
+#include "menu/color_theme.h"
 #include "menu/renderer_context.h"
+#include "menu/renderer_state_buffers.h"
 
 namespace menu {
   namespace controls {
-    enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
-      classic = 0, ///< Contour border with a title bar
-      title        ///< Title with underline decoration and vertical line
-    };
-    
     /// @brief UI fieldset grouping control
     class Fieldset final {
     public:
@@ -60,13 +57,19 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw fieldset decoration control
-      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context) { controlMesh.draw(context.renderer()); }
+      inline void drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
+        buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
+        controlMesh.draw(context.renderer());
+      }
       /// @brief Draw fieldset text
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabel(RendererContext& context) { labelMesh.draw(context.renderer()); }
+      inline void drawLabel(RendererContext& context, RendererStateBuffers& buffers) {
+        buffers.bindLabelBuffer(context.renderer(), LabelBufferType::fieldset);
+        labelMesh.draw(context.renderer());
+      }
 
     private:
       display::controls::ControlMesh controlMesh;

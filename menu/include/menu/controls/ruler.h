@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
+#include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
 
 namespace menu {
@@ -53,6 +54,7 @@ namespace menu {
 
       inline void release() noexcept {
         controlMesh.release();
+        fillerMesh.release();
         thumbMesh.release();
         labelMesh.release();
         suffixMesh.release();
@@ -101,16 +103,13 @@ namespace menu {
       // -- rendering --
 
       /// @brief Draw ruler background + thumb
-      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) and 'bindVertexUniforms' (with color modifier) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      void drawBackground(RendererContext& context);
+      void drawBackground(RendererContext& context, RendererStateBuffers& buffers);
       /// @brief Draw ruler label + suffix
-      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) and 'bindFragmentUniforms' (with label colors) before call.
+      /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
-      inline void drawLabels(RendererContext& context) {
-        labelMesh.draw(context.renderer());
-        suffixMesh.draw(context.renderer());
-      }
+      void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
