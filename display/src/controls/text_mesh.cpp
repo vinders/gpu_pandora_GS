@@ -65,10 +65,12 @@ TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
       vertex.position[0] -= vertexOffsetX;
   }
   
-  vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  vertices.size()*sizeof(TextVertex), vertices.data());
-  indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                 indices.size()*sizeof(uint32_t), indices.data());
+  if (!vertices.empty()) {
+    vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
+                                                    vertices.size()*sizeof(TextVertex), vertices.data());
+    indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
+                                                   indices.size()*sizeof(uint32_t), indices.data());
+  }
 }
 
 void TextMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x, int32_t y) {
@@ -269,11 +271,18 @@ void TextMesh::removeAt(video_api::Renderer& renderer, const float pxSizeX, uint
     vertices.erase(vertices.begin() + vertexIndex, vertices.begin() + vertexIndex + 4);
     indices.resize(indices.size() - (size_t)6);
 
-    indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                   indices.size()*sizeof(uint32_t), indices.data());
+    if (!indices.empty())
+      indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
+                                                     indices.size()*sizeof(uint32_t), indices.data());
   }
-  vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  vertices.size()*sizeof(TextVertex), vertices.data());
+  if (!vertices.empty()) {
+    vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
+                                                    vertices.size()*sizeof(TextVertex), vertices.data());
+  }
+  else {
+    vertexBuffer.release();
+    indexBuffer.release();
+  }
   glyphs.erase(glyph);
 }
 

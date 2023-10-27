@@ -205,8 +205,8 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   title = TextMesh(context->renderer(), context->getFont(FontType::titles), U"General settings",
                    context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
   const uint32_t tooltipAreaWidth = scrollbar.isEnabled() ? (width - scrollbar.width()) : width;
-  tooltip = Tooltip(*context, U"-", FontType::inputText, LabelBufferType::regular, x, y + (int32_t)height - 32, tooltipAreaWidth, 32,
-                    fieldsetPaddingX, theme.tooltipControlColor(), ControlIconType::none);
+  tooltip = Tooltip(*context, U" ", FontType::inputText, LabelBufferType::regular, x, y + (int32_t)height - 32, tooltipAreaWidth, 32,
+                    theme.scrollbarWidth(), theme.tooltipControlColor(), ControlIconType::none);
   
   scroll = 0;
   //ScrollUniform scrollLocation{ { 0.f, 0.f, 0.f, 0.f } };
@@ -310,7 +310,11 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   textBoxStyle.minLabelWidth = LABEL_WIDTH;
   textBoxStyle.paddingX = 10;
   fixedFramerate = TextBox(*context, U"Custom frame rate", U"fps", leftX, currentLineY, textBoxStyle, 80u,
-                           0, [](uint32_t){}, fixedRateValue, 6u, &isFixedFramerate);
+                           0, [this](uint32_t id) {
+                                if (this->fixedFramerate.valueNumber() == 0.0)
+                                  this->fixedFramerate.replaceValueNumber(*(this->context), 59.94);
+                              },
+                           fixedRateValue, 6u, &isFixedFramerate);
   currentLineY += LINE_HEIGHT;
 
   isFrameSkipping = false;
@@ -836,9 +840,9 @@ void GeneralSettingsPage::onChange(uint32_t id, ComboValue value) {
     case FULLSCREEN_RATE_ID:
       break;
     case WINDOW_SIZE_ID: {
-      if (value < 240) {
-        value = 240;
-        windowHeight.replaceValueInteger(*context, 240u);
+      if (value < 480) {
+        value = value ? 480 : 720;
+        windowHeight.replaceValueInteger(*context, (uint32_t)value);
       }
       char32_t windowWidthBuffer[14];
       memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
@@ -875,7 +879,7 @@ void GeneralSettingsPage::onHover(int32_t lineMiddleY, uint32_t controlWidth, co
     }
 
     // replace tooltip content
-    tooltip.updateLabel(*context, tooltipValue ? tooltipValue : U"-", LabelBufferType::regular);
+    tooltip.updateLabel(*context, tooltipValue ? tooltipValue : U" ", LabelBufferType::regular);
   }
 }
 
