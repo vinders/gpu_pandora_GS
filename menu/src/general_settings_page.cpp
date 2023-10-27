@@ -178,7 +178,7 @@ static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4
 #define FIELDSET_FIRST_Y 5
 #define FIELDSETS_MARGIN 12
 #define LABEL_WIDTH      200
-#define VALUE_WIDTH      300
+#define VALUE_WIDTH      260
 
 #define DISPLAY_MODE_ID      1
 #define FULLSCREEN_SIZE_ID   2
@@ -247,7 +247,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   uint32_t selectedFullSize = ListFullscreenResolutions(monitor, fullscreenSizeOptions, fullscreenRatesPerSize);
 
   ControlStyle comboStyle(theme.comboBoxControlColor(), LABEL_WIDTH, 10, 7);
-  const uint32_t fullscreenSizeWidth = VALUE_WIDTH - 113;
+  const uint32_t fullscreenSizeWidth = VALUE_WIDTH - 108;
   fullscreenSize = ComboBox(*context, U"Fullscreen resolution", leftX, currentLineY, comboStyle, fullscreenSizeWidth,
                             theme.comboBoxDropdownColor(), FULLSCREEN_SIZE_ID, changeHandler,
                             fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedFullSize, &isFullscreenMode);
@@ -255,20 +255,20 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   std::vector<ComboBoxOption> fullscreenRateOptions;
   uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[fullscreenSizeOptions[selectedFullSize].value], 60000, fullscreenRateOptions);
   comboStyle.minLabelWidth = 0;
-  fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + 3, currentLineY, comboStyle, 110,
+  fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + 3, currentLineY, comboStyle, 105,
                             theme.comboBoxDropdownColor(), FULLSCREEN_RATE_ID, changeHandler,
                             fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
   currentLineY += LINE_HEIGHT;
 
   // window mode size
   uint32_t windowHeightValue = 720u;
-  ControlStyle textBoxStyle(theme.textBoxControlColor(), LABEL_WIDTH + (fullscreenSizeWidth >> 1), 10, 6);
-  windowHeight = TextBox(*context, U"Window size", nullptr, leftX, currentLineY, textBoxStyle, (fullscreenSizeWidth >> 1),
+  ControlStyle textBoxStyle(theme.textBoxControlColor(), LABEL_WIDTH + 11 + ((fullscreenSizeWidth+1) >> 1), 10, 6);
+  windowHeight = TextBox(*context, U"Window size", nullptr, leftX, currentLineY, textBoxStyle, (fullscreenSizeWidth >> 1) - 11,
                          WINDOW_SIZE_ID, [this](uint32_t id){ this->onChange(id, windowHeight.valueInteger()); },
                          windowHeightValue, 4u, &isWindowMode);
 
   char32_t windowWidthBuffer[14];
-  memcpy(windowWidthBuffer, U"            x", 14*sizeof(char32_t));
+  memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
   FormatInteger(GetWindowWidth(windowHeightValue, enableWidescreenMode), windowWidthBuffer);
   auto& inputFont = context->getFont(FontType::inputText);
   windowSize = TextMesh(context->renderer(), inputFont, windowWidthBuffer,
@@ -308,6 +308,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
 
   double fixedRateValue = 59.94;
   textBoxStyle.minLabelWidth = LABEL_WIDTH;
+  textBoxStyle.paddingX = 10;
   fixedFramerate = TextBox(*context, U"Custom frame rate", U"fps", leftX, currentLineY, textBoxStyle, 80u,
                            0, [](uint32_t){}, fixedRateValue, 6u, &isFixedFramerate);
   currentLineY += LINE_HEIGHT;
@@ -480,7 +481,7 @@ void GeneralSettingsPage::mouseDown(int32_t mouseX, int32_t mouseY) {
       widescreenMode.click();
 
       char32_t windowWidthBuffer[14];
-      memcpy(windowWidthBuffer, U"            x", 14*sizeof(char32_t));
+      memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
       FormatInteger(GetWindowWidth(windowHeight.valueInteger(), enableWidescreenMode), windowWidthBuffer);
       windowSize = TextMesh(context->renderer(), context->getFont(FontType::inputText), windowWidthBuffer,
                             context->pixelSizeX(), context->pixelSizeY(), windowHeight.controlX() - 8, windowSize.y(), TextAlignment::right);
@@ -836,7 +837,7 @@ void GeneralSettingsPage::onChange(uint32_t id, ComboValue value) {
       break;
     case WINDOW_SIZE_ID: {
       char32_t windowWidthBuffer[14];
-      memcpy(windowWidthBuffer, U"            x", 14*sizeof(char32_t));
+      memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
       FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
       windowSize = TextMesh(context->renderer(), context->getFont(FontType::inputText), windowWidthBuffer,
                             context->pixelSizeX(), context->pixelSizeY(), windowHeight.controlX() - 8, windowSize.y(), TextAlignment::right);

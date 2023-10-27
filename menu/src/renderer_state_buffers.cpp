@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cstring>
+#include <cmath>
 #include "menu/renderer_state_buffers.h"
 
 using namespace video_api;
@@ -37,18 +38,19 @@ struct ScrollUniform final {
 // ---
 
 // apply the same difference as regular->special text to any color
-static void toSpecialLabelColor(float target[4], const float regular[4], const float special[4]) {
+static void toSpecialLabelColor(float target[4], const float background[4], const float regular[4], const float special[4]) {
+  const float ratio = fabs(target[0] + target[1] + target[2] - background[0] - background[1] - background[2]) * 0.3f;
   float* targetIt = target;
-  *targetIt *= special[0] / regular[0];
+  *targetIt *= ratio + (1.f-ratio)*(special[0]+1.f/255.f)/(regular[0]+1.f/255.f);
   if (*targetIt > 1.f)
     *targetIt = 1.f;
-  *(++targetIt) *= special[1] / regular[1];
+  *(++targetIt) *= ratio + (1.f-ratio)*(special[1]+1.f/255.f)/(regular[1]+1.f/255.f);
   if (*targetIt > 1.f)
     *targetIt = 1.f;
-  *(++targetIt) *= special[2] / regular[2];
+  *(++targetIt) *= ratio + (1.f-ratio)*(special[2]+1.f/255.f)/(regular[2]+1.f/255.f);
   if (*targetIt > 1.f)
     *targetIt = 1.f;
-  *(++targetIt) *= special[3] / regular[3];
+  *(++targetIt) *= 0.5f + 0.5f*(special[3]+1.f/255.f)/(regular[3]+1.f/255.f);
   if (*targetIt > 1.f)
     *targetIt = 1.f;
 }
@@ -107,20 +109,20 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::button] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  toSpecialLabelColor(colorData.color, theme.regularLabelColor(), theme.disabledLabelColor());
+  toSpecialLabelColor(colorData.color, theme.buttonControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
-  toSpecialLabelColor(colorData.color, theme.regularLabelColor(), theme.activeLabelColor());
+  toSpecialLabelColor(colorData.color, theme.buttonControlColor(), theme.regularLabelColor(), theme.activeLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
 
   memcpy(colorData.color, theme.textBoxLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::textInput] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  toSpecialLabelColor(colorData.color, theme.regularLabelColor(), theme.disabledLabelColor());
+  toSpecialLabelColor(colorData.color, theme.textBoxControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
   labelBuffers[(size_t)LabelBufferType::textInputDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   memcpy(colorData.color, theme.comboBoxLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::comboBoxValue] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  toSpecialLabelColor(colorData.color, theme.regularLabelColor(), theme.disabledLabelColor());
+  toSpecialLabelColor(colorData.color, theme.comboBoxControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
   labelBuffers[(size_t)LabelBufferType::comboBoxValueDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.comboBoxDropdownLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::dropdownValue] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
