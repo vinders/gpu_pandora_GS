@@ -118,16 +118,21 @@ void GeometryGenerator::fillRightRoundedRectangleVertices(ControlVertex* outVert
 
 void GeometryGenerator::fillTopRightCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
                                                          float x1, float x2, float y1, float y2, float cornerSize) {
-  constexpr const float darkMultiplier = 0.85f;
-  const float cornerFactor = 1.f - (cornerSize / (y2 - y1)) * (1.f - darkMultiplier);
-  const float cornerRgba[4]{ rgba[0]*cornerFactor, rgba[1]*cornerFactor, rgba[2]*cornerFactor, rgba[3] };
+  constexpr const float darkMultiplier = 0.8f;
+  const float lighterRgba[4]{ 0.25f+rgba[0]*0.75f, 0.25f+rgba[1]*0.75f, 0.25f+rgba[2]*0.75f, rgba[3] };
   const float darkerRgba[4]{ rgba[0]*darkMultiplier, rgba[1]*darkMultiplier, rgba[2]*darkMultiplier, rgba[3] };
+  const float yLine = y1 - cornerSize - 2.f;
 
-  fillControlVertex(*outVertexIt,     rgba,       x1,              y1);
-  fillControlVertex(*(++outVertexIt), rgba,       x2 - cornerSize, y1);
-  fillControlVertex(*(++outVertexIt), darkerRgba, x1,              y2);
-  fillControlVertex(*(++outVertexIt), cornerRgba, x2,              y1 - cornerSize);
-  fillControlVertex(*(++outVertexIt), darkerRgba, x2,              y2);
+  fillControlVertex(*outVertexIt,     lighterRgba, x1,              y1);
+  fillControlVertex(*(++outVertexIt), lighterRgba, x2 - cornerSize, y1);
+  fillControlVertex(*(++outVertexIt), rgba,        x1,              y1 - cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba,        x2,              y1 - cornerSize);
+  fillControlVertex(*(++outVertexIt), rgba,        x1,              yLine);
+  fillControlVertex(*(++outVertexIt), rgba,        x2,              yLine);
+  fillControlVertex(*(++outVertexIt), darkerRgba,  x1,              yLine);
+  fillControlVertex(*(++outVertexIt), darkerRgba,  x2,              yLine);
+  fillControlVertex(*(++outVertexIt), rgba,        x1,              y2);
+  fillControlVertex(*(++outVertexIt), rgba,        x2,              y2);
 }
 
 void GeometryGenerator::fillTopRightCutBorderVertices(ControlVertex* outVertexIt, const float rgba[4],

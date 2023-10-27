@@ -85,9 +85,9 @@ namespace menu {
       static void fillRightRoundedRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                                     float x1, float x2, float y1, float y2);
 
-      /// @brief Generate rectangle with top-right corner cut (in 5 menu control vertices)
-      ///        (expected indices: 0,1,2, 1,3,2, 2,3,4)
-      /// @param outVertexIt  Must point to an array of at least 5 control vertices
+      /// @brief Generate rectangle with top-right corner cut and double gradient (in 10 menu control vertices)
+      ///        (expected indices: 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9)
+      /// @param outVertexIt  Must point to an array of at least 10 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                                    float x1, float x2, float y1, float y2, float cornerSize);

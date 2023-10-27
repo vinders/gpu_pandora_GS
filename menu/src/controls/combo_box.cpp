@@ -70,11 +70,11 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
     boxWidth = minBoxWidth;
 
   // create background
-  std::vector<ControlVertex> vertices(static_cast<size_t>(5 + 20 + 3));
+  std::vector<ControlVertex> vertices(static_cast<size_t>(10 + 20 + 3));
   ControlVertex* vertexIt = vertices.data();
   GeometryGenerator::fillTopRightCutRectangleVertices(vertexIt, color, 0.f, (float)boxWidth,    // background
                                                       0.f, -(float)boxHeight, (float)paddingY);
-  vertexIt += 5;
+  vertexIt += 10;
   const float colorBorder[4]{ color[0]*0.75f, color[1]*0.75f, color[2]*0.75f, color[3] };
   GeometryGenerator::fillTopRightCutBorderVertices(vertexIt, colorBorder, 0.f, (float)boxWidth, // borders
                                                     0.f, -(float)boxHeight, (float)paddingY);
@@ -84,8 +84,8 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
                                                   static_cast<float>(boxWidth - paddingY - ARROW_WIDTH - 2),
                                                   -static_cast<float>((boxHeight + 2 - ARROW_HEIGHT) >> 1),
                                                   (float)ARROW_WIDTH, (float)ARROW_HEIGHT);
-  std::vector<uint32_t> indices{ 0,1,2, 1,3,2, 2,3,4,  5,6,7,7,6,8,        9,10,11,11,10,12,
-                                 13,14,15,15,14,16,    17,18,19,19,18,20,  21,22,23,23,22,24,  25,26,27 };
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
+                                 18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28,28,27,29,  30,31,32 };
 
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                             x + (int32_t)labelWidthWithMargin, y, boxWidth, boxHeight);
