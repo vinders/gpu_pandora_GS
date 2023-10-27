@@ -24,17 +24,17 @@ using namespace menu::controls;
 // -- init/resize geometry -- --------------------------------------------------
 
 void ScrollBar::init(RendererContext& context, const float barColor[4], const float thumbColor[4],
-                     int32_t x, int32_t y, uint32_t width, uint32_t height) {
+                     int32_t x, int32_t y, uint32_t width) {
   // create background
   maxTopPosition = (visibleScrollArea < totalScrollArea) ? (totalScrollArea - visibleScrollArea) : 0;
   thumbAreaY = y + (int32_t)width; // width also used as up/down box height
-  thumbAreaHeight = height - (width << 1);
+  thumbAreaHeight = visibleScrollArea - (width << 1);
 
   std::vector<ControlVertex> vertices(static_cast<size_t>(4u));
-  GeometryGenerator::fillRectangleVertices(vertices.data(), barColor, 0.f, (float)width, 0.f, -(float)height);
+  GeometryGenerator::fillRectangleVertices(vertices.data(), barColor, 0.f, (float)width, 0.f, -(float)visibleScrollArea);
   std::vector<uint32_t> indices{ 0,1,2, 2,1,3 };
   backMesh = ControlMesh(context.renderer(), std::move(vertices), indices,
-                         context.pixelSizeX(), context.pixelSizeY(), x, y, width, height);
+                         context.pixelSizeX(), context.pixelSizeY(), x, y, width, visibleScrollArea);
 
   // create moving thumb
   const uint32_t thumbHeight = (visibleScrollArea < totalScrollArea)
@@ -68,8 +68,7 @@ void ScrollBar::init(RendererContext& context, const float barColor[4], const fl
 
 // ---
 
-void ScrollBar::move(RendererContext& context, int32_t x, int32_t y, uint32_t height,
-                     uint32_t screenHeightPx, uint32_t totalScrollAreaPx) {
+void ScrollBar::move(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx, uint32_t totalScrollAreaPx) {
   visibleScrollArea = screenHeightPx;
   totalScrollArea = totalScrollAreaPx;
   maxTopPosition = (visibleScrollArea < totalScrollArea) ? (totalScrollArea - visibleScrollArea) : 0;
@@ -77,17 +76,20 @@ void ScrollBar::move(RendererContext& context, int32_t x, int32_t y, uint32_t he
     topPosition = maxTopPosition;
 
   thumbAreaY = y + (int32_t)backMesh.width(); // width also used as up/down box height
-  thumbAreaHeight = height - (backMesh.width() << 1);
+  thumbAreaHeight = screenHeightPx - (backMesh.width() << 1);
   dragThumbOffsetY = noDrag();
 
-  backMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, y);
+  std::vector<ControlVertex> vertices = backMesh.relativeVertices();
+  GeometryGenerator::resizeRectangleVerticesY(vertices.data(), -(float)screenHeightPx);
+  backMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                  x, y, backMesh.width(), screenHeightPx);
 
   const int32_t thumbTop = thumbAreaY + (int32_t)(topPosition * thumbAreaHeight / totalScrollArea);
-  const uint32_t thumbHeight = (visibleScrollArea < totalScrollArea)
-                             ? (visibleScrollArea * thumbAreaHeight / totalScrollArea)
+  const uint32_t thumbHeight = (screenHeightPx < totalScrollAreaPx)
+                             ? (screenHeightPx * thumbAreaHeight / totalScrollAreaPx)
                              : thumbAreaHeight;
   const float* thumbColor = thumbMesh.relativeVertices()[0].color;
-  std::vector<ControlVertex> vertices(static_cast<size_t>(4u));
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(4u));
   GeometryGenerator::fillRectangleVertices(vertices.data(), thumbColor, 0.f, (float)backMesh.width(), 0.f, -(float)thumbHeight);
   thumbMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                    x, thumbAreaY + thumbTop, backMesh.width(), thumbHeight);

@@ -200,12 +200,12 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   // --- page decoration ---
   auto& labelFont = context->getFont(FontType::labels);
   scrollbar = ScrollBar(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor(),
-                        x + (int32_t)width - (int32_t)theme.scrollbarWidth(), y, theme.scrollbarWidth(), height,
+                        x + (int32_t)width - (int32_t)theme.scrollbarWidth(), y, theme.scrollbarWidth(),
                         std::bind(&GeneralSettingsPage::onScroll,this,std::placeholders::_1), height, PAGE_HEIGHT, (LINE_HEIGHT >> 1));
   title = TextMesh(context->renderer(), context->getFont(FontType::titles), U"General settings",
                    context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
   const uint32_t tooltipAreaWidth = scrollbar.isEnabled() ? (width - scrollbar.width()) : width;
-  tooltip = Tooltip(*context, U"-", FontType::inputText, LabelBufferType::regular, x, y + (int32_t)height - 41, tooltipAreaWidth, 41,
+  tooltip = Tooltip(*context, U"-", FontType::inputText, LabelBufferType::regular, x, y + (int32_t)height - 32, tooltipAreaWidth, 32,
                     fieldsetPaddingX, theme.tooltipControlColor(), ControlIconType::none);
   
   scroll = 0;
@@ -368,9 +368,10 @@ void GeneralSettingsPage::move(int32_t x_, int32_t y, uint32_t width_, uint32_t 
     windowHeight.close();
 
   // page decoration
-  scrollbar.move(*context, x + (int32_t)width - (int32_t)scrollbar.width(), y, scrollbar.width(), height, PAGE_HEIGHT);
+  scrollbar.move(*context, x + (int32_t)width - (int32_t)scrollbar.width(), y, height, PAGE_HEIGHT);
   title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
-  tooltip.move(*context, x, y, width_);
+  const uint32_t tooltipAreaWidth = scrollbar.isEnabled() ? (width_ - scrollbar.width()) : width_;
+  tooltip.move(*context, x, y + (int32_t)height - 32, tooltipAreaWidth);
 
   if (scroll > PAGE_HEIGHT - height)
     onScroll(PAGE_HEIGHT - height);

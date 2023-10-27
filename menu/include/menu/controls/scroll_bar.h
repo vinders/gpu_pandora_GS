@@ -29,13 +29,13 @@ namespace menu {
       /// @param onChange    Event handler to call (with 'operationId') when the scroll-bar position changes
       /// @param enabler     Optional data/config value to which the scroll-bar state should be bound
       ScrollBar(RendererContext& context, const float barColor[4], const float thumbColor[4],
-                int32_t x, int32_t y, uint32_t width, uint32_t height, std::function<void(uint32_t)> onChange,
+                int32_t x, int32_t y, uint32_t width, std::function<void(uint32_t)> onChange,
                 uint32_t screenHeightPx, uint32_t totalScrollAreaPx, uint32_t scrollStepPx)
         : onChange(std::move(onChange)),
           visibleScrollArea(screenHeightPx),
           totalScrollArea(totalScrollAreaPx),
           scrollStep(scrollStepPx) {
-        init(context, barColor, thumbColor, x, y, width, height);
+        init(context, barColor, thumbColor, x, y, width);
       }
 
       ScrollBar() = default;
@@ -92,8 +92,7 @@ namespace menu {
       }
 
       /// @brief Change control location + scrolling limits (on window resize)
-      void move(RendererContext& context, int32_t x, int32_t y, uint32_t height,
-                uint32_t screenHeightPx, uint32_t totalScrollAreaPx);
+      void move(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx, uint32_t totalScrollAreaPx);
 
       // -- rendering --
 
@@ -103,7 +102,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const float barColor[4], const float thumbColor[4],
-                int32_t x, int32_t y, uint32_t width, uint32_t height);
+                int32_t x, int32_t y, uint32_t width);
       void updateThumbPosition(RendererContext& context, uint32_t top);
       static constexpr inline int32_t noDrag() noexcept { return -1; }
 
