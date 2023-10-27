@@ -836,6 +836,10 @@ void GeneralSettingsPage::onChange(uint32_t id, ComboValue value) {
     case FULLSCREEN_RATE_ID:
       break;
     case WINDOW_SIZE_ID: {
+      if (value < 240) {
+        value = 240;
+        windowHeight.replaceValueInteger(*context, 240u);
+      }
       char32_t windowWidthBuffer[14];
       memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
       FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);

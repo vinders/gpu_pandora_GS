@@ -159,9 +159,9 @@ void TextBox::updateCaretLocation(RendererContext& context) {
 void TextBox::replaceValueText(RendererContext& context, const char32_t* textValue) {
   assert(valueType == TextBoxType::text || (textValue != nullptr && *textValue >= U'0' && *textValue <= U'9'));
   isEditing = false;
+  const int32_t inputY = controlMesh.y() + (int32_t)paddingY + (int32_t)(inputMesh.height() >> 2);
   inputMesh = TextMesh(context.renderer(), context.getFont(FontType::inputText), textValue,
-                       context.pixelSizeX(), context.pixelSizeY(),
-                       controlMesh.x() + (int32_t)paddingX, controlMesh.y() + (int32_t)paddingY);
+                       context.pixelSizeX(), context.pixelSizeY(), controlMesh.x() + (int32_t)paddingX, inputY);
 
   inputValue.clear();
   inputValue.reserve((size_t)maxValueLength + 1u);
