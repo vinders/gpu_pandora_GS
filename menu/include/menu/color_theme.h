@@ -48,19 +48,32 @@ namespace menu {
 
     // -- control size accessors --
 
-    constexpr inline uint32_t scrollbarWidth() const noexcept { return 16; }   ///< Total scroll-bar width
-    constexpr inline uint32_t fieldsetPaddingY() const noexcept { return 5; }  ///< Fieldset padding above first and below last item
-    constexpr inline uint32_t fieldsetBottom() const noexcept { return 12; }   ///< Fieldset margin after last item (before next fieldset)
+    static constexpr inline uint32_t scrollbarWidth() noexcept { return 16; }   ///< Total scroll-bar width
+    static constexpr inline uint32_t tooltipBarHeight() noexcept { return 32; } ///< Total scroll-bar width
+    static constexpr inline uint32_t lineHoverPaddingX() noexcept { return 10; }///< Control line hover left/right padding
+    static constexpr inline uint32_t autoScrollPaddingY() noexcept { return 10; }///< Padding above/below control during auto-scroll
 
-    constexpr inline uint32_t pageLineHeight() const noexcept { return 26; }   ///< Content line height (includes inter-line space)
-    constexpr inline uint32_t pageLabelWidth() const noexcept { return 200; }  ///< Minimum label width (before controls)
-    constexpr inline uint32_t pageControlWidth() const noexcept { return 300; }///< Fixed control/value width
+    static constexpr inline int32_t pageFieldsetMarginX(uint32_t pageWidth) noexcept { ///< Left fieldset margin in the page
+      return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 30 : 10;
+    }
+    static constexpr inline uint32_t fieldsetPaddingX(uint32_t pageWidth) noexcept { ///< Fieldset padding to the left of inner controls
+      return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 20 : 8;
+    }
+    static constexpr inline uint32_t fieldsetPaddingY() noexcept { return 5; }  ///< Fieldset padding above first and below last inner control
+    static constexpr inline uint32_t fieldsetBottom() noexcept { return 12; }   ///< Fieldset margin after last item (before next fieldset)
+    static constexpr inline uint32_t fieldsetTitlePaddingX() noexcept { return 12; }///< Fieldset title horizontal padding
+    static constexpr inline uint32_t fieldsetTitlePaddingY() noexcept { return 10; }///< Fieldset title vertical padding
+
+    static constexpr inline uint32_t pageLineHeight() noexcept { return 26; }   ///< Content line height (includes inter-line space)
+    static constexpr inline uint32_t pageLabelWidth() noexcept { return 200; }  ///< Minimum label width (before controls)
+    static constexpr inline uint32_t pageControlWidth() noexcept { return 260; }///< Fixed control/value width
 
     // -- control color accessors --
 
     inline const float* disabledControlModifier() const noexcept { return disabledControl; }///< Color modifier for disabled control backgrounds/icons
     inline const float* activeControlModifier() const noexcept { return activeControl; }    ///< Color modifier for active/hover control backgrounds/icons
-    inline const float* specialControlModifier() const noexcept { return specialControl; }  ///< Color modifier for special-state control backgrounds/icons
+    inline const float* activeLightControlModifier() const noexcept { return activeLightControl; } ///< Color modifier for active/hover light control backgrounds/icons
+    inline const float* activeInvertControlModifier() const noexcept{ return activeInvertControl; }///< Color modifier for inverted active/hover control backgrounds/icons
     inline const float* regularLabelColor() const noexcept { return regularLabel; }      ///< Regular control label color
     inline const float* disabledLabelColor() const noexcept { return disabledLabel; }    ///< Disabled control label color
     inline const float* activeLabelColor() const noexcept { return activeLabel; }        ///< Active/hover control label color
@@ -103,7 +116,8 @@ namespace menu {
   private:
     float disabledControl[4];
     float activeControl[4];
-    float specialControl[4];
+    float activeLightControl[4];
+    float activeInvertControl[4];
     float regularLabel[4];
     float disabledLabel[4];
     float activeLabel[4];

@@ -19,6 +19,7 @@ using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 ControlType Slider::Type() const noexcept { return ControlType::slider; }
 
@@ -48,7 +49,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   const uint32_t arrowWidth = (sliderHeight >> 1) - 1;
   const uint32_t arrowNeckTop = (sliderHeight >> 1) - paddingY;
   const uint32_t arrowNeckBottom = (sliderHeight >> 1) + paddingY - 2;
-  const float shadowColor[4]{ arrowColor[0]*0.65,arrowColor[1]*0.65,arrowColor[2]*0.65,1.f };
+  const float shadowColor[4]{ arrowColor[0]*0.65f,arrowColor[1]*0.65f,arrowColor[2]*0.65f,1.f };
 
   std::vector<ControlVertex> vertices(static_cast<size_t>(15u));
   ControlVertex* vertexIt = vertices.data();
@@ -102,46 +103,51 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
 }
 
 
-// -- operations -- ------------------------------------------------------------
+// -- accessors/operations -- --------------------------------------------------
 
-void Slider::click(int32_t mouseX) {
+ControlStatus Slider::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
+// ---
+
+bool Slider::click(RendererContext&, int32_t mouseX) {
   int32_t extraMargin = (int32_t)(arrowLeftMesh.width() >> 2);
-  if (mouseX >= arrowLeftMesh.x() - extraMargin && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width() + extraMargin) {
+  if (mouseX >= arrowLeftMesh.x() - extraMargin && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width() + extraMargin)
     selectPrevious();
-  }
-  else if (mouseX >= arrowRightMesh.x() - extraMargin && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width() + extraMargin) {
+  else if (mouseX >= arrowRightMesh.x() - extraMargin && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width() + extraMargin)
     selectNext();
-  }
+  return false;
 }
 
 void Slider::selectPrevious() {
   if (isEnabled() && selectedIndex > 0) {
     --selectedIndex;
-    onChange(operationId, selectableValues[selectedIndex].value);
+    if (onChange != nullptr)
+      onChange(operationId, (uint32_t)selectableValues[selectedIndex].value);
   }
 }
 
 void Slider::selectNext() {
   if (isEnabled() && selectedIndex + 1 < (int32_t)selectableValues.size()) {
     ++selectedIndex;
-    onChange(operationId, selectableValues[selectedIndex].value);
+    if (onChange != nullptr)
+      onChange(operationId, (uint32_t)selectableValues[selectedIndex].value);
   }
 }
 
 
 // -- rendering -- -------------------------------------------------------------
 
-void Slider::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
+void Slider::drawBackground(RendererContext& context, int32_t mouseX, RendererStateBuffers& buffers, bool isActive) {
   ControlBufferType leftBuffer = ControlBufferType::disabled;
   ControlBufferType rightBuffer = ControlBufferType::disabled;
   if (isEnabled()) {
-    bool isLineHover = (mouseY >= arrowLeftMesh.y() && mouseY < arrowLeftMesh.y() + (int32_t)arrowLeftMesh.height());
-
     if (selectedIndex > 0)
-      leftBuffer = (isLineHover && mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width())
+      leftBuffer = (isActive && mouseX >= arrowLeftMesh.x() && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width())
                  ? ControlBufferType::active : ControlBufferType::regular;
     if (selectedIndex + 1 < (int32_t)selectableValues.size())
-      rightBuffer = (isLineHover && mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width())
+      rightBuffer = (isActive && mouseX >= arrowRightMesh.x() && mouseX < arrowRightMesh.x() + (int32_t)arrowRightMesh.width())
                   ? ControlBufferType::active : ControlBufferType::regular;
   }
 

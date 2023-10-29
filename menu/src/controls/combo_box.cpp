@@ -26,6 +26,7 @@ using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 ControlType ComboBox::Type() const noexcept { return ControlType::comboBox; }
 
@@ -208,18 +209,23 @@ bool ComboBox::isHover(int32_t mouseX, int32_t mouseY) const noexcept {
                            && mouseX < controlMesh.x() + (int32_t)controlMesh.width());
 }
 
+ControlStatus ComboBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
 
 // -- operations -- ------------------------------------------------------------
 
-void ComboBox::click(RendererContext& context) {
+bool ComboBox::click(RendererContext& context, int32_t mouseX) {
   if (isEnabled()) {
     if (isListOpen) {
-      if (hoverIndex > -1 && selectedIndex != hoverIndex && hoverIndex < (int32_t)selectableValues.size()) {
+      if (mouseX >= controlX() && hoverIndex > -1 && selectedIndex != hoverIndex && hoverIndex < (int32_t)selectableValues.size()) {
         selectedIndex = hoverIndex; // change selected index + update selected text
         selectableValues[hoverIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                                                               selectedNameMesh.x(), selectedNameMesh.y(), selectedNameMesh);
 
-        onChange(operationId, selectableValues[selectedIndex].value); // report value change
+        if (onChange != nullptr)
+          onChange(operationId, (uint32_t)selectableValues[selectedIndex].value); // report value change
       }
       isListOpen = false;
     }
@@ -229,9 +235,10 @@ void ComboBox::click(RendererContext& context) {
       isListOpen = true;
     }
   }
+  return isListOpen;
 }
 
-void ComboBox::mouseMove(RendererContext& context, int32_t mouseY) {
+void ComboBox::mouseMove(RendererContext& context, int32_t, int32_t mouseY) {
   if (isListOpen && !selectableValues.empty()) {
     const auto& firstMesh = selectableValues[0].nameMesh;
     if (mouseY >= firstMesh.y()) {
@@ -254,6 +261,10 @@ void ComboBox::selectPrevious(RendererContext& context) {
 void ComboBox::selectNext(RendererContext& context) {
   if (hoverIndex + 1 < (int32_t)selectableValues.size())
     moveDropdownHover(context, ++hoverIndex);
+}
+
+void ComboBox::close() {
+  isListOpen = false;
 }
 
 

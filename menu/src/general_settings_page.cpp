@@ -24,6 +24,12 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
+#if !defined(_CPP_REVISION) || _CPP_REVISION != 14
+# define SWITCH_FALLTHROUGH  [[fallthrough]]
+#else
+# define SWITCH_FALLTHROUGH
+#endif
+
 
 // -- helpers -- ---------------------------------------------------------------
 
@@ -158,183 +164,159 @@ static uint32_t ListFullscreenRates(std::vector<uint32_t>& fullscreenRates, uint
   return selectedIndex;
 }
 
-// ---
-
-static inline void setControlVertex(ControlVertex& outVertex, const float rgba[4], float x, float y) {
-  float* position = outVertex.position;
-  *position = x;
-  *(++position) = y;
-  *(++position) = 0.f; // z
-  *(++position) = 1.f; // w
-  memcpy(outVertex.color, rgba, 4*sizeof(float));
-}
-
 
 // -- page -- ------------------------------------------------------------------
 
 #define PAGE_HEIGHT      1200
-#define LINE_HEIGHT      26
-#define FIELDSET_PAD_Y   10
-#define FIELDSET_FIRST_Y 5
-#define FIELDSETS_MARGIN 12
-#define LABEL_WIDTH      200
-#define VALUE_WIDTH      260
 
 #define DISPLAY_MODE_ID      1
 #define FULLSCREEN_SIZE_ID   2
-#define FULLSCREEN_RATE_ID   3
-#define WINDOW_SIZE_ID       4
-#define SUBPRECISION_MODE_ID 5
-#define FRAMERATE_LIMIT_ID   6
+#define WINDOW_SIZE_ID       3
+#define WIDESCREEN_HACK_ID   4
+#define FRAMERATE_LIMIT_ID   5
+#define FRAMERATE_FIXED_ID   6
 
-GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> context_, const ColorTheme& theme,
-                                         const pandora::hardware::DisplayMonitor& monitor,
+GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
+                                         const ColorTheme& theme, const pandora::hardware::DisplayMonitor& monitor,
                                          int32_t x, int32_t y, uint32_t width, uint32_t height)
-  : Page(context_, x, y, width, height, 1200),
-    context(std::move(context_)),
-    x(x),
-    width(width) {
-  constexpr const uint32_t fieldsetPaddingX = 30;
-  const int32_t leftX = (width >= LABEL_WIDTH + VALUE_WIDTH + 70) ? (x + 50) : (x + 30);
+  : Page(std::move(context_), std::move(buffers_), theme, x, y, width, height, PAGE_HEIGHT, true) {
+  const uint32_t fieldsetPaddingX = ColorTheme::pageFieldsetMarginX(width);
+  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)ColorTheme::fieldsetPaddingX(width);
 
-  // --- page decoration ---
-  auto& labelFont = context->getFont(FontType::labels);
-  scrollbar = ScrollBar(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor(),
-                        x + (int32_t)width - (int32_t)theme.scrollbarWidth(), y, theme.scrollbarWidth(),
-                        std::bind(&GeneralSettingsPage::onScroll,this,std::placeholders::_1), height, PAGE_HEIGHT, (LINE_HEIGHT >> 1));
   title = TextMesh(context->renderer(), context->getFont(FontType::titles), U"General settings",
                    context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
-  const uint32_t tooltipAreaWidth = scrollbar.isEnabled() ? (width - scrollbar.width()) : width;
-  tooltip = Tooltip(*context, U" ", FontType::inputText, LabelBufferType::regular, x, y + (int32_t)height - 32, tooltipAreaWidth, 32,
-                    theme.scrollbarWidth(), theme.tooltipControlColor(), ControlIconType::none);
-  
-  scroll = 0;
-  //ScrollUniform scrollLocation{ { 0.f, 0.f, 0.f, 0.f } };
-  //scrollPosition = Buffer<ResourceUsage::staticGpu>(context->renderer(), BufferType::uniform, sizeof(ScrollUniform), &scrollLocation);
-  //scrollPositionStaging = Buffer<ResourceUsage::staging>(context->renderer(), BufferType::uniform, sizeof(ScrollUniform), &scrollLocation);
 
-  const uint32_t hoverAreaWidth = (LABEL_WIDTH + VALUE_WIDTH + 26);
-  std::vector<ControlVertex> hoverAreaVertices(static_cast<size_t>(8));
-  GeometryGenerator::fillCornerCutRectangleVertices(hoverAreaVertices.data(), theme.lineSelectorControlColor(),
-                                                    0.f, (float)hoverAreaWidth, 0.f, -(float)LINE_HEIGHT, 3.f);
-  std::vector<uint32_t> hoverAreaIndices{ 0,1,2, 2,1,3,  2,3,4, 4,3,5,  4,5,6, 6,5,7 };
-  lineHoverArea = ControlMesh(context->renderer(), std::move(hoverAreaVertices), hoverAreaIndices,
-                              context->pixelSizeX(), context->pixelSizeY(), leftX - 10, 0, hoverAreaWidth, LINE_HEIGHT);
-  activeLineMiddleY = activeLineSelector = noLineSelection();
-
-  int32_t currentLineY = title.y() + (int32_t)title.height() + LINE_HEIGHT;
+  std::vector<ControlRegistration> registry;
+  registry.reserve(10);
+  int32_t currentLineY = title.y() + (int32_t)title.height() + ColorTheme::pageLineHeight();
   auto changeHandler = std::bind(&GeneralSettingsPage::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- display group ---
   displayGroup = Fieldset(*context, U"Output settings", theme.fieldsetStyle(), theme.fieldsetControlColor(),
-                          x + (int32_t)fieldsetPaddingX, currentLineY, 12, 10, width - (fieldsetPaddingX << 1), LINE_HEIGHT*3 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+                          x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
+                          ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                          ColorTheme::pageLineHeight()*3 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
   // display mode
-  ComboBoxOption displayModeOptions[]{ ComboBoxOption(U"Fullscreen",  0/*TMP*/),
-                                       ComboBoxOption(U"Borderless",  1/*TMP*/),
-                                       ComboBoxOption(U"Window mode", 2/*TMP*/) };
-  ControlStyle sliderStyle(theme.sliderArrowColor(), LABEL_WIDTH, 14, 6);
-  displayMode = Slider(*context, U"Display mode", leftX, currentLineY, sliderStyle, VALUE_WIDTH, DISPLAY_MODE_ID,
-                       changeHandler, displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0);
-  isFullscreenMode = true;
-  isWindowMode = false;
-  enableWidescreenMode = false;
-  currentLineY += LINE_HEIGHT;
-
+  ControlStyle sliderStyle(theme.sliderArrowColor(), ColorTheme::pageLabelWidth(), 14, 6);
+  {
+    ComboBoxOption displayModeOptions[]{ ComboBoxOption(U"Fullscreen",  0/*TMP*/),
+                                         ComboBoxOption(U"Borderless",  1/*TMP*/),
+                                         ComboBoxOption(U"Window mode", 2/*TMP*/) };
+    displayMode = Slider(*context, U"Display mode", controlX, currentLineY, sliderStyle, ColorTheme::pageControlWidth(),
+                         DISPLAY_MODE_ID, changeHandler, displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0);
+    registry.emplace_back(displayMode, true, U"Modes: fullscreen / borderless (fullscreen window) / window mode (resizable)");
+    isFullscreenMode = true;
+    isWindowMode = enableWidescreenMode = false;
+    currentLineY += ColorTheme::pageLineHeight();
+  }
   // fullscreen resolution/rate
-  std::vector<ComboBoxOption> fullscreenSizeOptions;
-  uint32_t selectedFullSize = ListFullscreenResolutions(monitor, fullscreenSizeOptions, fullscreenRatesPerSize);
+  constexpr const uint32_t fullscreenSizeWidth = ColorTheme::pageControlWidth() - 108;
+  constexpr const uint32_t fullscreenRateWidth = 105;
+  constexpr const int32_t fullscreenRateMargin = 3;
+  {
+    std::vector<ComboBoxOption> fullscreenSizeOptions;
+    uint32_t selectedFullSize = ListFullscreenResolutions(monitor, fullscreenSizeOptions, fullscreenRatesPerSize);
 
-  ControlStyle comboStyle(theme.comboBoxControlColor(), LABEL_WIDTH, 10, 7);
-  const uint32_t fullscreenSizeWidth = VALUE_WIDTH - 108;
-  fullscreenSize = ComboBox(*context, U"Fullscreen resolution", leftX, currentLineY, comboStyle, fullscreenSizeWidth,
-                            theme.comboBoxDropdownColor(), FULLSCREEN_SIZE_ID, changeHandler,
-                            fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedFullSize, &isFullscreenMode);
+    ControlStyle comboStyle(theme.comboBoxControlColor(), ColorTheme::pageLabelWidth(), 10, 7);
+    fullscreenSize = ComboBox(*context, U"Fullscreen resolution", controlX, currentLineY, comboStyle,
+                              fullscreenSizeWidth, theme.comboBoxDropdownColor(), FULLSCREEN_SIZE_ID, changeHandler,
+                              fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedFullSize, &isFullscreenMode);
+    registry.emplace_back(fullscreenSize, true, U"Display output resolution (pixels) in fullscreen mode");
 
-  std::vector<ComboBoxOption> fullscreenRateOptions;
-  uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[fullscreenSizeOptions[selectedFullSize].value], 60000, fullscreenRateOptions);
-  comboStyle.minLabelWidth = 0;
-  fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + 3, currentLineY, comboStyle, 105,
-                            theme.comboBoxDropdownColor(), FULLSCREEN_RATE_ID, changeHandler,
-                            fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
-  currentLineY += LINE_HEIGHT;
-
+    std::vector<ComboBoxOption> fullscreenRateOptions;
+    uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[fullscreenSizeOptions[selectedFullSize].value], 60000, fullscreenRateOptions);
+    comboStyle.minLabelWidth = 0;
+    fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + fullscreenRateMargin,
+                              currentLineY, comboStyle, fullscreenRateWidth, theme.comboBoxDropdownColor(), 0, nullptr,
+                              fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
+    registry.emplace_back(fullscreenRate, true, U"Display output refresh rate (Hz) in fullscreen mode");
+    currentLineY += ColorTheme::pageLineHeight();
+  }
   // window mode size
-  uint32_t windowHeightValue = 720u;
-  ControlStyle textBoxStyle(theme.textBoxControlColor(), LABEL_WIDTH + 11 + ((fullscreenSizeWidth+1) >> 1), 10, 6);
-  windowHeight = TextBox(*context, U"Window size", nullptr, leftX, currentLineY, textBoxStyle, (fullscreenSizeWidth >> 1) - 11,
-                         WINDOW_SIZE_ID, [this](uint32_t id){ this->onChange(id, windowHeight.valueInteger()); },
+  ControlStyle textBoxStyle(theme.textBoxControlColor(), ColorTheme::pageLabelWidth() + 11 + ((fullscreenSizeWidth+1) >> 1), 10, 6);
+  constexpr const uint32_t windowHeightValue = 720u;
+  windowHeight = TextBox(*context, U"Window size", nullptr, controlX, currentLineY, textBoxStyle, (fullscreenSizeWidth >> 1) - 11,
+                         WINDOW_SIZE_ID, [this](uint32_t id){ this->onChange(id, this->windowHeight.valueInteger()); },
                          windowHeightValue, 4u, &isWindowMode);
+  registry.emplace_back(windowHeight, true, U"Display output height (pixels) in window mode");
 
-  char32_t windowWidthBuffer[14];
-  memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
-  FormatInteger(GetWindowWidth(windowHeightValue, enableWidescreenMode), windowWidthBuffer);
-  auto& inputFont = context->getFont(FontType::inputText);
-  windowSize = TextMesh(context->renderer(), inputFont, windowWidthBuffer,
-                        context->pixelSizeX(), context->pixelSizeY(), windowHeight.controlX() - 8,
-                        currentLineY + (int32_t)(labelFont.XHeight() - inputFont.XHeight() + 1)/2, TextAlignment::right);
-  currentLineY += LINE_HEIGHT;
+  onChange(WINDOW_SIZE_ID, windowHeightValue); // fill 'windowSize' text indicator
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // --- compatibility group ---
-  currentLineY += FIELDSETS_MARGIN;
   compatibilityGroup = Fieldset(*context, U"Emulator compatibility", theme.fieldsetStyle(), theme.fieldsetControlColor(),
-                                x + (int32_t)fieldsetPaddingX, currentLineY, 12, 10, width - (fieldsetPaddingX << 1), LINE_HEIGHT*2 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+                                x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
+                                ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                                ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
-  ComboBoxOption subprecisionOptions[]{ ComboBoxOption(U"Original (integer)",      0/*TMP*/),
-                                        ComboBoxOption(U"Subprecision (smoother)", 1/*TMP*/) };
-  subprecisionMode = Slider(*context, U"Pixel precision", leftX, currentLineY, sliderStyle, VALUE_WIDTH, SUBPRECISION_MODE_ID,
-                            changeHandler, subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
-  currentLineY += LINE_HEIGHT;
-
-  widescreenMode = CheckBox(*context, U"Widescreen hack", leftX, currentLineY, true, LABEL_WIDTH, enableWidescreenMode);
-  currentLineY += LINE_HEIGHT;
+  // subprecision modes
+  {
+    ComboBoxOption subprecisionOptions[]{ ComboBoxOption(U"Original (integer)",      0/*TMP*/),
+                                          ComboBoxOption(U"Subprecision (smoother)", 1/*TMP*/) };
+    subprecisionMode = Slider(*context, U"Pixel precision", controlX, currentLineY, sliderStyle, ColorTheme::pageControlWidth(),
+                              0, nullptr, subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
+    registry.emplace_back(subprecisionMode, true, U"Anti-jitter geometry subprecision (needed if GTE-subprecision enabled in emulator)");
+    currentLineY += ColorTheme::pageLineHeight();
+  }
+  // widescreen hack
+  widescreenMode = CheckBox(*context, U"Widescreen hack", controlX, currentLineY, true, ColorTheme::pageLabelWidth(),
+                            WIDESCREEN_HACK_ID, changeHandler, enableWidescreenMode);
+  registry.emplace_back(widescreenMode, true, U"Treat geometry coords as 16:9 (needed if widescreen hack enabled in emulator)");
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // --- framerate group ---
-  currentLineY += FIELDSETS_MARGIN;
   framerateGroup = Fieldset(*context, U"Frame rate", theme.fieldsetStyle(), theme.fieldsetControlColor(),
-                            x + (int32_t)fieldsetPaddingX, currentLineY, 12, 10, width - (fieldsetPaddingX << 1), LINE_HEIGHT*4 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+                            x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
+                            ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                            ColorTheme::pageLineHeight()*4 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
-  ComboBoxOption frameLimitOptions[]{ ComboBoxOption(U"Disabled",              0/*TMP*/),
-                                      ComboBoxOption(U"Autodetect (NTSC/PAL)", 1/*TMP*/),
-                                      ComboBoxOption(U"Fixed limit (custom)",  2/*TMP*/) };
-  framerateLimit = Slider(*context, U"Frame rate limit", leftX, currentLineY, sliderStyle, VALUE_WIDTH, FRAMERATE_LIMIT_ID,
-                          changeHandler, frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1);
-  isFramerateLimit = true;
-  isFixedFramerate = false;
-  currentLineY += LINE_HEIGHT;
-
-  double fixedRateValue = 59.94;
-  textBoxStyle.minLabelWidth = LABEL_WIDTH;
-  textBoxStyle.paddingX = 10;
-  fixedFramerate = TextBox(*context, U"Custom frame rate", U"fps", leftX, currentLineY, textBoxStyle, 80u,
-                           0, [this](uint32_t id) {
-                                if (this->fixedFramerate.valueNumber() == 0.0)
-                                  this->fixedFramerate.replaceValueNumber(*(this->context), 59.94);
-                              },
-                           fixedRateValue, 6u, &isFixedFramerate);
-  currentLineY += LINE_HEIGHT;
-
-  isFrameSkipping = false;
-  frameSkipping = CheckBox(*context, U"Frame skipping", leftX, currentLineY, true, LABEL_WIDTH, isFrameSkipping, &isFramerateLimit);
-  currentLineY += LINE_HEIGHT;
+  // frame rate limit mode
+  {
+    ComboBoxOption frameLimitOptions[]{ ComboBoxOption(U"Disabled",              0/*TMP*/),
+                                        ComboBoxOption(U"Autodetect (NTSC/PAL)", 1/*TMP*/),
+                                        ComboBoxOption(U"Fixed limit (custom)",  2/*TMP*/) };
+    framerateLimit = Slider(*context, U"Frame rate limit", controlX, currentLineY, sliderStyle,
+                            ColorTheme::pageControlWidth(), FRAMERATE_LIMIT_ID, changeHandler,
+                            frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1);
+    registry.emplace_back(framerateLimit, true, U"Enable frame rate limiter (recommended with most emulators)");
+    isFramerateLimit = true;
+    isFixedFramerate = isFrameSkipping = false;
+    currentLineY += ColorTheme::pageLineHeight();
+  }
+  // custom frame rate
+  {
+    double fixedRateValue = 59.94;
+    textBoxStyle.minLabelWidth = ColorTheme::pageLabelWidth();
+    textBoxStyle.paddingX = 10;
+    fixedFramerate = TextBox(*context, U"Custom frame rate", U"fps", controlX, currentLineY, textBoxStyle, 80u,
+                             FRAMERATE_FIXED_ID, [this](uint32_t id) { this->onChange(id, 0); },
+                             fixedRateValue, 6u, &isFixedFramerate);
+    registry.emplace_back(fixedFramerate, true, U"Custom frame rate limit value (frames per second)");
+    currentLineY += ColorTheme::pageLineHeight();
+  }
+  // other frame rate settings
+  frameSkipping = CheckBox(*context, U"Frame skipping", controlX, currentLineY, true, ColorTheme::pageLabelWidth(),
+                           0, nullptr, isFrameSkipping, &isFramerateLimit);
+  registry.emplace_back(frameSkipping, true, U"Allow frame skipping to always keep a constant game speed");
+  currentLineY += ColorTheme::pageLineHeight();
 
   enableVsync = false;
-  vsync = CheckBox(*context, U"Vertical sync", leftX, currentLineY, true, LABEL_WIDTH, enableVsync, &isFramerateLimit);
-  //currentLineY += LINE_HEIGHT;
+  vsync = CheckBox(*context, U"Vertical sync", controlX, currentLineY, true, ColorTheme::pageLabelWidth(),
+                   0, nullptr, enableVsync, &isFramerateLimit);
+  registry.emplace_back(vsync, true, U"Fixes screen tearing and reduces power consumption (but may increase input delay)");
+  //currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
+
+  // --- control registry ---
+  registerControls(std::move(registry));
 }
 
-void GeneralSettingsPage::release() noexcept {
+GeneralSettingsPage::~GeneralSettingsPage() noexcept {
   fullscreenRatesPerSize.clear();
-  //scrollPosition.release();
-  //scrollPositionStaging.release();
-
-  scrollbar.release();
   title.release();
-  tooltip.release();
-  lineHoverArea.release();
 
   displayGroup.release();
   displayMode.release();
@@ -352,382 +334,139 @@ void GeneralSettingsPage::release() noexcept {
   frameSkipping.release();
   fixedFramerate.release();
   vsync.release();
-
-  context = nullptr;
 }
 
 
-// -- window event --
+// -- window events -- ---------------------------------------------------------
 
-void GeneralSettingsPage::move(int32_t x_, int32_t y, uint32_t width_, uint32_t height) {
-  this->x = x_;
-  this->width = width_;
-  const int32_t leftX = (width >= LABEL_WIDTH + VALUE_WIDTH + 70) ? (x + 50) : (x + 30);
-  constexpr const uint32_t fieldsetPaddingX = 30;
+void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+  Page::move(x, y, width, height, PAGE_HEIGHT);
+  const uint32_t fieldsetPaddingX = ColorTheme::pageFieldsetMarginX(width);
+  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)ColorTheme::fieldsetPaddingX(width);
 
-  if (fullscreenSize.isOpen())
-    fullscreenSize.close();
-  else if (fullscreenRate.isOpen())
-    fullscreenRate.close();
-  else if (windowHeight.isEditMode())
-    windowHeight.close();
-
-  // page decoration
-  scrollbar.move(*context, x + (int32_t)width - (int32_t)scrollbar.width(), y, height, PAGE_HEIGHT);
   title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
-  const uint32_t tooltipAreaWidth = scrollbar.isEnabled() ? (width_ - scrollbar.width()) : width_;
-  tooltip.move(*context, x, y + (int32_t)height - 32, tooltipAreaWidth);
-
-  if (scroll > PAGE_HEIGHT - height)
-    onScroll(PAGE_HEIGHT - height);
-
-  lineHoverArea.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX + 10, 0);
-
-  int32_t currentLineY = title.y() + (int32_t)title.height() + LINE_HEIGHT;
-  activeLineSelector = noLineSelection();
-  onHover(noLineSelection(), 0, nullptr);
 
   // display group
-  displayGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1), LINE_HEIGHT*3 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+  int32_t currentLineY = title.y() + (int32_t)title.height() + ColorTheme::pageLineHeight();
+  displayGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+                    ColorTheme::pageLineHeight()*3 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
-  displayMode.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
-  fullscreenSize.move(*context, leftX, currentLineY);
+  displayMode.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  fullscreenSize.move(*context, controlX, currentLineY);
   fullscreenRate.move(*context, fullscreenSize.x() + (int32_t)fullscreenSize.width() + 3, currentLineY);
-  currentLineY += LINE_HEIGHT;
+  currentLineY += ColorTheme::pageLineHeight();
   const int32_t windowSizeOffsetX = windowSize.x() - windowHeight.controlX();
   const int32_t windowSizeOffsetY = windowSize.y() - (windowHeight.y() + windowHeight.paddingTop());
-  windowHeight.move(*context, leftX, currentLineY);
+  windowHeight.move(*context, controlX, currentLineY);
   windowSize.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
                   windowHeight.controlX() + windowSizeOffsetX, currentLineY + windowSizeOffsetY);
-  currentLineY += LINE_HEIGHT;
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // compatibility group
-  currentLineY += FIELDSETS_MARGIN;
-  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1), LINE_HEIGHT*2 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+                          ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
-  subprecisionMode.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
-  widescreenMode.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
+  subprecisionMode.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  widescreenMode.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // framerate group
-  currentLineY += FIELDSETS_MARGIN;
-  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1), LINE_HEIGHT*4 + FIELDSET_PAD_Y);
-  currentLineY += LINE_HEIGHT + FIELDSET_FIRST_Y;
+  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+                      ColorTheme::pageLineHeight()*4 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
-  framerateLimit.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
-  fixedFramerate.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
-  frameSkipping.move(*context, leftX, currentLineY);
-  currentLineY += LINE_HEIGHT;
-  vsync.move(*context, leftX, currentLineY);
-  //currentLineY += LINE_HEIGHT;
+  framerateLimit.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  fixedFramerate.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  frameSkipping.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  vsync.move(*context, controlX, currentLineY);
+  //currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 }
 
-
-// -- user interactions --
-
-void GeneralSettingsPage::mouseDown(int32_t mouseX, int32_t mouseY) {
-  // click elsewhere with combo-box/text-box active, close it
-  if (fullscreenSize.isOpen()) {
-    if (fullscreenSize.isHover(mouseX, mouseY + (int32_t)scroll) && mouseX >= fullscreenSize.controlX())
-      fullscreenSize.click(*context);
-    else
-      fullscreenSize.close();
-    return;
-  }
-  else if (fullscreenRate.isOpen()) {
-    if (fullscreenRate.isHover(mouseX, mouseY + (int32_t)scroll) && mouseX >= fullscreenRate.controlX())
-      fullscreenRate.click(*context);
-    else
-      fullscreenRate.close();
-    return;
-  }
-  else if (windowHeight.isEditMode() && !windowHeight.isHover(mouseX, mouseY + (int32_t)scroll)) {
-    windowHeight.close();
-  }
-  else if (fixedFramerate.isEditMode() && !fixedFramerate.isHover(mouseX, mouseY + (int32_t)scroll))
-    fixedFramerate.close();
-
-  // click on scrollbar
-  if (mouseX >= scrollbar.x()) {
-    if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
-      scrollbar.click(*context, mouseY, true);
-    return;
-  }
-
-  // page control click detection (dichotomy)
-  mouseY += (int32_t)scroll;
-  if (mouseY < compatibilityGroup.y()) {
-    if (mouseY < windowHeight.y()) {
-      if (mouseY < displayMode.y())
-        return;
-      if (mouseY < fullscreenSize.y()) {
-        if (displayMode.isHover(mouseX, mouseY))
-          displayMode.click(mouseX);
-      }
-      else if (fullscreenSize.isHover(mouseX, mouseY))
-        fullscreenSize.click(*context);
-      else if (fullscreenRate.isHover(mouseX, mouseY))
-        fullscreenRate.click(*context);
+void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
+  switch (id) {
+    case DISPLAY_MODE_ID: {
+      isFullscreenMode = (value == 0/*TMP*/);
+      isWindowMode = (value == 2/*TMP*/);
+      break;
     }
-    else if (windowHeight.isHover(mouseX, mouseY))
-      windowHeight.click(*context, mouseX);
-  }
-  else if (mouseY < framerateGroup.y()) {
-    if (subprecisionMode.isHover(mouseX, mouseY))
-      subprecisionMode.click(mouseX);
-    else if (widescreenMode.isHover(mouseX, mouseY)) {
-      widescreenMode.click();
-
+    case FULLSCREEN_SIZE_ID: {
+      std::vector<ComboBoxOption> fullscreenRateOptions;
+      const auto* currentRate = fullscreenRate.getSelectedValue();
+      uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[value], currentRate ? *currentRate : 60000, fullscreenRateOptions);
+      fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
+      break;
+    }
+    case WINDOW_SIZE_ID:
+      if (value < 480) {
+        value = value ? 480 : 720;
+        windowHeight.replaceValueInteger(*context, (uint32_t)value);
+      }
+      SWITCH_FALLTHROUGH;
+    case WIDESCREEN_HACK_ID: {
       char32_t windowWidthBuffer[14];
       memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
-      FormatInteger(GetWindowWidth(windowHeight.valueInteger(), enableWidescreenMode), windowWidthBuffer);
-      windowSize = TextMesh(context->renderer(), context->getFont(FontType::inputText), windowWidthBuffer,
-                            context->pixelSizeX(), context->pixelSizeY(), windowHeight.controlX() - 8, windowSize.y(), TextAlignment::right);
+      FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
+
+      auto& inputFont = context->getFont(FontType::inputText);
+      int32_t windowSizeY = windowSize.y();
+      if (windowSizeY == 0) {
+        auto& labelFont = context->getFont(FontType::labels);
+        windowSizeY = windowHeight.labelY() + (int32_t)(labelFont.XHeight() - inputFont.XHeight() + 1)/2;
+      }
+      windowSize = TextMesh(context->renderer(), inputFont, windowWidthBuffer, context->pixelSizeX(), context->pixelSizeY(),
+                            windowHeight.controlX() - 8, windowSizeY, TextAlignment::right);
+      break;
     }
-  }
-  else { // mouseY >= framerateGroup.y()
-    if (mouseY < frameSkipping.y()) {
-      if (framerateLimit.isHover(mouseX, mouseY))
-        framerateLimit.click(mouseX);
-      else if (fixedFramerate.isHover(mouseX, mouseY))
-        fixedFramerate.click(*context, mouseX);
+    case FRAMERATE_LIMIT_ID: {
+      isFramerateLimit = (value != 0/*TMP*/);
+      isFixedFramerate = (value == 2/*TMP*/);
+      break;
     }
-    else {
-      if (frameSkipping.isHover(mouseX, mouseY))
-        frameSkipping.click();
-      else if (vsync.isHover(mouseX, mouseY))
-        vsync.click();
+    case FRAMERATE_FIXED_ID: {
+      if (fixedFramerate.valueNumber() == 0.0)
+        fixedFramerate.replaceValueNumber(*context, 59.94);
+      break;
     }
+    default: assert(false); break;
   }
 }
 
-void GeneralSettingsPage::mouseMove(int32_t mouseX, int32_t mouseY) {
-  activeLineSelector = noLineSelection();
-  if (scrollbar.isDragged()) {
-    scrollbar.mouseMove(*context, mouseY);
-  }
-  else if (fullscreenSize.isOpen()) {
-    if (fullscreenSize.isHover(mouseX, mouseY))
-      fullscreenSize.mouseMove(*context, mouseY);
-  }
-  else if (fullscreenRate.isOpen()) {
-    if (fullscreenRate.isHover(mouseX, mouseY))
-      fullscreenRate.mouseMove(*context, mouseY);
-  }
-  else { // update hover line + tooltip
-    mouseY += (int32_t)scroll;
-    int32_t lineMiddleY = noLineSelection();
-    uint32_t lineControlWidth = 0;
-    const char32_t* tooltipValue = nullptr;
 
-    if (mouseX > displayGroup.x() && mouseX < displayGroup.x() + (int32_t)displayGroup.width() && mouseY >= displayMode.y()) {
-      if (mouseY < compatibilityGroup.y()) {
-        if (mouseY < windowHeight.y()) {
-          if (mouseY < fullscreenSize.y()) {
-            if (displayMode.isHover(mouseX, mouseY)) {
-              lineMiddleY = displayMode.middleY();
-              lineControlWidth = LABEL_WIDTH + VALUE_WIDTH + 6;
-              tooltipValue = U"Fullscreen / borderless (fullscreen window) / window mode (resizable)";
-            }
-          }
-          else if (fullscreenSize.isHover(mouseX, mouseY)) {
-            lineMiddleY = fullscreenSize.middleY();
-            lineControlWidth = LABEL_WIDTH + VALUE_WIDTH + 6;
-            tooltipValue = U"Display output resolution (pixels) in fullscreen mode";
-          }
-          else if (fullscreenRate.isHover(mouseX, mouseY)) {
-            lineMiddleY = fullscreenRate.middleY();
-            lineControlWidth = LABEL_WIDTH + VALUE_WIDTH + 6;
-            tooltipValue = U"Display output refresh rate (Hz) in fullscreen mode";
-          }
-        }
-        else if (windowHeight.isHover(mouseX, mouseY)) {
-          lineMiddleY = windowHeight.middleY();
-          lineControlWidth = windowHeight.width();
-          tooltipValue = U"Display output height (pixels) in window mode";
-        }
-      }
-      else if (mouseY < framerateGroup.y()) {
-        if (subprecisionMode.isHover(mouseX, mouseY)) {
-          lineMiddleY = subprecisionMode.middleY();
-          lineControlWidth = LABEL_WIDTH + VALUE_WIDTH + 6;
-          tooltipValue = U"Anti-jitter geometry subprecision (needed if GTE-subprecision enabled in emulator)";
-        }
-        else if (widescreenMode.isHover(mouseX, mouseY)) {
-          lineMiddleY = widescreenMode.middleY();
-          lineControlWidth = widescreenMode.width();
-          tooltipValue = U"Treat geometry coords as 16:9 (needed if widescreen hack enabled in emulator)";
-        }
-      }
-      else { // mouseY >= framerateGroup.y()
-        if (mouseY < frameSkipping.y()) {
-          if (framerateLimit.isHover(mouseX, mouseY)) {
-            lineMiddleY = framerateLimit.middleY();
-            lineControlWidth = LABEL_WIDTH + VALUE_WIDTH + 6;
-            tooltipValue = U"Enable frame rate limiter (recommended with most emulators)";
-          }
-          else if (fixedFramerate.isHover(mouseX, mouseY)) {
-            lineMiddleY = fixedFramerate.middleY();
-            lineControlWidth = fixedFramerate.width();
-            tooltipValue = U"Custom frame rate limit value (frames per second)";
-          }
-        }
-        else {
-          if (frameSkipping.isHover(mouseX, mouseY)) {
-            lineMiddleY = frameSkipping.middleY();
-            lineControlWidth = frameSkipping.width();
-            tooltipValue = U"Allow frame skipping to always keep a constant game speed";
-          }
-          else if (vsync.isHover(mouseX, mouseY)) {
-            lineMiddleY = vsync.middleY();
-            lineControlWidth = vsync.width();
-            tooltipValue = U"Fixes screen tearing and reduces power consumption (but may increase input delay)";
-          }
-        }
-      }
-    }
-    onHover(lineMiddleY, lineControlWidth, tooltipValue);
-  }
-}
+// -- rendering -- -------------------------------------------------------------
 
-void GeneralSettingsPage::mouseUp(int32_t mouseX, int32_t mouseY) {
-  if (scrollbar.isDragged())
-    scrollbar.mouseUp(*context, mouseY);
-}
-
-void GeneralSettingsPage::mouseScroll(int32_t deltaY) {
-  if (scrollbar.isEnabled())
-    scrollbar.scroll(*context, deltaY);
-}
-
-// ---
-
-void GeneralSettingsPage::keyDown(char32_t keyCode) {
-  if ((keyCode > U'\x1F' && keyCode < U'\x7F') || keyCode > U'\x9F') {
-    if (windowHeight.isEditMode())
-      windowHeight.addChar(*context, keyCode);
-    else if (fixedFramerate.isEditMode())
-      fixedFramerate.addChar(*context, keyCode);
-  }
-}
-
-void GeneralSettingsPage::vkeyDown(uint32_t virtualKeyCode) {
-  switch (virtualKeyCode) {
-    case _P_VK_ENTER:
-      if (activeLineSelector == 1)
-        fullscreenSize.click(*context);
-      else if (activeLineSelector == 2)
-        fullscreenRate.click(*context);
-      break;
-    case _P_VK_DELETE:
-      if (windowHeight.isEditMode()) {
-        windowHeight.nextChar(*context);
-        windowHeight.removeChar(*context);
-      }
-      else if (fixedFramerate.isEditMode()) {
-        fixedFramerate.nextChar(*context);
-        fixedFramerate.removeChar(*context);
-      }
-      break;
-    case _P_VK_BACKSPACE:
-      if (windowHeight.isEditMode())
-        windowHeight.removeChar(*context);
-      else if (fixedFramerate.isEditMode())
-        fixedFramerate.removeChar(*context);
-      break;
-    case _P_VK_ARROW_LEFT:
-      if (windowHeight.isEditMode())
-        windowHeight.previousChar(*context);
-      else if (fixedFramerate.isEditMode())
-        fixedFramerate.previousChar(*context);
-      break;
-    case _P_VK_ARROW_RIGHT:
-      if (windowHeight.isEditMode())
-        windowHeight.nextChar(*context);
-      else if (fixedFramerate.isEditMode())
-        fixedFramerate.nextChar(*context);
-      break;
-    case _P_VK_ARROW_UP:
-      if (fullscreenSize.isOpen())
-        fullscreenSize.selectPrevious(*context);
-      else if (fullscreenRate.isOpen())
-        fullscreenRate.selectPrevious(*context);
-      else {
-        if (activeLineSelector == noLineSelection())
-          activeLineSelector = 0;
-        else
-          --activeLineSelector;
-        onLineSelection(activeLineSelector);
-      }
-      break;
-    case _P_VK_TAB:
-    case _P_VK_ARROW_DOWN:
-      if (fullscreenSize.isOpen())
-        fullscreenSize.selectNext(*context);
-      else if (fullscreenRate.isOpen())
-        fullscreenRate.selectNext(*context);
-      else {
-        if (activeLineSelector == noLineSelection())
-          activeLineSelector = 0;
-        else
-          ++activeLineSelector;
-        onLineSelection(activeLineSelector);
-      }
-      break;
-    default: break;
-  }
-}
-
-void GeneralSettingsPage::padButtonDown(uint32_t virtualKeyCode) {
-
-}
-
-
-// -- rendering --
-
-bool GeneralSettingsPage::drawBackgrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) {
-  auto& renderer = context->renderer();
-
+void GeneralSettingsPage::drawIcons() {
   // scrollable geometry
-  ScissorRectangle scrollableArea(x, title.y() + title.height() + 2, width, (uint32_t)(tooltip.y() - scrollbar.y() - LINE_HEIGHT));
-  buffers.bindScrollLocationBuffer(renderer, scrollableArea);
-  
-  if (activeLineMiddleY != noLineSelection()) {
-    buffers.bindControlBuffer(renderer, ControlBufferType::regular);
-    lineHoverArea.draw(renderer);
-  }
+  buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
-  displayGroup.drawBackground(*context, buffers);
-  displayMode.drawBackground(*context, mouseX, mouseY, buffers);
+  auto* hoverControl = getActiveControl();
+  widescreenMode.drawIcon(*context, *buffers, (hoverControl == &widescreenMode));
+  frameSkipping.drawIcon(*context, *buffers, (hoverControl == &frameSkipping));
+  vsync.drawIcon(*context, *buffers, (hoverControl == &vsync));
+}
 
-  bool hasForeground = (fullscreenSize.isOpen() || fullscreenRate.isOpen());
-  fullscreenSize.drawBackground(*context, buffers, false);
-  fullscreenRate.drawBackground(*context, buffers, false);
-  windowHeight.drawBackground(*context, buffers);
+bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
+  // scrollable geometry -> scissor already bound
+  auto* hoverControl = getActiveControl();
+  displayGroup.drawBackground(*context, *buffers);
+  compatibilityGroup.drawBackground(*context, *buffers);
+  framerateGroup.drawBackground(*context, *buffers);
 
-  compatibilityGroup.drawBackground(*context, buffers);
-  subprecisionMode.drawBackground(*context, mouseX, mouseY, buffers);
+  displayMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &displayMode));
+  subprecisionMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &subprecisionMode));
+  framerateLimit.drawBackground(*context, mouseX, *buffers, (hoverControl == &framerateLimit));
 
-  framerateGroup.drawBackground(*context, buffers);
-  framerateLimit.drawBackground(*context, mouseX, mouseY, buffers);
-  fixedFramerate.drawBackground(*context, buffers);
-  
-  // fixed geometry
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers.bindFixedLocationBuffer(renderer, fullWindowArea);
-
-  scrollbar.drawControl(*context, mouseX, mouseY, buffers);
-  tooltip.drawBackground(*context, buffers);
-  return hasForeground;
-  
-  //TODO: utiliser activeSelectorIndex à la fois pour mouse hover et pad selection
-  // -> on se sert alors de cet index pour savoir quel contrôle dessiner en "hover"
+  fullscreenSize.drawBackground(*context, *buffers, (hoverControl == &fullscreenSize));
+  fullscreenRate.drawBackground(*context, *buffers, (hoverControl == &fullscreenRate));
+  windowHeight.drawBackground(*context, *buffers);
+  fixedFramerate.drawBackground(*context, *buffers);
+  return (fullscreenSize.isOpen() || fullscreenRate.isOpen());
 
   //float color[4]{ 0.4f,0.4f,0.4f,1.f };
   //float colorBorder[4]{ 0.3f,0.3f,0.3f,1.f };
@@ -745,171 +484,47 @@ bool GeneralSettingsPage::drawBackgrounds(RendererStateBuffers& buffers, int32_t
   //return hasForeground;
 }
 
-void GeneralSettingsPage::drawForegrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) {
+void GeneralSettingsPage::drawPageLabels() {
+  // scrollable geometry -> scissor already bound
   auto& renderer = context->renderer();
+  buffers->bindLabelBuffer(renderer, LabelBufferType::title);
+  title.draw(renderer);
 
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers.bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
+  auto* hoverControl = getActiveControl();
+  displayGroup.drawLabel(*context, *buffers);
+  compatibilityGroup.drawLabel(*context, *buffers);
+  framerateGroup.drawLabel(*context, *buffers);
 
-  fullscreenSize.drawDropdown(*context, buffers);
-  fullscreenRate.drawDropdown(*context, buffers);
-}
+  displayMode.drawLabels(*context, *buffers, (hoverControl == &displayMode));
+  subprecisionMode.drawLabels(*context, *buffers, (hoverControl == &subprecisionMode));
+  framerateLimit.drawLabels(*context, *buffers, (hoverControl == &framerateLimit));
 
-void GeneralSettingsPage::drawIcons(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) {
-  auto& renderer = context->renderer();
-
-  ScissorRectangle scrollableArea(x, title.y() + title.height() + 2, width, (uint32_t)(tooltip.y() - scrollbar.y() - LINE_HEIGHT));
-  buffers.bindScrollLocationBuffer(renderer, scrollableArea);
-
-  widescreenMode.drawIcon(*context, buffers, false);
-  frameSkipping.drawIcon(*context, buffers, false);
-  vsync.drawIcon(*context, buffers, false);
-}
-
-void GeneralSettingsPage::drawLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) {
-  auto& renderer = context->renderer();
-
-  // scrollable geometry
-  ScissorRectangle scrollableArea(x, title.y() + title.height() + 2, width, (uint32_t)(tooltip.y() - scrollbar.y() - LINE_HEIGHT));
-  buffers.bindScrollLocationBuffer(renderer, scrollableArea);
-
-  displayGroup.drawLabel(*context, buffers);
-  compatibilityGroup.drawLabel(*context, buffers);
-  framerateGroup.drawLabel(*context, buffers);
-
-  displayMode.drawLabels(*context, buffers, false);
-  fullscreenSize.drawLabels(*context, buffers, false);
-  fullscreenRate.drawLabels(*context, buffers, false);
-  windowHeight.drawLabels(*context, buffers, false);
-  subprecisionMode.drawLabels(*context, buffers, false);
-  widescreenMode.drawLabel(*context, buffers, false);
-  framerateLimit.drawLabels(*context, buffers, false);
-  frameSkipping.drawLabel(*context, buffers, false);
-  fixedFramerate.drawLabels(*context, buffers, false);
-  vsync.drawLabel(*context, buffers, false);
-
-  buffers.bindLabelBuffer(renderer, LabelBufferType::regular);
+  fullscreenSize.drawLabels(*context, *buffers, (hoverControl == &fullscreenSize));
+  fullscreenRate.drawLabels(*context, *buffers, (hoverControl == &fullscreenRate));
+  windowHeight.drawLabels(*context, *buffers, (hoverControl == &windowHeight));
+  fixedFramerate.drawLabels(*context, *buffers, (hoverControl == &fixedFramerate));
+  buffers->bindLabelBuffer(renderer, windowHeight.isEnabled() ? LabelBufferType::regular : LabelBufferType::disabled);
   windowSize.draw(renderer);
 
-  // fixed geometry
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers.bindFixedLocationBuffer(renderer, fullWindowArea);
-
-  buffers.bindLabelBuffer(renderer, LabelBufferType::title);
-  title.draw(renderer);
-  tooltip.drawLabel(*context, buffers);
+  widescreenMode.drawLabel(*context, *buffers, (hoverControl == &widescreenMode));
+  frameSkipping.drawLabel(*context, *buffers, (hoverControl == &frameSkipping));
+  vsync.drawLabel(*context, *buffers, (hoverControl == &vsync));
 }
 
-void GeneralSettingsPage::drawForegroundLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) {
+void GeneralSettingsPage::drawForegrounds() {
   auto& renderer = context->renderer();
 
   ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers.bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
+  buffers->bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
 
-  fullscreenSize.drawOptions(*context, buffers);
-  fullscreenRate.drawOptions(*context, buffers);
+  fullscreenSize.drawDropdown(*context, *buffers);
+  fullscreenRate.drawDropdown(*context, *buffers);
 }
 
+void GeneralSettingsPage::drawForegroundLabels() {
+  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
+  buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
 
-// -- events --
-
-void GeneralSettingsPage::onScroll(uint32_t visibleTopY) {
-  if (scroll != visibleTopY) {
-    scroll = visibleTopY;
-
-    // set scroll buffer
-    //ScrollUniform scrollLocation{ { 0.f, context->pixelSizeY() * (float)visibleTopY, 0.f, 0.f } };
-    //scrollPositionStaging.write(&scrollLocation);
-    //scrollPosition.copy(scrollPositionStaging);
-  }
-}
-void GeneralSettingsPage::onChange(uint32_t id, ComboValue value) {
-  switch (id) {
-    case DISPLAY_MODE_ID: {
-      isFullscreenMode = (value == 0/*TMP*/);
-      isWindowMode = (value == 2/*TMP*/);
-      break;
-    }
-    case FULLSCREEN_SIZE_ID: {
-      std::vector<ComboBoxOption> fullscreenRateOptions;
-      const auto* currentRate = fullscreenRate.getSelectedValue();
-      uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[value], currentRate ? *currentRate : 60000, fullscreenRateOptions);
-      fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
-      break;
-    }
-    case FULLSCREEN_RATE_ID:
-      break;
-    case WINDOW_SIZE_ID: {
-      if (value < 480) {
-        value = value ? 480 : 720;
-        windowHeight.replaceValueInteger(*context, (uint32_t)value);
-      }
-      char32_t windowWidthBuffer[14];
-      memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
-      FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
-      windowSize = TextMesh(context->renderer(), context->getFont(FontType::inputText), windowWidthBuffer,
-                            context->pixelSizeX(), context->pixelSizeY(), windowHeight.controlX() - 8, windowSize.y(), TextAlignment::right);
-      break;
-    }
-    case SUBPRECISION_MODE_ID:
-      break;
-    case FRAMERATE_LIMIT_ID: {
-      isFramerateLimit = (value != 0/*TMP*/);
-      isFixedFramerate = (value == 2/*TMP*/);
-      break;
-    }
-    default: assert(false); break;
-  }
-}
-
-void GeneralSettingsPage::onHover(int32_t lineMiddleY, uint32_t controlWidth, const char32_t* tooltipValue) {
-  if (activeLineMiddleY != lineMiddleY) {
-    activeLineMiddleY = lineMiddleY;
-
-    // move hover rectangle
-    if (lineMiddleY != noLineSelection()) {
-      uint32_t hoverAreaWidth = controlWidth + 38;
-      std::vector<ControlVertex> hoverAreaVertices = lineHoverArea.relativeVertices();
-      hoverAreaVertices[1].position[0] = (float)(hoverAreaWidth - 3);
-      hoverAreaVertices[3].position[0] = (float)hoverAreaWidth;
-      hoverAreaVertices[5].position[0] = (float)hoverAreaWidth;
-      hoverAreaVertices[7].position[0] = (float)(hoverAreaWidth - 3);
-      lineHoverArea.update(context->renderer(), std::move(hoverAreaVertices), context->pixelSizeX(), context->pixelSizeY(),
-                           displayMode.x() - 10, lineMiddleY - (LINE_HEIGHT >> 1), hoverAreaWidth, LINE_HEIGHT);
-    }
-
-    // replace tooltip content
-    tooltip.updateLabel(*context, tooltipValue ? tooltipValue : U" ", LabelBufferType::regular);
-  }
-}
-
-void GeneralSettingsPage::onLineSelection(int32_t& lineIndex) {
-  // close previous active control
-  if (fullscreenSize.isOpen())
-    fullscreenSize.close();
-  else if (fullscreenRate.isOpen())
-    fullscreenRate.close();
-  else if (windowHeight.isEditMode())
-    windowHeight.close();
-  else if (fixedFramerate.isEditMode())
-    fixedFramerate.close();
-
-  // select control by line index
-  switch (lineIndex) {
-    case 0: onHover(displayMode.middleY(), LABEL_WIDTH + VALUE_WIDTH + 6, U"Fullscreen / borderless (fullscreen window) / window mode (resizable)"); break;
-    case 1: onHover(fullscreenSize.middleY(), LABEL_WIDTH + VALUE_WIDTH + 6, U"Display output resolution (pixels) in fullscreen mode"); break;
-    case 2: onHover(fullscreenRate.middleY(), LABEL_WIDTH + VALUE_WIDTH + 6, U"Display output refresh rate (Hz) in fullscreen mode"); break;
-    case 3: onHover(windowHeight.middleY(), windowHeight.width(), U"Display output height (pixels) in window mode");
-      windowHeight.click(*context);
-      break;
-    case 4: onHover(subprecisionMode.middleY(), LABEL_WIDTH + VALUE_WIDTH + 6, U"Anti-jitter geometry subprecision (needed if GTE-subprecision enabled in emulator)"); break;
-    case 5: onHover(widescreenMode.middleY(), widescreenMode.width(), U"Treat geometry coords as 16:9 (needed if widescreen hack enabled in emulator)"); break;
-    case 6: onHover(framerateLimit.middleY(), LABEL_WIDTH + VALUE_WIDTH + 6, U"Enable frame rate limiter (recommended with most emulators)"); break;
-    case 7: onHover(fixedFramerate.middleY(), fixedFramerate.width(), U"Allow frame skipping to always keep a constant game speed");
-      fixedFramerate.click(*context);
-      break;
-    case 8: onHover(frameSkipping.middleY(), frameSkipping.width(), U"Custom frame rate limit value (frames per second)"); break;
-    case 9: onHover(vsync.middleY(), vsync.width(), U"Fixes screen tearing and reduces power consumption (but may increase input delay)"); break;
-    default: break;
-  }
+  fullscreenSize.drawOptions(*context, *buffers);
+  fullscreenRate.drawOptions(*context, *buffers);
 }

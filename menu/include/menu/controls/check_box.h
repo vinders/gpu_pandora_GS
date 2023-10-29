@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
 #include "menu/renderer_state_buffers.h"
@@ -25,12 +26,16 @@ namespace menu {
     class CheckBox final : public Control {
     public:
       /// @brief Create check-box control
+      /// @param onChange    Event handler to call (with 'operationId' and value) when the check-box value changes
       /// @param boundValue  Data/config value to bind to the check-box value (get/set)
       /// @param enabler     Optional data/config value to which the button state should be bound
       CheckBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-               bool isLabelBeforeBox, uint32_t minLabelWidth, bool& boundValue, const bool* enabler = nullptr)
+               bool isLabelBeforeBox, uint32_t minLabelWidth, uint32_t operationId,
+               std::function<void(uint32_t,uint32_t)> onChange, bool& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
+          onChange(std::move(onChange)),
+          operationId(operationId),
           minLabelWidth(minLabelWidth),
           isLabelBeforeBox(isLabelBeforeBox) {
         init(context, label, x, labelY);
@@ -53,8 +58,7 @@ namespace menu {
       // -- accessors --
 
       inline int32_t x() const noexcept { return isLabelBeforeBox ? labelMesh.x() : checkedMesh.x(); }
-      inline int32_t y() const noexcept { return checkedMesh.y(); }
-      inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
+      inline int32_t y() const noexcept { return checkedMesh.y() + 1; }
       inline uint32_t width() const noexcept {
         const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
         return labelWidth ? (checkedMesh.width() + labelWidth + labelMargin()) : checkedMesh.width();
@@ -66,15 +70,22 @@ namespace menu {
         const int32_t coordX = x();
         return (mouseY >= y() && mouseX >= coordX && mouseY < y() + (int32_t)height() && mouseX < coordX + (int32_t)width());
       }
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       inline bool isChecked() const noexcept { return *boundValue; } ///< Get checkbox value
 
       // -- operations --
 
-      /// @brief Report click to control (on mouse click with hover / on keyboard/pad action)
+      /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
+      /// @returns True if the control is now open (always false)
+      bool click(RendererContext& context, int32_t mouseX) override;
       inline void click() const {
-        if (isEnabled())
+        if (isEnabled()) {
           *boundValue ^= true;
+          if (onChange != nullptr)
+            onChange(operationId, (uint32_t)*boundValue);
+        }
       }
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
@@ -91,7 +102,6 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
       inline int32_t getBoxX(int32_t x, uint32_t labelWidth) const noexcept {
         if (isLabelBeforeBox) {
           if (minLabelWidth >= labelWidth)
@@ -109,6 +119,8 @@ namespace menu {
       bool* boundValue = nullptr;
       const bool* enabler = nullptr;
 
+      std::function<void(uint32_t, bool)> onChange;
+      uint32_t operationId = 0;
       uint32_t minLabelWidth = 0;
       bool isLabelBeforeBox = false;
     };

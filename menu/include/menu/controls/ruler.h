@@ -69,7 +69,6 @@ namespace menu {
         return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
                                   : (controlMesh.x() + (int32_t)controlMesh.width());
       }
-      inline int32_t middleY() const noexcept { return labelMesh.y() + (int32_t)(labelMesh.height() >> 1); }
 
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return thumbMesh.height(); }
@@ -79,23 +78,26 @@ namespace menu {
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         return (mouseX >= x() && mouseY >= y() && mouseX < x() + (int32_t)width() && mouseY < y() + (int32_t)height());
       }
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       // -- operations --
 
-      /// @brief Report click to control (on mouse click with hover / on keyboard/pad action)
+      /// @brief Report click to the control (on mouse click with hover)
+      /// @returns True if the control is dragged (always true if control is enabled)
+      bool click(RendererContext& context, int32_t mouseX) override;
       inline void click(RendererContext& context, int32_t mouseX, bool isMouseDown) { ///< Report click to control (on mouse click with hover)
         if (isEnabled()) {
           isDragging = isMouseDown;
-          mouseMove(context, mouseX);
+          mouseMove(context, mouseX, 0);
         }
       }
-      void mouseMove(RendererContext& context, int32_t mouseX);       ///< Report mouse move to control (on mouse move with mouse down during drag)
-      inline void mouseUp(RendererContext& context, int32_t mouseX) { ///< Report end of mouse click (after drag)
-        mouseMove(context, mouseX);
-        isDragging = false;
-      }
+      /// @brief Report mouse move to control (on mouse move with mouse down during drag)
+      void mouseMove(RendererContext& context, int32_t mouseX, int32_t mouseY) override;
+      bool mouseUp(RendererContext& context, int32_t mouseX) override; ///< Report end of mouse click (after drag)
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
+      void close() override;
 
       /// @brief Change control location (on window resize)
       void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign);
@@ -115,7 +117,6 @@ namespace menu {
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                 display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
                 uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4], float leftFillColor[4]);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       void updateThumbPosition(RendererContext& context, uint32_t value);
 

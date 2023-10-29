@@ -24,7 +24,8 @@ namespace menu {
     regular = 0, ///< neutral control/icon
     disabled,    ///< disabled control/icon
     active,      ///< active/hover control/icon
-    special,     ///< special control/icon state
+    activeLight, ///< active/hover control/icon with lighter color
+    activeInvert,///< active/hover control/icon with inverted logic (lighter <-> darker)
     COUNT
   };
   enum class LabelBufferType : uint32_t { ///< State buffer type, based on control type and status
@@ -93,7 +94,7 @@ namespace menu {
     
     /// @brief Update page scroll position in scroll uniform buffer (on scroll event)
     /// @param scrollLevelY  Scroll offset from top (pixels)
-    void updateScrollBuffer(video_api::Renderer& renderer, float pixelSizeY, uint32_t scrollLevelY);
+    void updateScrollBuffer(float pixelSizeY, uint32_t scrollLevelY);
     /// @brief Update buffer colors in control/icon/label uniform buffers (on theme change)
     void updateColorBuffers(video_api::Renderer& renderer, const ColorTheme& theme);
 

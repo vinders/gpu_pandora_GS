@@ -117,7 +117,7 @@ namespace menu {
         return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
                                   : (controlMesh.x() + (int32_t)controlMesh.width());
       }
-      inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
+      inline int32_t labelY() const noexcept { return labelMesh.y(); }
       inline int32_t paddingTop() const noexcept { return paddingY; }
 
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
@@ -127,6 +127,9 @@ namespace menu {
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < rightX());
       }
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
+
       inline bool isEditMode() const noexcept { return isEditing; } ///< Verify if control is currently in edit mode
       inline const char32_t* valueText() const noexcept { return inputValue.data(); } ///< Get text value stored in text-box
       uint32_t valueInteger() const noexcept; ///< Get integer value stored in text-box (only with TextBoxType::integer)
@@ -134,7 +137,9 @@ namespace menu {
 
       // -- operations --
 
-      void click(RendererContext& context, int32_t mouseX = noMouseCoord());  ///< Report click to control (on mouse click with hover / on keyboard/pad action)
+      /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
+      /// @returns True if the control is now open (text editing mode)
+      bool click(RendererContext& context, int32_t mouseX = noMouseCoord()) override;
       void addChar(RendererContext& context, char32_t code); ///< Report character input to control (if edit mode is active)
       void removeChar(RendererContext& context);             ///< Report character removal to control (if edit mode is active)
       inline void previousChar(RendererContext& context) {   ///< Move caret at previous character if available (on keyboard/pad action, if edit mode is active)
@@ -143,16 +148,15 @@ namespace menu {
           updateCaretLocation(context);
         }
       }
-      inline void nextChar(RendererContext& context) { ///< Move caret at next character if available (on keyboard/pad action, if edit mode is active)
+      inline bool nextChar(RendererContext& context) { ///< Move caret at next character if available (on keyboard/pad action, if edit mode is active)
         if (caretLocation < (uint32_t)inputValue.size() - 1u/*ignore ending zero*/) {
           ++caretLocation;
           updateCaretLocation(context);
+          return true;
         }
+        return false;
       }
-      inline void close() noexcept { ///< Force-stop edit mode (on click elsewhere / on keyboard Enter)
-        isEditing = false;
-        onChange(operationId);
-      }
+      void close() override; ///< Force-stop edit mode (on click elsewhere / on keyboard Enter)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
       void replaceValueText(RendererContext& context, const char32_t* textValue); ///< Replace text input value (only with TextBoxType::text)
@@ -170,12 +174,11 @@ namespace menu {
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
+      static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; } ///< Click coord for key/pad
     private:
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                 int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue);
       void updateCaretLocation(RendererContext& context);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
-      static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; }
 
       static const char32_t* fromInteger(uint32_t integerValue, char32_t buffer[MAX_INTEGER_LENGTH + 1]) noexcept;
       static std::unique_ptr<char32_t[]> fromNumber(double numberValue, size_t bufferLength);

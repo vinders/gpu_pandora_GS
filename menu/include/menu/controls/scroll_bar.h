@@ -26,7 +26,7 @@ namespace menu {
     public:
       /// @brief Create scroll-bar control
       /// @param operationId Unique scroll-bar operation identifier (should be cast from an enum or constant)
-      /// @param onChange    Event handler to call (with 'operationId') when the scroll-bar position changes
+      /// @param onChange    Event handler to call (with 'operationId') when the scroll-bar position changes -- required!!!
       /// @param enabler     Optional data/config value to which the scroll-bar state should be bound
       ScrollBar(RendererContext& context, const float barColor[4], const float thumbColor[4],
                 int32_t x, int32_t y, uint32_t width, std::function<void(uint32_t)> onChange,
@@ -75,7 +75,7 @@ namespace menu {
         mouseMove(context, mouseY);
         dragThumbOffsetY = noDrag();
       }
-      inline void mouseLeave() { dragThumbOffsetY = noDrag(); } ///< Report mouse leaving screen
+      inline void mouseLeave() noexcept { dragThumbOffsetY = noDrag(); } ///< Report mouse leaving screen
 
       /// @brief Report click to control (on mouse wheel move / on up/down key)
       inline void scroll(RendererContext& context, int32_t delta) {

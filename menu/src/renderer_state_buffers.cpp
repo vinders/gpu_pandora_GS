@@ -68,7 +68,7 @@ RendererStateBuffers::RendererStateBuffers(Renderer& renderer, const ColorTheme&
   updateColorBuffers(renderer, theme);
 }
 
-void RendererStateBuffers::updateScrollBuffer(Renderer& renderer, float pixelSizeY, uint32_t scrollLevelY) {
+void RendererStateBuffers::updateScrollBuffer(float pixelSizeY, uint32_t scrollLevelY) {
   // vertex slot 1 - scroll position
   ScrollUniform scrollLocation{ { 0.f, pixelSizeY*(float)scrollLevelY, 0.f, 0.f } };
   scrollPositionStaging.write(&scrollLocation);
@@ -83,8 +83,10 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeControlModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  memcpy(colorData.color, theme.specialControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::special] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.activeLightControlModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::activeLight] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.activeInvertControlModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::activeInvert] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   // fragment slot 0 - text background color
   memcpy(colorData.color, theme.regularLabelColor(), sizeof(float)*4);

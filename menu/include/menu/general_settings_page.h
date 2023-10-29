@@ -33,81 +33,35 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   class GeneralSettingsPage final : public Page {
   public:
-    GeneralSettingsPage(std::shared_ptr<RendererContext> context, const ColorTheme& theme,
-                        const pandora::hardware::DisplayMonitor& monitor,
+    GeneralSettingsPage(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
+                        const ColorTheme& theme, const pandora::hardware::DisplayMonitor& monitor,
                         int32_t x, int32_t y, uint32_t width, uint32_t height);
-    ~GeneralSettingsPage() noexcept { release(); }
-    void release() noexcept;
+    ~GeneralSettingsPage() noexcept override;
 
     // -- window event --
 
     /// @brief Report page resize event
     void move(int32_t x, int32_t y, uint32_t width, uint32_t height) override;
 
-    // -- user interactions --
-
-    /// @brief Report mouse down (click) -- coords relative to window
-    void mouseDown(int32_t mouseX, int32_t mouseY);
-    /// @brief Report mouse move -- coords relative to window
-    void mouseMove(int32_t mouseX, int32_t mouseY);
-    /// @brief Report mouse up (end of click) -- coords relative to window
-    void mouseUp(int32_t mouseX, int32_t mouseY);
-    /// @brief Report mouse wheel delta
-    void mouseScroll(int32_t deltaY);
-    /// @brief Report mouse leaving screen
-    void mouseLeave() {
-      if (scrollbar.isDragged())
-        scrollbar.mouseLeave();
-    }
-
-    /// @brief Report key down (keyboard)
-    void keyDown(char32_t keyCode) override;
-    /// @brief Report virtual key down (keyboard)
-    void vkeyDown(uint32_t virtualKeyCode) override;
-    /// @brief Report controller button down (pad)
-    void padButtonDown(uint32_t virtualKeyCode) override;
-
     // -- rendering --
 
-    /// @brief Draw page control backgrounds
-    /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-    /// @returns Presence of foregrounds to draw (true) or not
-    bool drawBackgrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
-    /// @brief Draw page control foregrounds (if any)
-    /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-    void drawForegrounds(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
     /// @brief Draw page control icons
     /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
-    void drawIcons(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
-    /// @brief Draw page control labels
-    /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    void drawLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawIcons() override;
+    /// @brief Draw page control foregrounds (if any)
+    /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
+    void drawForegrounds() override;
     /// @brief Draw page control foreground labels (if any)
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    void drawForegroundLabels(RendererStateBuffers& buffers, int32_t mouseX, int32_t mouseY) override;
+    void drawForegroundLabels() override;
 
   private:
-    void onScroll(uint32_t visibleTopY);
-    void onChange(uint32_t id, controls::ComboValue value);
-    void onHover(int32_t lineMiddleY, uint32_t controlWidth, const char32_t* tooltipValue);
-    void onLineSelection(int32_t& lineIndex);
-    static constexpr inline int32_t noLineSelection() noexcept { return 0x7FFFFFFF; }
+    void onChange(uint32_t id, uint32_t value);
+    bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+    void drawPageLabels() override;
 
   private:
-    std::shared_ptr<RendererContext> context;
-    //video_api::Buffer<video_api::ResourceUsage::staticGpu> scrollPosition;
-    //video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
-    int32_t x = 0;
-    uint32_t width = 0;
-    uint32_t scroll = 0;
-    int32_t activeLineSelector = noLineSelection();
-    int32_t activeLineMiddleY = noLineSelection();
-
-    // page decoration
-    controls::ScrollBar scrollbar;
-    controls::Tooltip tooltip;
     display::controls::TextMesh title;
-    display::controls::ControlMesh lineHoverArea;
 
     // display mode
     controls::Fieldset displayGroup;

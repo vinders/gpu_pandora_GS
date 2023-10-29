@@ -18,6 +18,7 @@ using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 ControlType Ruler::Type() const noexcept { return ControlType::ruler; }
 
@@ -175,9 +176,20 @@ void Ruler::updateThumbPosition(RendererContext& context, uint32_t value) {
 }
 
 
-// -- operations -- ------------------------------------------------------------
+// -- accessors/operations -- --------------------------------------------------
 
-void Ruler::mouseMove(RendererContext& context, int32_t mouseX) {
+ControlStatus Ruler::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
+// ---
+
+bool Ruler::click(RendererContext& context, int32_t mouseX) {
+  click(context, mouseX, true);
+  return isDragging;
+}
+
+void Ruler::mouseMove(RendererContext& context, int32_t mouseX, int32_t) {
   if (isDragged() && minValue != maxValue) {
     mouseX -= (controlMesh.x() + (int32_t)firstStepOffset);
     if (mouseX < 0)
@@ -193,6 +205,12 @@ void Ruler::mouseMove(RendererContext& context, int32_t mouseX) {
   }
 }
 
+bool Ruler::mouseUp(RendererContext& context, int32_t mouseX) {
+  mouseMove(context, mouseX, 0);
+  isDragging = false;
+  return true;
+}
+
 // ---
 
 void Ruler::selectPrevious(RendererContext& context) {
@@ -206,6 +224,10 @@ void Ruler::selectNext(RendererContext& context) {
     lastValue = ++(*boundValue);
     updateThumbPosition(context, lastValue);
   }
+}
+
+void Ruler::close() {
+  isDragging = false;
 }
 
 

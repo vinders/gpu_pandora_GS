@@ -35,7 +35,7 @@ namespace menu {
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
       ComboBox(RendererContext& context, const char32_t* label,  int32_t x, int32_t labelY,
                const ControlStyle& style, uint32_t minBoxWidth, const float dropdownColor[4], uint32_t operationId,
-               std::function<void(uint32_t,ComboValue)> onChange, ComboBoxOption* values, size_t valueCount,
+               std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values, size_t valueCount,
                int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
@@ -71,15 +71,14 @@ namespace menu {
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
-      inline int32_t middleY() const noexcept { return controlMesh.y() + (int32_t)(controlMesh.height() >> 1); }
-      inline uint32_t width() const noexcept {
-        return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x());
-      }
+      inline uint32_t width() const noexcept { return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x()); }
       inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isOpen() const noexcept { return isListOpen; }   ///< Verify if the dropdown list is open
       bool isHover(int32_t mouseX, int32_t mouseY) const noexcept; ///< Verify mouse hover
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
         return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
@@ -87,11 +86,13 @@ namespace menu {
 
       // -- operations --
 
-      void click(RendererContext& context);                     ///< Report click to control (on mouse click with hover / on keyboard/pad action)
-      void mouseMove(RendererContext& context, int32_t mouseY); ///< Report mouse move to control (on mouse move with hover)
+      /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
+      /// @returns True if the control is now open (dropdown)
+      bool click(RendererContext& context, int32_t mouseX) override;
+      void mouseMove(RendererContext& context, int32_t mouseX, int32_t mouseY) override; ///< Report mouse move to control (on mouse move with hover)
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)
-      inline void close() noexcept { isListOpen = false; } ///< Force-close the dropdown list without changing (if open)
+      void close() override;                               ///< Force-close the dropdown list without changing (if open)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
       void replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1); ///< Replace selectable values
@@ -100,7 +101,8 @@ namespace menu {
         if (index >= 0 && index < (int32_t)selectableValues.size()) {
           if (selectedIndex != index) {
             selectedIndex = index;
-            onChange(operationId, selectableValues[selectedIndex].value);
+            if (onChange != nullptr)
+              onChange(operationId, (uint32_t)selectableValues[selectedIndex].value);
           }
         }
         else selectedIndex = -1;
@@ -133,7 +135,6 @@ namespace menu {
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const float color[4],
                 const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       struct OptionMesh final { // selectable value stored
         OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)

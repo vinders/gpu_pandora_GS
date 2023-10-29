@@ -19,6 +19,9 @@ GNU General Public License for more details (LICENSE file).
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
+
+ControlType Button::Type() const noexcept { return ControlType::button; }
 
 
 // -- init/resize geometry -- --------------------------------------------------
@@ -94,6 +97,18 @@ void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
     const int32_t iconY = controlMesh.y() + ((int32_t)controlMesh.height() - (int32_t)iconMesh.height())/2;
     iconMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), iconX, iconY);
   }
+}
+
+
+// -- accessors/operations -- --------------------------------------------------
+
+ControlStatus Button::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
+bool Button::click(RendererContext&, int32_t) {
+  click();
+  return false;
 }
 
 

@@ -33,7 +33,7 @@ namespace menu {
       /// @param onChange     Event handler to call (with 'operationId' and value) when the slider-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
       Slider(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ControlStyle& style,
-             uint32_t fixedSliderWidth, uint32_t operationId, std::function<void(uint32_t,ComboValue)> onChange,
+             uint32_t fixedSliderWidth, uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange,
              ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
@@ -64,7 +64,6 @@ namespace menu {
 
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return arrowLeftMesh.y(); }
-      inline int32_t middleY() const noexcept { return arrowLeftMesh.y() + (int32_t)(arrowLeftMesh.height() >> 1); }
       inline uint32_t width() const noexcept {
         const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
         return (labelWidth + (labelMargin() << 1) + fixedSliderWidth); // add extra padding to improve prev/next button access
@@ -75,6 +74,8 @@ namespace menu {
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
       }
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
         return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
@@ -82,7 +83,9 @@ namespace menu {
 
       // -- operations --
 
-      void click(int32_t mouseX); ///< Report click to control (on mouse click with hover)
+      /// @brief Report click to the control (on mouse click with hover)
+      /// @returns True if the control is now open (always false)
+      bool click(RendererContext& context, int32_t mouseX) override;
       void selectPrevious();      ///< Select previous entry if available (on keyboard/pad action)
       void selectNext();          ///< Select next entry if available (on keyboard/pad action)
 
@@ -93,7 +96,7 @@ namespace menu {
       /// @brief Draw slider background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      void drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
+      void drawBackground(RendererContext& context, int32_t mouseX, RendererStateBuffers& buffers, bool isActive);
       /// @brief Draw slider label + selected option name
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
@@ -102,7 +105,6 @@ namespace menu {
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                 const float arrowColor[4], ComboBoxOption* values, size_t valueCount);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
 
       struct OptionMesh final { // selectable value stored
         OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)

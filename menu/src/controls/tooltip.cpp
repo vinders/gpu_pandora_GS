@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 
 // -- init/resize geometry -- --------------------------------------------------
@@ -119,7 +120,8 @@ void Tooltip::updateIcon(RendererContext& context, display::ControlIconType icon
   }
 }
 
-void Tooltip::updateLabel(RendererContext& context, const char32_t* label, LabelBufferType textColor) {
+void Tooltip::updateLabel(RendererContext& context, const char32_t* label, LabelBufferType textColor_) {
+  this->textColor = textColor_;
   labelMesh = TextMesh(context.renderer(), context.getFont(fontType), label, context.pixelSizeX(), context.pixelSizeY(),
                        labelMesh.x(), labelMesh.y(), TextAlignment::left);
 }

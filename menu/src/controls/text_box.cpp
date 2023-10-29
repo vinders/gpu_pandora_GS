@@ -24,6 +24,7 @@ GNU General Public License for more details (LICENSE file).
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
 
@@ -154,6 +155,13 @@ void TextBox::updateCaretLocation(RendererContext& context) {
 }
 
 
+// -- accessors -- -------------------------------------------------------------
+
+ControlStatus TextBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
+
 // -- operations -- ------------------------------------------------------------
 
 void TextBox::replaceValueText(RendererContext& context, const char32_t* textValue) {
@@ -186,7 +194,7 @@ void TextBox::replaceValueNumber(RendererContext& context, double numberValue) {
 
 // ---
 
-void TextBox::click(RendererContext& context, int32_t mouseX) {
+bool TextBox::click(RendererContext& context, int32_t mouseX) {
   if (isEnabled()) {
     isEditing = true;
     caretDrawCount = 0;
@@ -208,13 +216,18 @@ void TextBox::click(RendererContext& context, int32_t mouseX) {
     if (!isCaretMoved) // caret at the end
       caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
   }
-  else close();
+  else { // close
+    isEditing = false;
+    if (onChange != nullptr)
+      onChange(operationId);
+  }
+  return isEditing;
 }
 
 // ---
 
 void TextBox::addChar(RendererContext& context, char32_t code) {
-  if (inputValue.size() >= (size_t)(maxValueLength + 1u)) // max possible length + ending zero
+  if (inputValue.size() >= (size_t)maxValueLength + 1u) // max possible length + ending zero
     return;
 
   // verify character constraints
@@ -262,6 +275,12 @@ void TextBox::removeChar(RendererContext& context) {
     inputValue.erase(inputValue.begin()+caretLocation);
   }
   updateCaretLocation(context);
+}
+
+void TextBox::close() {
+  isEditing = false;
+  if (onChange != nullptr)
+    onChange(operationId);
 }
 
 

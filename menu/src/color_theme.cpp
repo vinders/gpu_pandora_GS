@@ -18,7 +18,7 @@ using namespace menu;
 
 #define SET_MULTIPLIER(renderer, r,g,b,a, output) { \
           float color[4] = { r,g,b,a }; \
-          renderer.sRgbToGammaCorrectColor(color, output); \
+          memcpy(output, color, sizeof(float)*4u); \
         }
 #define SET_THEME_COLOR(renderer, r,g,b, opacity, output) { \
           float color[4] = { (float)r/255.f, (float)g/255.f, (float)b/255.f, opacity }; \
@@ -31,9 +31,10 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
   switch (type) {
     case ColorThemeType::lightBlue:
     default: {
-      SET_MULTIPLIER(renderer, 1.f,  1.f,  1.f,  0.5f, disabledControl)
-      SET_MULTIPLIER(renderer, 1.15f,1.15f,1.15f,1.f,  activeControl)
-      SET_MULTIPLIER(renderer, 0.85f,0.85f,0.85f,1.f,  specialControl)
+      SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 0.6f, disabledControl)
+      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,  activeControl)
+      SET_MULTIPLIER(renderer, 1.1f,1.1f,1.1f,1.f,  activeLightControl)
+      SET_MULTIPLIER(renderer, 0.8f,0.8f,0.8f,1.f,  activeInvertControl)
       SET_THEME_COLOR(renderer,  64, 64, 64, 1.f, regularLabel)
       SET_THEME_COLOR(renderer, 160,160,160, 1.f, disabledLabel)
       SET_THEME_COLOR(renderer,  82, 82, 82, 1.f, activeLabel)

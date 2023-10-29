@@ -19,6 +19,7 @@ using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 
 // -- init/resize geometry -- --------------------------------------------------
@@ -159,13 +160,16 @@ void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mo
     ControlBufferType upBuffer = ControlBufferType::regular;
     ControlBufferType downBuffer = ControlBufferType::regular;
     ControlBufferType thumbBuffer = ControlBufferType::regular;
-    if (isHover(mouseX, mouseY)) {
+    if (isDragged()) {
+      thumbBuffer = ControlBufferType::activeInvert;
+    }
+    else if (isHover(mouseX, mouseY)) {
       if (mouseY < thumbAreaY) // UP hover/pressed
-        upBuffer = ControlBufferType::special;
+        upBuffer = ControlBufferType::activeInvert;
       else if (mouseY >= downMesh.y()) // DOWN hover/pressed
-        downBuffer = ControlBufferType::special;
+        downBuffer = ControlBufferType::activeInvert;
       else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) // thumb hover/pressed
-        thumbBuffer = ControlBufferType::special;
+        thumbBuffer = ControlBufferType::activeInvert;
     }
 
     buffers.bindControlBuffer(context.renderer(), upBuffer);

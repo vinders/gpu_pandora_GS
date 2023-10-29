@@ -132,6 +132,14 @@ namespace menu {
         (vertexIt + 7)->position[0] = x2;
         (vertexIt + 8)->position[0] = x2;
       }
+      /// @brief Resize horizontally existing rectangle with all corners cut (update 8 menu control vertices)
+      static inline void resizeCornerCutRectangleVerticesX(display::controls::ControlVertex* vertexIt,
+                                                           float x2, float cornerSize) {
+        (vertexIt + 1)->position[0] = x2 - cornerSize;
+        (vertexIt + 3)->position[0] = x2;
+        (vertexIt + 5)->position[0] = x2;
+        (vertexIt + 7)->position[0] = x2 - cornerSize;
+      }
 
       /// @brief Move existing rectangle vertically (update 4 menu control vertices)
       static inline void moveRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x1, float x2) {

@@ -21,18 +21,39 @@ namespace menu {
   namespace controls {
     enum class ControlType : uint32_t { ///< Selectable menu control type
       unknown = 0,
+      button,   ///< Button (with optional icon)
       checkBox, ///< Check-box (with optional label)
       comboBox, ///< Combo-box dropdown selector (with optional label)
       textBox,  ///< Text edit box (with optional label and suffix)
       ruler,    ///< Sliding ruler (with optional label)
       slider    ///< Left/right slider selector (with optional label)
     };
+    enum class ControlStatus : uint32_t { ///< Control status type
+      regular = 0, ///< Neutral status
+      disabled,    ///< Control currently can't be used
+      hover        ///< The mouse is located on the control
+    };
 
     /// @brief Selectable menu control -- interface
     class Control {
     public:
+      static constexpr inline uint32_t labelMargin() noexcept { return 6u; } ///< Horizontal margin between label and control mesh
       virtual ~Control() noexcept = default;
+
       virtual ControlType Type() const noexcept = 0; ///< Get control type
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      virtual ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept = 0;
+
+      /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
+      /// @returns True if the control is now open (open combo-box, edited text-box, dragged ruler...)
+      virtual bool click(RendererContext& context, int32_t mouseX) = 0;
+      /// @brief Report mouse move to control (on mouse move when control is open: dropdown, dragging...)
+      virtual void mouseMove(RendererContext& /*context*/, int32_t /*mouseX*/, int32_t /*mouseY*/) {}
+      /// @brief Report end of mouse click (after drag)
+      /// @returns True if the control has been closed by this action
+      virtual bool mouseUp(RendererContext& /*context*/, int32_t /*mouseX*/) { return false; }
+      /// @brief Force-close the control (if open: dropdown, text editing, dragging...)
+      virtual void close() {}
     };
     
     

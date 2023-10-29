@@ -18,6 +18,7 @@ GNU General Public License for more details (LICENSE file).
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 
 // -- init/resize geometry -- --------------------------------------------------

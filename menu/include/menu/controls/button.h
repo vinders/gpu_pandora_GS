@@ -24,7 +24,7 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   namespace controls {
     /// @brief UI button control
-    class Button final {
+    class Button final : public Control {
     public:
       /// @brief Create button control
       /// @param operationId Unique button operation identifier (should be cast from an enum or constant)
@@ -53,6 +53,7 @@ namespace menu {
         iconMesh.release();
         labelMesh.release();
       }
+      ControlType Type() const noexcept override;
 
       // -- accessors --
 
@@ -65,14 +66,19 @@ namespace menu {
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
         return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
       }
+      /// @brief Get control status, based on mouse location (hover, disabled...)
+      ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       // -- operations --
 
-      /// @brief Report click to control (on mouse click with hover / on keyboard/pad action)
+      /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
+      /// @returns True if the control is now open (always false)
+      bool click(RendererContext& context, int32_t mouseX) override;
       inline void click() const {
         if (isEnabled())
           onClick(operationId);
       }
+      
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
 
       // -- rendering --

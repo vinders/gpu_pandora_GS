@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 #include <functional>
+#include <display/image_loader.h>
 #include <display/controls/control_mesh.h>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>

@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu;
 
 ControlType CheckBox::Type() const noexcept { return ControlType::checkBox; }
 
@@ -39,7 +40,7 @@ void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, 
 
   // create icons
   const int32_t boxX = getBoxX(x, labelMesh.width());
-  const int32_t boxY = labelY - ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2;
+  const int32_t boxY = labelY - ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2 - 1;
   checkedMesh = IconMesh(context.renderer(), std::move(iconDataOn.texture()), context.pixelSizeX(), context.pixelSizeY(),
                          boxX, boxY, iconDataOn.offsetX(), iconDataOn.offsetY(), iconDataOn.width(), iconDataOn.height());
   uncheckedMesh = IconMesh(context.renderer(), std::move(iconDataOff.texture()), context.pixelSizeX(), context.pixelSizeY(),
@@ -54,9 +55,21 @@ void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
 
   const uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
   const int32_t boxX = getBoxX(x, labelMesh.width());
-  const int32_t boxY = labelY - ((int32_t)checkedMesh.height() - (int32_t)labelMesh.height())/2;
+  const int32_t boxY = labelY - ((int32_t)checkedMesh.height() - (int32_t)labelMesh.height())/2 - 1;
   checkedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
   uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
+}
+
+
+// -- accessors/operations -- --------------------------------------------------
+
+ControlStatus CheckBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
+  return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
+}
+
+bool CheckBox::click(RendererContext&, int32_t) {
+  click();
+  return false;
 }
 
 
@@ -64,7 +77,7 @@ void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
 
 void CheckBox::drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
   buffers.bindIconBuffer(context.renderer(), isEnabled()
-                                             ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+                                             ? (isActive ? ControlBufferType::activeLight : ControlBufferType::regular)
                                              : ControlBufferType::disabled);
   if (*boundValue)
     checkedMesh.draw(context.renderer());
