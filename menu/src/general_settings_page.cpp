@@ -403,13 +403,14 @@ void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
       fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
       break;
     }
-    case WINDOW_SIZE_ID:
+    case WIDESCREEN_HACK_ID:
+      value = windowHeight.valueInteger();
+      SWITCH_FALLTHROUGH;
+    case WINDOW_SIZE_ID: {
       if (value < 480) {
         value = value ? 480 : 720;
         windowHeight.replaceValueInteger(*context, (uint32_t)value);
       }
-      SWITCH_FALLTHROUGH;
-    case WIDESCREEN_HACK_ID: {
       char32_t windowWidthBuffer[14];
       memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
       FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);

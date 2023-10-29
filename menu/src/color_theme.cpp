@@ -62,15 +62,15 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,  67, 82, 97, 1.f, buttonLabel)
       SET_THEME_COLOR(renderer, 240,240,240, 1.f, textBoxControl)
       SET_THEME_COLOR(renderer, 112,112,112, 1.f, textBoxLabel)
-      SET_THEME_COLOR(renderer, 147,184,218, 0.8f, comboBoxControl) //138,174,208
+      SET_THEME_COLOR(renderer, 147,184,218, 0.8f, comboBoxControl)
       SET_THEME_COLOR(renderer, 233,239,244, 1.f, comboBoxDropdown)
-      SET_THEME_COLOR(renderer,  78, 93,109, 1.f, comboBoxLabel) //67, 82, 97  //70, 86,102
+      SET_THEME_COLOR(renderer,  78, 93,109, 1.f, comboBoxLabel)
       SET_THEME_COLOR(renderer,  88,100,116, 1.f, comboBoxDropdownLabel)
       SET_THEME_COLOR(renderer, 102,102,102, 1.f, rulerControl)
       SET_THEME_COLOR(renderer,  80, 80, 80, 1.f, rulerBorder)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerThumb)
       SET_THEME_COLOR(renderer,   0, 83,166, 1.f, rulerFiller)
-      SET_THEME_COLOR(renderer,  74,120,166, 1.f, sliderArrow)
+      SET_THEME_COLOR(renderer,  85,138,191, 1.f, sliderArrow) // 74,120,166
       SET_THEME_COLOR(renderer,  67, 82, 97, 1.f, sliderLabel)
       fieldsetType = FieldsetStyle::classic;
       break;
