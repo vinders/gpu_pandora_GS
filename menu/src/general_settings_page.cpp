@@ -167,8 +167,6 @@ static uint32_t ListFullscreenRates(std::vector<uint32_t>& fullscreenRates, uint
 
 // -- page -- ------------------------------------------------------------------
 
-#define PAGE_HEIGHT      1200
-
 #define DISPLAY_MODE_ID      1
 #define FULLSCREEN_SIZE_ID   2
 #define WINDOW_SIZE_ID       3
@@ -179,9 +177,12 @@ static uint32_t ListFullscreenRates(std::vector<uint32_t>& fullscreenRates, uint
 GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
                                          const ColorTheme& theme, const pandora::hardware::DisplayMonitor& monitor,
                                          int32_t x, int32_t y, uint32_t width, uint32_t height)
-  : Page(std::move(context_), std::move(buffers_), theme, x, y, width, height, PAGE_HEIGHT, true) {
+  : Page(std::move(context_), std::move(buffers_), theme, x, y, width, height, true) {
   const uint32_t fieldsetPaddingX = ColorTheme::pageFieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)ColorTheme::fieldsetPaddingX(width);
+  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
+  if (fieldsetWidth > ColorTheme::fieldsetMaxWidth())
+    fieldsetWidth = ColorTheme::fieldsetMaxWidth();
 
   title = TextMesh(context->renderer(), context->getFont(FontType::titles), U"General settings",
                    context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
@@ -194,7 +195,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   // --- display group ---
   displayGroup = Fieldset(*context, U"Output settings", theme.fieldsetStyle(), theme.fieldsetControlColor(),
                           x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
-                          ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                          ColorTheme::fieldsetTitlePaddingY(), fieldsetWidth,
                           ColorTheme::pageLineHeight()*3 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -215,22 +216,24 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   constexpr const uint32_t fullscreenSizeWidth = ColorTheme::pageControlWidth() - 108;
   constexpr const uint32_t fullscreenRateWidth = 105;
   constexpr const int32_t fullscreenRateMargin = 3;
+  ControlStyle comboStyle(theme.comboBoxControlColor(), ColorTheme::pageLabelWidth(), 10, 7);
   {
     std::vector<ComboBoxOption> fullscreenSizeOptions;
     uint32_t selectedFullSize = ListFullscreenResolutions(monitor, fullscreenSizeOptions, fullscreenRatesPerSize);
 
-    ControlStyle comboStyle(theme.comboBoxControlColor(), ColorTheme::pageLabelWidth(), 10, 7);
     fullscreenSize = ComboBox(*context, U"Fullscreen resolution", controlX, currentLineY, comboStyle,
-                              fullscreenSizeWidth, theme.comboBoxDropdownColor(), FULLSCREEN_SIZE_ID, changeHandler,
-                              fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedFullSize, &isFullscreenMode);
+                              fullscreenSizeWidth, theme.comboBoxDropdownColor(), theme.comboBoxTopControlColor(),
+                              FULLSCREEN_SIZE_ID, changeHandler, fullscreenSizeOptions.data(), fullscreenSizeOptions.size(),
+                              selectedFullSize, &isFullscreenMode);
     registry.emplace_back(fullscreenSize, true, U"Display output resolution (pixels) in fullscreen mode");
 
     std::vector<ComboBoxOption> fullscreenRateOptions;
     uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[fullscreenSizeOptions[selectedFullSize].value], 60000, fullscreenRateOptions);
     comboStyle.minLabelWidth = 0;
     fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + fullscreenRateMargin,
-                              currentLineY, comboStyle, fullscreenRateWidth, theme.comboBoxDropdownColor(), 0, nullptr,
-                              fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
+                              currentLineY, comboStyle, fullscreenRateWidth, theme.comboBoxDropdownColor(),
+                              theme.comboBoxTopControlColor(), 0, nullptr, fullscreenRateOptions.data(),
+                              fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
     registry.emplace_back(fullscreenRate, true, U"Display output refresh rate (Hz) in fullscreen mode");
     currentLineY += ColorTheme::pageLineHeight();
   }
@@ -248,7 +251,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   // --- compatibility group ---
   compatibilityGroup = Fieldset(*context, U"Emulator compatibility", theme.fieldsetStyle(), theme.fieldsetControlColor(),
                                 x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
-                                ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                                ColorTheme::fieldsetTitlePaddingY(), fieldsetWidth,
                                 ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -258,19 +261,19 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
                                           ComboBoxOption(U"Subprecision (smoother)", 1/*TMP*/) };
     subprecisionMode = Slider(*context, U"Pixel precision", controlX, currentLineY, sliderStyle, ColorTheme::pageControlWidth(),
                               0, nullptr, subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
-    registry.emplace_back(subprecisionMode, true, U"Anti-jitter geometry subprecision (needed if GTE-subprecision enabled in emulator)");
+    registry.emplace_back(subprecisionMode, true, U"Anti-jitter geometry subprecision (needed if GTE-subprecision is enabled in emulator)");
     currentLineY += ColorTheme::pageLineHeight();
   }
   // widescreen hack
   widescreenMode = CheckBox(*context, U"Widescreen hack", controlX, currentLineY, true, ColorTheme::pageLabelWidth(),
                             WIDESCREEN_HACK_ID, changeHandler, enableWidescreenMode);
-  registry.emplace_back(widescreenMode, true, U"Treat geometry coords as 16:9 (needed if widescreen hack enabled in emulator)");
+  registry.emplace_back(widescreenMode, true, U"Treat geometry coords as 16:9 (needed if widescreen hack is enabled in emulator)");
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // --- framerate group ---
   framerateGroup = Fieldset(*context, U"Frame rate", theme.fieldsetStyle(), theme.fieldsetControlColor(),
                             x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
-                            ColorTheme::fieldsetTitlePaddingY(), width - (fieldsetPaddingX << 1),
+                            ColorTheme::fieldsetTitlePaddingY(), fieldsetWidth,
                             ColorTheme::pageLineHeight()*4 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -308,14 +311,46 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   vsync = CheckBox(*context, U"Vertical sync", controlX, currentLineY, true, ColorTheme::pageLabelWidth(),
                    0, nullptr, enableVsync, &isFramerateLimit);
   registry.emplace_back(vsync, true, U"Fixes screen tearing and reduces power consumption (but may increase input delay)");
-  //currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
+
+  // --- user interface group ---
+  userInterfaceGroup = Fieldset(*context, U"User interface", theme.fieldsetStyle(), theme.fieldsetControlColor(),
+                                x + (int32_t)fieldsetPaddingX, currentLineY, ColorTheme::fieldsetTitlePaddingX(),
+                                ColorTheme::fieldsetTitlePaddingY(), fieldsetWidth,
+                                ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
+
+  // interface color
+  {
+    ComboBoxOption colorOptions[]{ ComboBoxOption(U"Light blue theme",  (ComboValue)ColorThemeType::lightBlue),
+                                   ComboBoxOption(U"Dark blue theme",   (ComboValue)ColorThemeType::darkBlue),
+                                   ComboBoxOption(U"Dark green theme",  (ComboValue)ColorThemeType::darkGreen),
+                                   ComboBoxOption(U"Dark yellow theme", (ComboValue)ColorThemeType::darkYellow) };
+    interfaceColor = Slider(*context, U"Menu theme", controlX, currentLineY, sliderStyle,
+                            ColorTheme::pageControlWidth(), 0, nullptr,
+                            colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), 2);
+    registry.emplace_back(interfaceColor, true, U"Choose user interface color theme");
+    currentLineY += ColorTheme::pageLineHeight();
+  }
+  // interface language
+  {
+    ComboBoxOption languageOptions[]{ ComboBoxOption(U"English",  0/*TMP*/),
+                                      ComboBoxOption(U"Français", 1/*TMP*/) };
+    comboStyle.minLabelWidth = ColorTheme::pageLabelWidth();
+    interfaceLanguage = ComboBox(*context, U"Language", controlX, currentLineY, comboStyle, 105u,
+                                 theme.comboBoxDropdownColor(), theme.comboBoxTopControlColor(), 0, nullptr,
+                                 languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), 0);
+    registry.emplace_back(interfaceLanguage, true, U"Choose user interface language");
+  }
+  currentLineY += ColorTheme::pageLineHeight();// + ColorTheme::fieldsetBottom();
 
   // --- control registry ---
+  if (currentLineY > y + (int32_t)contentHeight())
+    Page::moveScrollbarThumb(currentLineY);
   registerControls(std::move(registry));
 }
 
 GeneralSettingsPage::~GeneralSettingsPage() noexcept {
-  fullscreenRatesPerSize.clear();
   title.release();
 
   displayGroup.release();
@@ -324,6 +359,7 @@ GeneralSettingsPage::~GeneralSettingsPage() noexcept {
   fullscreenRate.release();
   windowHeight.release();
   windowSize.release();
+  fullscreenRatesPerSize.clear();
 
   compatibilityGroup.release();
   subprecisionMode.release();
@@ -334,21 +370,28 @@ GeneralSettingsPage::~GeneralSettingsPage() noexcept {
   frameSkipping.release();
   fixedFramerate.release();
   vsync.release();
+
+  userInterfaceGroup.release();
+  interfaceColor.release();
+  interfaceLanguage.release();
 }
 
 
 // -- window events -- ---------------------------------------------------------
 
 void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
-  Page::move(x, y, width, height, PAGE_HEIGHT);
+  Page::moveBase(x, y, width, height);
   const uint32_t fieldsetPaddingX = ColorTheme::pageFieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)ColorTheme::fieldsetPaddingX(width);
+  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
+  if (fieldsetWidth > ColorTheme::fieldsetMaxWidth())
+    fieldsetWidth = ColorTheme::fieldsetMaxWidth();
 
   title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
 
   // display group
   int32_t currentLineY = title.y() + (int32_t)title.height() + ColorTheme::pageLineHeight();
-  displayGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+  displayGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                     ColorTheme::pageLineHeight()*3 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -365,7 +408,7 @@ void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t he
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // compatibility group
-  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                           ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -375,7 +418,7 @@ void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t he
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
 
   // framerate group
-  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, width - (fieldsetPaddingX << 1),
+  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                       ColorTheme::pageLineHeight()*4 + (ColorTheme::fieldsetPaddingY() << 1));
   currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
 
@@ -386,7 +429,19 @@ void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t he
   frameSkipping.move(*context, controlX, currentLineY);
   currentLineY += ColorTheme::pageLineHeight();
   vsync.move(*context, controlX, currentLineY);
-  //currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetBottom();
+
+  // user interface group
+  userInterfaceGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
+                          ColorTheme::pageLineHeight()*2 + (ColorTheme::fieldsetPaddingY() << 1));
+  currentLineY += ColorTheme::pageLineHeight() + ColorTheme::fieldsetPaddingY();
+
+  interfaceColor.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();
+  interfaceLanguage.move(*context, controlX, currentLineY);
+  currentLineY += ColorTheme::pageLineHeight();// + ColorTheme::fieldsetBottom();
+
+  Page::moveScrollbarThumb(currentLineY); // required after a move
 }
 
 void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
@@ -452,22 +507,28 @@ void GeneralSettingsPage::drawIcons() {
   vsync.drawIcon(*context, *buffers, (hoverControl == &vsync));
 }
 
-bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
-  // scrollable geometry -> scissor already bound
+bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
+  // scrollable geometry
+  if (buffers->isFixedLocationBuffer())
+    buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
+
   auto* hoverControl = getActiveControl();
   displayGroup.drawBackground(*context, *buffers);
   compatibilityGroup.drawBackground(*context, *buffers);
   framerateGroup.drawBackground(*context, *buffers);
+  userInterfaceGroup.drawBackground(*context, *buffers);
 
   displayMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &displayMode));
   subprecisionMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &subprecisionMode));
   framerateLimit.drawBackground(*context, mouseX, *buffers, (hoverControl == &framerateLimit));
+  interfaceColor.drawBackground(*context, mouseX, *buffers, (hoverControl == &interfaceColor));
 
   fullscreenSize.drawBackground(*context, *buffers, (hoverControl == &fullscreenSize));
   fullscreenRate.drawBackground(*context, *buffers, (hoverControl == &fullscreenRate));
+  interfaceLanguage.drawBackground(*context, *buffers, (hoverControl == &interfaceLanguage));
   windowHeight.drawBackground(*context, *buffers);
   fixedFramerate.drawBackground(*context, *buffers);
-  return (fullscreenSize.isOpen() || fullscreenRate.isOpen());
+  return false;
 
   //float color[4]{ 0.4f,0.4f,0.4f,1.f };
   //float colorBorder[4]{ 0.3f,0.3f,0.3f,1.f };
@@ -486,8 +547,11 @@ bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
 }
 
 void GeneralSettingsPage::drawPageLabels() {
-  // scrollable geometry -> scissor already bound
+  // scrollable geometry
   auto& renderer = context->renderer();
+  if (buffers->isFixedLocationBuffer())
+    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(x(), y(), width(), contentHeight()));
+
   buffers->bindLabelBuffer(renderer, LabelBufferType::title);
   title.draw(renderer);
 
@@ -495,13 +559,16 @@ void GeneralSettingsPage::drawPageLabels() {
   displayGroup.drawLabel(*context, *buffers);
   compatibilityGroup.drawLabel(*context, *buffers);
   framerateGroup.drawLabel(*context, *buffers);
+  userInterfaceGroup.drawLabel(*context, *buffers);
 
   displayMode.drawLabels(*context, *buffers, (hoverControl == &displayMode));
   subprecisionMode.drawLabels(*context, *buffers, (hoverControl == &subprecisionMode));
   framerateLimit.drawLabels(*context, *buffers, (hoverControl == &framerateLimit));
+  interfaceColor.drawLabels(*context, *buffers, (hoverControl == &interfaceColor));
 
   fullscreenSize.drawLabels(*context, *buffers, (hoverControl == &fullscreenSize));
   fullscreenRate.drawLabels(*context, *buffers, (hoverControl == &fullscreenRate));
+  interfaceLanguage.drawLabels(*context, *buffers, (hoverControl == &interfaceLanguage));
   windowHeight.drawLabels(*context, *buffers, (hoverControl == &windowHeight));
   fixedFramerate.drawLabels(*context, *buffers, (hoverControl == &fixedFramerate));
   buffers->bindLabelBuffer(renderer, windowHeight.isEnabled() ? LabelBufferType::regular : LabelBufferType::disabled);
@@ -520,6 +587,7 @@ void GeneralSettingsPage::drawForegrounds() {
 
   fullscreenSize.drawDropdown(*context, *buffers);
   fullscreenRate.drawDropdown(*context, *buffers);
+  interfaceLanguage.drawDropdown(*context, *buffers);
 }
 
 void GeneralSettingsPage::drawForegroundLabels() {
@@ -528,4 +596,5 @@ void GeneralSettingsPage::drawForegroundLabels() {
 
   fullscreenSize.drawOptions(*context, *buffers);
   fullscreenRate.drawOptions(*context, *buffers);
+  interfaceLanguage.drawOptions(*context, *buffers);
 }

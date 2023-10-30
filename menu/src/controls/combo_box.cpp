@@ -37,7 +37,8 @@ ControlType ComboBox::Type() const noexcept { return ControlType::comboBox; }
 #define ARROW_HEIGHT 5
 
 void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-                    const float color[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount) {
+                    const float color[4], const float topGradientColor[4],const float dropdownColor[4],
+                    ComboBoxOption* values, size_t valueCount) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
@@ -73,7 +74,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
   // create background
   std::vector<ControlVertex> vertices(static_cast<size_t>(10 + 20 + 3));
   ControlVertex* vertexIt = vertices.data();
-  GeometryGenerator::fillTopRightCutRectangleVertices(vertexIt, color, 0.f, (float)boxWidth,    // background
+  GeometryGenerator::fillTopRightCutRectangleVertices(vertexIt, color, topGradientColor, 0.f, (float)boxWidth, // background
                                                       0.f, -(float)boxHeight, (float)paddingY);
   vertexIt += 10;
   const float colorBorder[4]{ color[0]*0.75f, color[1]*0.75f, color[2]*0.75f, color[3] };
@@ -98,7 +99,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
   GeometryGenerator::fillRectangleVertices(vertexIt, dropdownColor,   // drop-down background
                                            0.f, (float)boxWidth, 0.f, -(float)dropdownHeight);
   vertexIt += 4;
-  const float dropdownBorder[4]{ dropdownColor[0]*0.85f, dropdownColor[1]*0.85f, dropdownColor[2]*0.85f, dropdownColor[3] };
+  const float dropdownBorder[4]{ dropdownColor[0]*0.8f, dropdownColor[1]*0.8f, dropdownColor[2]*0.8f, dropdownColor[3] };
   GeometryGenerator::fillRectangleVertices(vertexIt, dropdownBorder,  // drop-down border bottom
                                            0.f, (float)boxWidth, -(float)(dropdownHeight-1), -(float)dropdownHeight);
   vertexIt += 4;

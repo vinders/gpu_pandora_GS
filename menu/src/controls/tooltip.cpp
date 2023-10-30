@@ -45,12 +45,23 @@ void Tooltip::init(RendererContext& context, const char32_t* label, int32_t x, i
                        labelX, labelY, TextAlignment::left);
 
   // create background
-  const float colorDarker[4]{ backgroundColor[0]*0.85f, backgroundColor[1]*0.85f,
-                              backgroundColor[2]*0.85f, backgroundColor[3] };
-  std::vector<ControlVertex> vertices(static_cast<size_t>(4));
-  GeometryGenerator::fillVerticalRectangleVertices(vertices.data(), backgroundColor, colorDarker,
-                                                   0.f, (float)width, 0.f, -(float)height_);
-  std::vector<uint32_t> indices{ 0,1,2, 2,1,3 };
+  std::vector<ControlVertex> vertices(static_cast<size_t>(8));
+  if (backgroundColor[0]+backgroundColor[1]+backgroundColor[2] < 1.65f) {
+    const float colorBorder[4]{ backgroundColor[0]*1.35f, backgroundColor[1]*1.35f,
+                                backgroundColor[2]*1.35f, backgroundColor[3] };
+    const float colorDarker[4]{ backgroundColor[0]*0.5f, backgroundColor[1]*0.5f,
+                                backgroundColor[2]*0.5f, backgroundColor[3]*0.5f };
+    GeometryGenerator::fillRectangleVertices(vertices.data(), colorBorder, 0.f, (float)width, 0.f, -1.f);
+    GeometryGenerator::fillVerticalRectangleVertices(vertices.data() + 4, backgroundColor, colorDarker,
+                                                     0.f, (float)width, -1.f, -(float)height_);
+  }
+  else {
+    const float colorBorder[4]{ backgroundColor[0]*0.85f, backgroundColor[1]*0.85f,
+                                backgroundColor[2]*0.85f, backgroundColor[3] };
+    GeometryGenerator::fillRectangleVertices(vertices.data(), colorBorder, 0.f, (float)width, 0.f, -1.f);
+    GeometryGenerator::fillRectangleVertices(vertices.data() + 4, backgroundColor, 0.f, (float)width, -1.f, -(float)height_);
+  }
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3,  4,5,6,6,5,7 };
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices,
                             context.pixelSizeX(), context.pixelSizeY(), x, y, width, height_);
 
@@ -76,6 +87,7 @@ void Tooltip::move(RendererContext& context, int32_t x, int32_t y, uint32_t widt
 
   std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
   GeometryGenerator::resizeRectangleVerticesX(vertices.data(), (float)width);
+  GeometryGenerator::resizeRectangleVerticesX(vertices.data() + 4, (float)width);
   controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                      x, y, width, controlMesh.height());
 

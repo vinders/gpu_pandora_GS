@@ -55,7 +55,7 @@ void GeometryGenerator::fillHorizontalRectangleVertices(ControlVertex* outVertex
 }
 
 void GeometryGenerator::fillVerticalRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
-  float x1, float x2, float y1, float y2) {
+                                                      float x1, float x2, float y1, float y2) {
   fillControlVertex(*outVertexIt,     rgba1, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba1, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba2, x1, y2);
@@ -116,15 +116,14 @@ void GeometryGenerator::fillRightRoundedRectangleVertices(ControlVertex* outVert
 
 // ---
 
-void GeometryGenerator::fillTopRightCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
+void GeometryGenerator::fillTopRightCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4], const float rgbaTop[4],
                                                          float x1, float x2, float y1, float y2, float cornerSize) {
   constexpr const float darkMultiplier = 0.8f;
-  const float lighterRgba[4]{ 0.25f+rgba[0]*0.75f, 0.25f+rgba[1]*0.75f, 0.25f+rgba[2]*0.75f, rgba[3] };
   const float darkerRgba[4]{ rgba[0]*darkMultiplier, rgba[1]*darkMultiplier, rgba[2]*darkMultiplier, rgba[3] };
   const float yLine = y1 - cornerSize - 2.f;
 
-  fillControlVertex(*outVertexIt,     lighterRgba, x1,              y1);
-  fillControlVertex(*(++outVertexIt), lighterRgba, x2 - cornerSize, y1);
+  fillControlVertex(*outVertexIt,     rgbaTop,     x1,              y1);
+  fillControlVertex(*(++outVertexIt), rgbaTop,     x2 - cornerSize, y1);
   fillControlVertex(*(++outVertexIt), rgba,        x1,              y1 - cornerSize);
   fillControlVertex(*(++outVertexIt), rgba,        x2,              y1 - cornerSize);
   fillControlVertex(*(++outVertexIt), rgba,        x1,              yLine);

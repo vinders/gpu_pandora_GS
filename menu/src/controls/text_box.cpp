@@ -33,10 +33,23 @@ ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
 
 static inline void fillCaretColor(const float backgroundColor[4], float outColor[4]) {
   float gray = (backgroundColor[0] + backgroundColor[1] + backgroundColor[2]) * 0.333f;
-  gray *= (gray >= 0.5f) ? 0.5f : 2.f;
-  *outColor = gray;     // r
-  *(++outColor) = gray; // g
-  *(++outColor) = gray; // b
+  if (gray >= 0.6f) {
+    gray *= 0.5f;
+    *outColor = gray;     // r
+    *(++outColor) = gray; // g
+    *(++outColor) = gray; // b
+  }
+  else {
+    *outColor = 0.1f + backgroundColor[0]*1.5f*0.9f;     // r
+    if (*outColor > 1.f)
+      *outColor = 1.f;
+    *(++outColor) = 0.1f + backgroundColor[1]*1.5f*0.9f; // g
+    if (*outColor > 1.f)
+      *outColor = 1.f;
+    *(++outColor) = 0.1f + backgroundColor[2]*1.5f*0.9f; // b
+    if (*outColor > 1.f)
+      *outColor = 1.f;
+  }
   *(++outColor) = 0.75f; // a
 }
 
@@ -63,7 +76,8 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   GeometryGenerator::fillRectangleVertices(++vertexIt, color, 0.f, (float)fixedWidth, -(float)((height<<1)/3), -(float)height);
   vertexIt += 4;
 
-  const float colorBorder[4]{ color[0]*0.7f, color[1]*0.7f, color[2]*0.7f, color[3] };
+  const float borderFactor = (color[0] + color[1] + color[2] >= 1.5f) ? 0.7f : 1.3f;
+  const float colorBorder[4]{ color[0]*borderFactor, color[1]*borderFactor, color[2]*borderFactor, color[3] };
   GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)fixedWidth, 0.f, -1.f); // border top
   vertexIt += 4;
   GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)fixedWidth, // border bottom
@@ -315,14 +329,14 @@ void TextBox::drawLabels(RendererContext& context, RendererStateBuffers& buffers
     inputBuffer = LabelBufferType::textInputDisabled;
   }
 
-  if (labelMesh.width()) {
-    buffers.bindLabelBuffer(context.renderer(), labelBuffer);
+  buffers.bindLabelBuffer(context.renderer(), labelBuffer);
+  if (labelMesh.width())
     labelMesh.draw(context.renderer());
-  }
+  if (suffixMesh.width())
+    suffixMesh.draw(context.renderer());
 
   buffers.bindLabelBuffer(context.renderer(), inputBuffer);
   inputMesh.draw(context.renderer());
-  suffixMesh.draw(context.renderer());
 }
 
 

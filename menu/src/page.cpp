@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cassert>
+#include <cstring>
 #include <video/window_keycodes.h>
 #include "menu/controls/button.h"
 #include "menu/controls/check_box.h"
@@ -29,14 +30,11 @@ using namespace menu;
 
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
-           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
-           uint32_t totalPageHeight, bool enableTooltip)
+           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip)
   : context(std::move(context_)),
     buffers(std::move(buffers_)),
     scrollY(0),
-    activeControlIndex(noControlSelection()),
-    x_(x),
-    width_(width) {
+    activeControlIndex(noControlSelection()) {
   assert(this->context != nullptr && this->buffers != nullptr);
 
   // create page scrollbar
@@ -44,16 +42,30 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   auto scrollHandler = std::bind(&Page::onScroll, this, std::placeholders::_1);
   scrollbar = ScrollBar(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor(),
                         scrollBarX, y, ColorTheme::scrollbarWidth(), std::move(scrollHandler),
-                        visibleHeight, totalPageHeight, (ColorTheme::pageLineHeight() >> 1));
+                        visibleHeight, visibleHeight, (ColorTheme::pageLineHeight() >> 1));
 
   // create tooltip bar
   if (enableTooltip) {
-    const uint32_t tooltipBarWidth = scrollbar.isEnabled() ? (width - scrollbar.width()) : width;
     tooltip = Tooltip(*context, U" ", FontType::inputText, LabelBufferType::regular,
                       x, y + (int32_t)visibleHeight - (int32_t)ColorTheme::tooltipBarHeight(),
-                      tooltipBarWidth, ColorTheme::tooltipBarHeight(), theme.scrollbarWidth(),
+                      width, ColorTheme::tooltipBarHeight(), theme.scrollbarWidth(),
                       theme.tooltipControlColor(), display::ControlIconType::none);
   }
+
+  // create page background
+  std::vector<ControlVertex> backgroundVertices(static_cast<size_t>(4));
+  GeometryGenerator::fillRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
+                                           0.f, (float)width, 0.f, -(float)visibleHeight);
+  float* backgroundMidColor = backgroundVertices[2].color;
+  *backgroundMidColor     = theme.backgroundColor()[0]*0.7f + theme.backgroundCornerColor()[0]*0.3f;
+  *(++backgroundMidColor) = theme.backgroundColor()[1]*0.7f + theme.backgroundCornerColor()[1]*0.3f;
+  *(++backgroundMidColor) = theme.backgroundColor()[2]*0.7f + theme.backgroundCornerColor()[2]*0.3f;
+  *(++backgroundMidColor) = theme.backgroundColor()[3];
+  memcpy(backgroundVertices[3].color, theme.backgroundCornerColor(), sizeof(float)*4u);
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3 };
+
+  backgroundMesh = ControlMesh(context->renderer(), std::move(backgroundVertices), indices, context->pixelSizeX(),
+                               context->pixelSizeY(), x, y, width, visibleHeight);
 
   // create control line hover area
   const int32_t controlHoverX = x + (int32_t)ColorTheme::pageFieldsetMarginX(width)
@@ -63,17 +75,17 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   std::vector<ControlVertex> controlHoverVertices(static_cast<size_t>(8));
   GeometryGenerator::fillCornerCutRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
                                                     0.f, (float)controlHoverWidth, 0.f, -(float)ColorTheme::pageLineHeight(), 3.f);
-  std::vector<uint32_t> controlHoverIndices{ 0,1,2,2,1,3,  2,3,4,4,3,5,  4,5,6,6,5,7 };
+  indices = { 0,1,2,2,1,3,  2,3,4,4,3,5,  4,5,6,6,5,7 };
 
-  controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), controlHoverIndices,
-                                 context->pixelSizeX(), context->pixelSizeY(), controlHoverX, 0,
-                                 controlHoverWidth, ColorTheme::pageLineHeight());
+  controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
+                                 context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, ColorTheme::pageLineHeight());
 }
 
 Page::~Page() noexcept {
   // release controls before context
   scrollbar.release();
   tooltip.release();
+  backgroundMesh.release();
   controlHoverMesh.release();
   controlRegistry.clear();
 
@@ -83,24 +95,26 @@ Page::~Page() noexcept {
 
 // ---
 
-void Page::move(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, uint32_t totalPageHeight) {
+void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight) {
   const int32_t scrollBarX = x + (int32_t)width - (int32_t)scrollbar.width();
-  scrollbar.move(*context, scrollBarX, y, visibleHeight, totalPageHeight); // will call onScroll if needed
+  scrollbar.moveControl(*context, scrollBarX, y, visibleHeight);
 
   if (tooltip.width()) {
-    const uint32_t tooltipBarWidth = scrollbar.isEnabled() ? (width - scrollbar.width()) : width;
-    tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)ColorTheme::tooltipBarHeight(), tooltipBarWidth);
+    tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)ColorTheme::tooltipBarHeight(), width);
     if (activeControlIndex != noControlSelection())
       tooltip.updateLabel(*context, U" ", LabelBufferType::regular);
   }
+
+  auto backgroundVertices = backgroundMesh.relativeVertices();
+  GeometryGenerator::resizeRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
+  backgroundMesh.update(context->renderer(), std::move(backgroundVertices), context->pixelSizeX(), context->pixelSizeY(),
+                        x, y, width, visibleHeight);
 
   const int32_t controlHoverX = x + (int32_t)ColorTheme::pageFieldsetMarginX(width)
                               + (int32_t)ColorTheme::fieldsetPaddingX(width) - ColorTheme::lineHoverPaddingX();
   controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, 0);
   activeControlIndex = noControlSelection();
 
-  this->x_ = x;
-  this->width_ = width;
   if (openControl != nullptr) { // close open control
     openControl->control()->close();
     openControl = nullptr;
@@ -217,19 +231,7 @@ void Page::selectPreviousControlIndex() noexcept {
       controlIndex = noControlSelection();
     onHover(controlIndex);
 
-    if (controlIndex != noControlSelection()) {
-      if (scrollbar.isEnabled()) { // auto-scroll if needed
-        uint32_t controlLevel = static_cast<uint32_t>(control->y() - scrollbar.y());
-        if (controlLevel < scrollbar.visibleTop()) {
-          bool isTopLevel = (controlIndex == 0 || controlLevel < ColorTheme::autoScrollPaddingY());
-          scrollbar.setTopPosition(*context, isTopLevel ? controlLevel - ColorTheme::autoScrollPaddingY() : 0);
-        }
-      }
-      if (control->control()->Type() == ControlType::textBox) { // automatic focus if text-box
-        if (control->control()->click(*context, TextBox::noMouseCoord()))
-          openControl = control;
-      }
-    }
+    adaptControlSelection(controlIndex, control);
   }
 }
 
@@ -255,16 +257,28 @@ void Page::selectNextControlIndex() noexcept {
       controlIndex = noControlSelection();
     onHover(controlIndex);
 
-    if (controlIndex != noControlSelection()) {
-      if (scrollbar.isEnabled()) { // auto-scroll if needed
-        uint32_t controlBottomLevel = static_cast<uint32_t>(control->bottomY() - scrollbar.y());
-        if (controlBottomLevel >= scrollbar.visibleBottom())
-          scrollbar.setBottomPosition(*context, controlBottomLevel + ColorTheme::autoScrollPaddingY());
+    adaptControlSelection(controlIndex, control);
+  }
+}
+
+void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* control) noexcept {
+  if (controlIndex != noControlSelection()) {
+    if (scrollbar.isEnabled()) { // auto-scroll if needed
+      const uint32_t controlTopLevel = static_cast<uint32_t>(control->y() - scrollbar.y());
+      if (controlTopLevel < scrollbar.visibleTop()) {
+        scrollbar.setTopPosition(*context, (controlTopLevel > ColorTheme::autoScrollPaddingY())
+                                           ? controlTopLevel - ColorTheme::autoScrollPaddingY() : 0);
       }
-      if (control->control()->Type() == ControlType::textBox) { // automatic focus if text-box
-        if (control->control()->click(*context, TextBox::noMouseCoord()))
-          openControl = control;
+      else {
+        const uint32_t tooltipHeight = tooltip.width() ? tooltip.height() : 0;
+        const uint32_t controlBottomLevel = static_cast<uint32_t>(control->bottomY() - scrollbar.y());
+        if (controlBottomLevel >= scrollbar.visibleBottom() - tooltipHeight)
+          scrollbar.setBottomPosition(*context, controlBottomLevel + ColorTheme::autoScrollPaddingY() + tooltipHeight);
       }
+    }
+    if (control->control()->Type() == ControlType::textBox) { // automatic focus if text-box
+      if (control->control()->click(*context, TextBox::noMouseCoord()))
+        openControl = control;
     }
   }
 }
@@ -308,7 +322,7 @@ void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
   if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover)
-      openControl->control()->mouseMove(*context, mouseX, mouseY);
+      openControl->control()->mouseMove(*context, mouseX, openControl->isFixed() ? mouseY : (mouseY + scrollY));
   }
   // moving while dragging scrollbar
   else if (scrollbar.isDragged()) {
@@ -451,36 +465,36 @@ void Page::padButtonDown(uint32_t virtualKeyCode) {
 // -- rendering -- -------------------------------------------------------------
 
 bool Page::drawBackgrounds() {
-  // scrollable geometry
+  // fixed geometry
   auto& renderer = context->renderer();
-  buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(x_, scrollbar.y(), width_, contentHeight()));
+  if (!buffers->isFixedLocationBuffer())
+    buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
 
+  buffers->bindControlBuffer(renderer, ControlBufferType::regular);
+  backgroundMesh.draw(renderer);
+  if (tooltip.width())
+    tooltip.drawBackground(*context, *buffers);
+  scrollbar.drawControl(*context, mouseX_, mouseY_, *buffers);
+
+  // scrollable geometry
   if (activeControlIndex != noControlSelection()) {
+    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(backgroundMesh.x(), backgroundMesh.y(),
+                                                                 backgroundMesh.width(), contentHeight()));
     buffers->bindControlBuffer(renderer, ControlBufferType::regular);
     controlHoverMesh.draw(renderer);
   }
-  bool hasForeground = drawPageBackgrounds(mouseX_, mouseY_);
 
-  // fixed geometry
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindFixedLocationBuffer(renderer, fullWindowArea);
-
-  scrollbar.drawControl(*context, mouseX_, mouseY_, *buffers);
-  if (tooltip.width())
-    tooltip.drawBackground(*context, *buffers);
-  return hasForeground;
+  bool hasForegroundGeometry = drawPageBackgrounds(mouseX_, mouseY_);
+  return (hasForegroundGeometry || (openControl != nullptr && openControl->control()->Type() == ControlType::comboBox));
 }
 
 void Page::drawLabels() {
-  // scrollable geometry
-  buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x_, scrollbar.y(), width_, contentHeight()));
-
-  drawPageLabels();
-
-  if (tooltip.width()) {
-    ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight()); // fixed geometry
-    buffers->bindFixedLocationBuffer(context->renderer(), fullWindowArea);
-
+  if (tooltip.width()) { // fixed geometry
+    if (!buffers->isFixedLocationBuffer())
+      buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     tooltip.drawLabel(*context, *buffers);
   }
+
+  // custom page geometry
+  drawPageLabels();
 }

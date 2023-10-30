@@ -19,14 +19,14 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   enum class ColorThemeType : uint32_t { ///< Menu color theme type
     lightBlue = 0, ///< light background, blue controls
-    lightGreen,    ///< light background, green controls
     darkBlue,      ///< dark background, blue controls
     darkGreen,     ///< dark background, green controls
     darkYellow     ///< dark background, yellow controls
   };
   enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
     classic = 0, ///< Contour border with a title bar
-    title        ///< Title with underline decoration and vertical line
+    title,       ///< Title with underline decoration and vertical line
+    titleBack    ///< Title with underline decoration and vertical line and content background
   };
 
   // ---
@@ -49,9 +49,9 @@ namespace menu {
     // -- control size accessors --
 
     static constexpr inline uint32_t scrollbarWidth() noexcept { return 16; }   ///< Total scroll-bar width
-    static constexpr inline uint32_t tooltipBarHeight() noexcept { return 32; } ///< Total scroll-bar width
+    static constexpr inline uint32_t tooltipBarHeight() noexcept { return 30; } ///< Total scroll-bar width
     static constexpr inline uint32_t lineHoverPaddingX() noexcept { return 10; }///< Control line hover left/right padding
-    static constexpr inline uint32_t autoScrollPaddingY() noexcept { return 10; }///< Padding above/below control during auto-scroll
+    static constexpr inline uint32_t autoScrollPaddingY() noexcept { return 8; }///< Padding above/below control during auto-scroll
 
     static constexpr inline int32_t pageFieldsetMarginX(uint32_t pageWidth) noexcept { ///< Left fieldset margin in the page
       return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 30 : 10;
@@ -63,6 +63,7 @@ namespace menu {
     static constexpr inline uint32_t fieldsetBottom() noexcept { return 12; }   ///< Fieldset margin after last item (before next fieldset)
     static constexpr inline uint32_t fieldsetTitlePaddingX() noexcept { return 12; }///< Fieldset title horizontal padding
     static constexpr inline uint32_t fieldsetTitlePaddingY() noexcept { return 10; }///< Fieldset title vertical padding
+    static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 720; }///< Fieldset maximum width
 
     static constexpr inline uint32_t pageLineHeight() noexcept { return 26; }   ///< Content line height (includes inter-line space)
     static constexpr inline uint32_t pageLabelWidth() noexcept { return 200; }  ///< Minimum label width (before controls)
@@ -78,11 +79,12 @@ namespace menu {
     inline const float* disabledLabelColor() const noexcept { return disabledLabel; }    ///< Disabled control label color
     inline const float* activeLabelColor() const noexcept { return activeLabel; }        ///< Active/hover control label color
 
+    inline const float* backgroundColor() const noexcept { return background; }             ///< Page background color
+    inline const float* backgroundCornerColor() const noexcept { return backgroundCorner; } ///< Page background bottom-right color
     inline const float* scrollbarControlColor() const noexcept { return scrollbarControl; } ///< Page scroll-bar background color
     inline const float* scrollbarThumbColor() const noexcept { return scrollbarThumb; }     ///< Page scroll-bar thumb color
     inline const float* lineSelectorControlColor() const noexcept{ return lineSelectorControl; }///< Page active/hover line selector background color
     inline const float* tooltipControlColor() const noexcept { return tooltipControl; }  ///< Page tooltip background color
-    inline const float* tooltipLabelColor() const noexcept { return tooltipLabel; }      ///< Page tooltip label color
     inline const float* titleLabelColor() const noexcept { return titleLabel; }          ///< Page title label color
     inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
     inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
@@ -103,6 +105,7 @@ namespace menu {
     inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
     inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
     inline const float* comboBoxControlColor() const noexcept { return comboBoxControl; }///< Combo-box control background color
+    inline const float* comboBoxTopControlColor() const noexcept { return comboBoxTopControl; }///< Combo-box control top of gradient
     inline const float* comboBoxDropdownColor() const noexcept { return comboBoxDropdown; }///< Combo-box drop-down background color
     inline const float* comboBoxLabelColor() const noexcept { return comboBoxLabel; }    ///< Combo-box control text color
     inline const float* comboBoxDropdownLabelColor() const noexcept{ return comboBoxDropdownLabel; }///< Combo-box drop-down text color
@@ -111,7 +114,6 @@ namespace menu {
     inline const float* rulerThumbColor() const noexcept { return rulerThumb; }          ///< Sliding-ruler thumb color
     inline const float* rulerFillerColor() const noexcept { return rulerFiller; }        ///< Sliding-ruler filler color
     inline const float* sliderArrowColor() const noexcept { return sliderArrow; }        ///< Slider-box arrow color
-    inline const float* sliderLabelColor() const noexcept { return sliderLabel; }        ///< Slider-box text color
 
   private:
     float disabledControl[4];
@@ -122,11 +124,12 @@ namespace menu {
     float disabledLabel[4];
     float activeLabel[4];
 
+    float background[4];
+    float backgroundCorner[4];
     float scrollbarControl[4];
     float scrollbarThumb[4];
     float lineSelectorControl[4];
     float tooltipControl[4];
-    float tooltipLabel[4];
     float titleLabel[4];
     float fieldsetControl[4];
     float fieldsetLabel[4];
@@ -146,6 +149,7 @@ namespace menu {
     float textBoxControl[4];
     float textBoxLabel[4];
     float comboBoxControl[4];
+    float comboBoxTopControl[4];
     float comboBoxDropdown[4];
     float comboBoxLabel[4];
     float comboBoxDropdownLabel[4];
@@ -154,7 +158,6 @@ namespace menu {
     float rulerThumb[4];
     float rulerFiller[4];
     float sliderArrow[4];
-    float sliderLabel[4];
     
     FieldsetStyle fieldsetType = FieldsetStyle::classic;
     ColorThemeType themeType_ = (ColorThemeType)-1;

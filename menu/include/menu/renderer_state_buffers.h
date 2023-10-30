@@ -75,13 +75,16 @@ namespace menu {
                                         const video_api::ScissorRectangle& fullWindowArea) {
       renderer.setScissorRectangle(fullWindowArea);
       renderer.bindVertexUniforms(1, fixedPosition.handlePtr(), 1);
+      isFixedPosition = true;
     }
     /// @brief Bind vertex uniform buffer for world position - scrollable geometry
     inline void bindScrollLocationBuffer(video_api::Renderer& renderer,
                                          const video_api::ScissorRectangle& scrollableArea) {
       renderer.setScissorRectangle(scrollableArea);
       renderer.bindVertexUniforms(1, scrollPosition.handlePtr(), 1);
+      isFixedPosition = false;
     }
+    inline bool isFixedLocationBuffer() const noexcept { return isFixedPosition; } ///< Verify if current position buffer bound
     
     /// @brief Bind vertex uniform buffer for control meshes
     void bindControlBuffer(video_api::Renderer& renderer, ControlBufferType type);
@@ -102,6 +105,7 @@ namespace menu {
     ControlBufferType boundControlType = ControlBufferType::COUNT;
     ControlBufferType boundIconType = ControlBufferType::COUNT;
     LabelBufferType boundLabelType = LabelBufferType::COUNT;
+    bool isFixedPosition = false;
   
     // vertex slot 1 - scroll position
     video_api::Buffer<video_api::ResourceUsage::staticGpu> fixedPosition;

@@ -72,6 +72,7 @@ namespace menu {
     display::controls::TextMesh windowSize;
     bool isFullscreenMode = false;
     bool isWindowMode = false;
+    std::unordered_map<uint32_t, std::vector<uint32_t> > fullscreenRatesPerSize;
 
     // emulator compatibility
     controls::Fieldset compatibilityGroup;
@@ -89,6 +90,10 @@ namespace menu {
     bool isFixedFramerate = false;
     bool isFrameSkipping = false;
     bool enableVsync = false;
-    std::unordered_map<uint32_t, std::vector<uint32_t> > fullscreenRatesPerSize;
+
+    // user interface
+    controls::Fieldset userInterfaceGroup;
+    controls::Slider interfaceColor;
+    controls::ComboBox interfaceLanguage;
   };
 }

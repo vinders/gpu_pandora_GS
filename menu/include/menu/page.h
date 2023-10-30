@@ -103,19 +103,19 @@ namespace menu {
 
     // -- accessors --
 
-    inline int32_t x() const noexcept { return x_; }
-    inline int32_t y() const noexcept { return scrollbar.y(); }
-    inline int32_t width() const noexcept { return width_; }
-    inline int32_t height() const noexcept { return scrollbar.height(); }
+    inline int32_t x() const noexcept { return backgroundMesh.x(); }
+    inline int32_t y() const noexcept { return backgroundMesh.y(); }
+    inline uint32_t width() const noexcept { return backgroundMesh.width(); }
+    inline uint32_t height() const noexcept { return backgroundMesh.height(); }
     inline int32_t scrollLevel() const noexcept { return scrollY; }
-    inline int32_t contentHeight() const noexcept {
+    inline uint32_t contentHeight() const noexcept {
       return tooltip.width() ? static_cast<uint32_t>(tooltip.y() - scrollbar.y()) : scrollbar.height();
     }
 
     // -- window event --
     
     /// @brief Report page resize event
-    /// @remarks Implementation should internally call protected parent 'move'
+    /// @remarks Implementation should internally call protected parent 'moveBase'
     virtual void move(int32_t x, int32_t y, uint32_t width, uint32_t height) = 0;
   
     // -- user interactions --
@@ -160,9 +160,11 @@ namespace menu {
 
   protected:
     Page(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-         const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
-         uint32_t totalPageHeight, bool enableTooltip);
-    void move(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, uint32_t totalPageHeight);
+         const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip);
+    void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
+    inline void moveScrollbarThumb(int32_t bottomY) {
+      scrollbar.moveThumb(*context, static_cast<uint32_t>(bottomY - scrollbar.y()) + tooltip.height()); // will call onScroll if needed
+    }
     void onScroll(uint32_t visibleTopY);
     void onHover(int32_t controlIndex);
 
@@ -181,6 +183,7 @@ namespace menu {
     int32_t findActiveControlIndex(int32_t mouseX, int32_t mouseY) const noexcept;
     void selectPreviousControlIndex() noexcept;
     void selectNextControlIndex() noexcept;
+    void adaptControlSelection(int32_t controlIndex, ControlRegistration* control) noexcept;
     static constexpr inline int32_t noControlSelection() noexcept { return -1; }
 
     virtual bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) = 0;
@@ -194,13 +197,11 @@ namespace menu {
     controls::Tooltip tooltip;
     int32_t scrollY = 0;
 
+    display::controls::ControlMesh backgroundMesh;
     display::controls::ControlMesh controlHoverMesh;
     std::vector<ControlRegistration> controlRegistry;
     ControlRegistration* openControl = nullptr;
     int32_t activeControlIndex = noControlSelection();
-
-    int32_t x_ = 0;
-    uint32_t width_ = 0;
     int32_t mouseX_ = -1;
     int32_t mouseY_ = -1;
   };

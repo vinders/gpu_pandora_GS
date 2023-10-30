@@ -33,7 +33,7 @@ namespace menu {
                 uint32_t screenHeightPx, uint32_t totalScrollAreaPx, uint32_t scrollStepPx)
         : onChange(std::move(onChange)),
           visibleScrollArea(screenHeightPx),
-          totalScrollArea(totalScrollAreaPx),
+          totalScrollArea(totalScrollAreaPx ? totalScrollAreaPx : screenHeightPx),
           scrollStep(scrollStepPx) {
         init(context, barColor, thumbColor, x, y, width);
       }
@@ -91,8 +91,12 @@ namespace menu {
         updateThumbPosition(context, (bottom+1u >= visibleScrollArea) ? (bottom+1u - visibleScrollArea) : 0);
       }
 
-      /// @brief Change control location + scrolling limits (on window resize)
-      void move(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx, uint32_t totalScrollAreaPx);
+      /// @brief Change control location (on window resize)
+      /// @warning Called before moving page controls, requires another call to moveThumb
+      void moveControl(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx);
+      /// @brief Change scrolling limits (on window resize)
+      /// @warning Must be called AFTER moveControl, once the page knows its total content height
+      void moveThumb(RendererContext& context, uint32_t totalScrollAreaPx);
 
       // -- rendering --
 

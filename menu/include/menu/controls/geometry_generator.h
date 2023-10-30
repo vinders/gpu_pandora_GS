@@ -89,14 +89,15 @@ namespace menu {
       ///        (expected indices: 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9)
       /// @param outVertexIt  Must point to an array of at least 10 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+      static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt,
+                                                   const float rgba[4], const float rgbaTop[4],
                                                    float x1, float x2, float y1, float y2, float cornerSize);
       /// @brief Generate rectangle with two cut corners (in 6 menu control vertices)
       ///        (expected indices: 0,1,2, 2,1,3, 2,3,4, 4,3,5)
       /// @param outVertexIt  Must point to an array of at least 6 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillDoubleCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
-                                             float x1, float x2, float y1, float y2, float cornerSize);
+                                                 float x1, float x2, float y1, float y2, float cornerSize);
       /// @brief Generate rectangle with all corners cut (in 8 menu control vertices)
       ///        (expected indices: 0,1,2, 2,1,3,  2,3,4, 4,3,5,  4,5,6, 6,5,7)
       /// @param outVertexIt  Must point to an array of at least 8 control vertices
@@ -124,6 +125,14 @@ namespace menu {
       static inline void resizeRectangleVerticesY(display::controls::ControlVertex* vertexIt, float y2) {
         (vertexIt + 2)->position[1] = y2;
         (vertexIt + 3)->position[1] = y2;
+      }
+      /// @brief Resize existing rectangle horizontally and vertically (update 4 menu control vertices)
+      static inline void resizeRectangleVertices(display::controls::ControlVertex* vertexIt, float x2, float y2) {
+        (vertexIt + 1)->position[0] = x2;
+        (vertexIt + 2)->position[1] = y2;
+        auto* bottomRightPosition = (vertexIt + 3)->position;
+        bottomRightPosition[0] = x2;
+        bottomRightPosition[1] = y2;
       }
       /// @brief Resize horizontally existing rectangle with right edge rounded (update 4 menu control vertices)
       static inline void resizeRightRoundedRectangleVerticesX(display::controls::ControlVertex* vertexIt,

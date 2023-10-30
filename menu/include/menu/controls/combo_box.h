@@ -34,8 +34,8 @@ namespace menu {
       /// @param onChange     Event handler to call (with 'operationId' and value) when the combo-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
       ComboBox(RendererContext& context, const char32_t* label,  int32_t x, int32_t labelY,
-               const ControlStyle& style, uint32_t minBoxWidth, const float dropdownColor[4], uint32_t operationId,
-               std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values, size_t valueCount,
+               const ControlStyle& style, uint32_t minBoxWidth, const float dropdownColor[4], const float topGradientColor[4],
+               uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values, size_t valueCount,
                int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
@@ -46,7 +46,7 @@ namespace menu {
           paddingX(style.paddingX),
           paddingY(style.paddingY) {
         assert(valueCount != 0);
-        init(context, label, x, labelY, style.color, dropdownColor, values, valueCount);
+        init(context, label, x, labelY, style.color, topGradientColor, dropdownColor, values, valueCount);
       }
 
       ComboBox() = default;
@@ -133,7 +133,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const float color[4],
-                const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
+                const float topGradientColor[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
 
       struct OptionMesh final { // selectable value stored

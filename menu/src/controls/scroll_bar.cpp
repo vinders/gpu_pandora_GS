@@ -69,12 +69,8 @@ void ScrollBar::init(RendererContext& context, const float barColor[4], const fl
 
 // ---
 
-void ScrollBar::move(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx, uint32_t totalScrollAreaPx) {
+void ScrollBar::moveControl(RendererContext& context, int32_t x, int32_t y, uint32_t screenHeightPx) {
   visibleScrollArea = screenHeightPx;
-  totalScrollArea = totalScrollAreaPx;
-  maxTopPosition = (visibleScrollArea < totalScrollArea) ? (totalScrollArea - visibleScrollArea) : 0;
-  if (topPosition > maxTopPosition)
-    topPosition = maxTopPosition;
 
   thumbAreaY = y + (int32_t)backMesh.width(); // width also used as up/down box height
   thumbAreaHeight = screenHeightPx - (backMesh.width() << 1);
@@ -85,18 +81,25 @@ void ScrollBar::move(RendererContext& context, int32_t x, int32_t y, uint32_t sc
   backMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                   x, y, backMesh.width(), screenHeightPx);
 
-  const int32_t thumbTop = thumbAreaY + (int32_t)(topPosition * thumbAreaHeight / totalScrollArea);
-  const uint32_t thumbHeight = (screenHeightPx < totalScrollAreaPx)
-                             ? (screenHeightPx * thumbAreaHeight / totalScrollAreaPx)
-                             : thumbAreaHeight;
-  const float* thumbColor = thumbMesh.relativeVertices()[0].color;
-  vertices = std::vector<ControlVertex>(static_cast<size_t>(4u));
-  GeometryGenerator::fillRectangleVertices(vertices.data(), thumbColor, 0.f, (float)backMesh.width(), 0.f, -(float)thumbHeight);
-  thumbMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
-                   x, thumbAreaY + thumbTop, backMesh.width(), thumbHeight);
-
   upMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, y);
   downMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, thumbAreaY + (int32_t)thumbAreaHeight);
+}
+
+void ScrollBar::moveThumb(RendererContext& context, uint32_t totalScrollAreaPx) {
+  totalScrollArea = totalScrollAreaPx ? totalScrollAreaPx : visibleScrollArea;
+  maxTopPosition = (visibleScrollArea < totalScrollArea) ? (totalScrollArea - visibleScrollArea) : 0;
+  if (topPosition > maxTopPosition)
+    topPosition = maxTopPosition;
+
+  const int32_t thumbTop = thumbAreaY + (int32_t)(topPosition * thumbAreaHeight / totalScrollArea);
+  const uint32_t thumbHeight = (visibleScrollArea < totalScrollAreaPx)
+                             ? (visibleScrollArea * thumbAreaHeight / totalScrollAreaPx)
+                             : thumbAreaHeight;
+  const float* thumbColor = thumbMesh.relativeVertices()[0].color;
+  std::vector<ControlVertex> vertices = std::vector<ControlVertex>(static_cast<size_t>(4u));
+  GeometryGenerator::fillRectangleVertices(vertices.data(), thumbColor, 0.f, (float)backMesh.width(), 0.f, -(float)thumbHeight);
+  thumbMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                   backMesh.x(), thumbTop, backMesh.width(), thumbHeight);
 
   onChange(topPosition);
 }
