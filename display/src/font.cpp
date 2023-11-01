@@ -131,7 +131,7 @@ Font::GlyphMap::iterator Font::readGlyphFromFont(Renderer& renderer, char32_t co
 
   const auto* faceGlyph = face->glyph;
   if (faceGlyph->bitmap.width > 0 && faceGlyph->bitmap.rows > 0) {
-    allocBuffer(faceGlyph->bitmap.width * faceGlyph->bitmap.rows * 4);
+    allocBuffer(static_cast<size_t>(faceGlyph->bitmap.width) * static_cast<size_t>(faceGlyph->bitmap.rows) * (size_t)4u);
     uint32_t* destIt = buffer;
     unsigned char* srcIt = faceGlyph->bitmap.buffer;
     for (unsigned int row = 0; row < faceGlyph->bitmap.rows; ++row) {
@@ -157,7 +157,7 @@ Font::GlyphMap::iterator Font::readGlyphFromFont(Renderer& renderer, char32_t co
 void Font::generateUnknownGlyph(Renderer& renderer, uint32_t heightPixels) {
   const uint32_t height = (heightPixels << 1) / 3;
   const uint32_t width = (height >> 1);
-  size_t dataSize = width * height * 4;
+  size_t dataSize = (size_t)width * (size_t)height * (size_t)4u;
 
   allocBuffer(dataSize);
   memset(buffer, 0xFF, dataSize); // fill rectangle

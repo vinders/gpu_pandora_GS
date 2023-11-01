@@ -35,11 +35,13 @@ void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, 
 
   // create label
   auto& labelFont = context.getFont(FontType::labels);
-  const int32_t labelX = isLabelBeforeBox ? x : (x + (int32_t)iconDataOn.width() + (int32_t)labelMargin());
-  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), labelX, labelY);
+  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
+  uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidth)
+    labelWidth += labelMargin();
 
   // create icons
-  const int32_t boxX = getBoxX(x, labelMesh.width());
+  const int32_t boxX = x + (int32_t)labelWidth;
   const int32_t boxY = labelY - ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2 - 1;
   checkedMesh = IconMesh(context.renderer(), std::move(iconDataOn.texture()), context.pixelSizeX(), context.pixelSizeY(),
                          boxX, boxY, iconDataOn.offsetX(), iconDataOn.offsetY(), iconDataOn.width(), iconDataOn.height());
@@ -50,14 +52,29 @@ void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, 
 // ---
 
 void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
-  const int32_t labelX = isLabelBeforeBox ? x : (x + (int32_t)checkedMesh.width() + (int32_t)labelMargin());
-  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), labelX, labelY);
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY);
+  uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidth)
+    labelWidth += labelMargin();
 
-  const uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  const int32_t boxX = getBoxX(x, labelMesh.width());
+  const int32_t boxX = x + (int32_t)labelWidth;
   const int32_t boxY = labelY - ((int32_t)checkedMesh.height() - (int32_t)labelMesh.height())/2 - 1;
   checkedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
   uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
+}
+
+void CheckBox::updateLabel(RendererContext& context, const char32_t* label) {
+  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label, context.pixelSizeX(),
+                       context.pixelSizeY(), labelMesh.x(), labelMesh.y());
+  uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidth)
+    labelWidth += labelMargin();
+
+  const int32_t boxX = labelMesh.x() + (int32_t)labelWidth;
+  if (boxX != checkedMesh.x()) {
+    checkedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, checkedMesh.y());
+    uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, uncheckedMesh.y());
+  }
 }
 
 
@@ -77,8 +94,8 @@ bool CheckBox::click(RendererContext&, int32_t) {
 
 void CheckBox::drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
   buffers.bindIconBuffer(context.renderer(), isEnabled()
-                                             ? (isActive ? ControlBufferType::activeLight : ControlBufferType::regular)
-                                             : ControlBufferType::disabled);
+                                             ? (isActive ? ControlBufferType::activeIcon : ControlBufferType::regularIcon)
+                                             : ControlBufferType::disabledIcon);
   if (*boundValue)
     checkedMesh.draw(context.renderer());
   else

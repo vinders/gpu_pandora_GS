@@ -30,23 +30,22 @@ namespace menu {
     class ComboBox final : public Control {
     public:
       /// @brief Create combo-box control
+      /// @param colors       [0]: primary color / [1]: gradient top color / [2]: dropdown color
       /// @param operationId  Unique combo-box identifier (should be cast from an enum or constant)
       /// @param onChange     Event handler to call (with 'operationId' and value) when the combo-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
-      ComboBox(RendererContext& context, const char32_t* label,  int32_t x, int32_t labelY,
-               const ControlStyle& style, uint32_t minBoxWidth, const float dropdownColor[4], const float topGradientColor[4],
-               uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values, size_t valueCount,
-               int32_t selectedIndex = -1, const bool* enabler = nullptr)
+      ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+               uint32_t minLabelWidth, uint32_t minBoxWidth, ComboBoxStyle style, const ControlColors<3>& colors,
+               uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values,
+               size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
           onChange(std::move(onChange)),
           operationId(operationId),
-          minLabelWidth(style.minLabelWidth),
-          minBoxWidth(minBoxWidth),
-          paddingX(style.paddingX),
-          paddingY(style.paddingY) {
+          minLabelWidth(minLabelWidth),
+          minBoxWidth(minBoxWidth) {
         assert(valueCount != 0);
-        init(context, label, x, labelY, style.color, topGradientColor, dropdownColor, values, valueCount);
+        init(context, label, x, labelY, style, colors, values, valueCount);
       }
 
       ComboBox() = default;
@@ -80,6 +79,7 @@ namespace menu {
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
+      inline int32_t getSelectedIndex() const noexcept { return selectedIndex; } ///< Currently selected index (or -1)
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
         return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
       }
@@ -95,6 +95,7 @@ namespace menu {
       void close() override;                               ///< Force-close the dropdown list without changing (if open)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
+      void updateLabel(RendererContext& context, const char32_t* label); ///< Change control label
       void replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1); ///< Replace selectable values
       
       inline void setSelectedIndex(int32_t index) noexcept { ///< Force selection of a specific entry
@@ -132,8 +133,8 @@ namespace menu {
       void drawOptions(RendererContext& context, RendererStateBuffers& buffers);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const float color[4],
-                const float topGradientColor[4], const float dropdownColor[4], ComboBoxOption* values, size_t valueCount);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, ComboBoxStyle style,
+                const ControlColors<3>& colors, ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
 
       struct OptionMesh final { // selectable value stored
@@ -165,8 +166,6 @@ namespace menu {
       uint32_t operationId = 0;
       uint32_t minLabelWidth = 0;
       uint32_t minBoxWidth = 0;
-      uint32_t paddingX = 0;
-      uint32_t paddingY = 0;
     };
   }
 }

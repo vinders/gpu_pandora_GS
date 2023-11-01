@@ -36,9 +36,8 @@ static inline void clampColorComponents(float color[4]) {
 
 #define THUMB_CIRCLE_VERTICES 24
 
-void Ruler::init(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                 display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
-                 uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4], float leftFillColor[4]) {
+void Ruler::init(RendererContext& context, const char32_t* label, const char32_t* suffix, TextAlignment labelAlign,
+                 int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const ControlColors<4>& colors) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY, labelAlign);
@@ -55,12 +54,12 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char32_t
   }
 
   // specify ruler positions
-  const uint32_t thumbWidth = (labelFont.XHeight() << 1) + (paddingY & ~(uint32_t)0x1);
+  const uint32_t thumbWidth = (labelFont.XHeight() << 1) + (Control::rulerPaddingY() & ~(uint32_t)0x1);
   const int32_t y = labelY + (int32_t)(labelFont.XHeight() >> 1) - (int32_t)(thumbWidth >> 1);
   uint32_t thumbOffset;
   if (minValue != maxValue) {
     const uint32_t valueCount = maxValue - minValue;
-    stepWidth = (fixedRulerWidth - (style.paddingX << 1) - 1u) * step / valueCount;
+    stepWidth = (fixedRulerWidth - (Control::rulerPaddingX() << 1) - 1u) * step / valueCount;
     firstStepOffset = (fixedRulerWidth - (stepWidth * valueCount)) >> 1;
     thumbOffset = firstStepOffset + (*boundValue - minValue)*stepWidth - (thumbWidth >> 1);
   }
@@ -74,7 +73,7 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char32_t
   ControlVertex* vertexIt = vertices.data();
 
   const uint32_t rulerHeight = (thumbWidth+2) >> 2;
-  GeometryGenerator::fillRightRoundedRectangleVertices(vertexIt, style.color, (float)(rulerHeight >> 1),
+  GeometryGenerator::fillRightRoundedRectangleVertices(vertexIt, colors.colors[0], (float)(rulerHeight >> 1),
                                                        (float)fixedRulerWidth, 0.f, -(float)rulerHeight);
   vertexIt += 9;
   std::vector<uint32_t> indices{ 0,2,1, 1,2,3, 3,2,4, 3,4,5, 5,4,6, 5,6,7, 7,6,8 };
@@ -99,7 +98,7 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char32_t
 
   // create sliding bar filler
   vertices = std::vector<ControlVertex>(static_cast<size_t>(9u));
-  GeometryGenerator::fillLeftRoundedRectangleVertices(vertices.data(), leftFillColor, 0.f,
+  GeometryGenerator::fillLeftRoundedRectangleVertices(vertices.data(), colors.colors[3], 0.f,
                                                       (float)(thumbOffset + (thumbWidth >> 1)), 0.f, -(float)rulerHeight);
   indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5, 4,5,6, 6,5,7, 6,7,8 };
 
@@ -111,8 +110,9 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char32_t
   vertices = std::vector<ControlVertex>(static_cast<size_t>((THUMB_CIRCLE_VERTICES) * 3));
   const double radius = (double)(thumbWidth >> 1);
 
-  GeometryGenerator::fillCircleVertices(vertices.data(), borderColor,                                       // border (outline)
-                                        THUMB_CIRCLE_VERTICES, radius, (float)radius, -(float)radius);
+  GeometryGenerator::fillCircleVertices(vertices.data(), colors.colors[1], THUMB_CIRCLE_VERTICES,           // border (outline)
+                                        radius, (float)radius, -(float)radius);
+  const float* thumbColor = colors.colors[2];
   float innerBorderColor[4]{ thumbColor[0]*1.25f, thumbColor[2]*1.25f, thumbColor[3]*1.25f, thumbColor[3] };
   clampColorComponents(innerBorderColor);
   GeometryGenerator::fillCircleVertices(vertices.data() + (intptr_t)THUMB_CIRCLE_VERTICES, innerBorderColor,// border (inner)
@@ -173,6 +173,36 @@ void Ruler::updateThumbPosition(RendererContext& context, uint32_t value) {
                     fillerMesh.x(), fillerMesh.y(), fillerMesh.width(), fillerMesh.height());
 
   thumbMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), thumbX, thumbMesh.y());
+}
+
+// ---
+
+void Ruler::updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix, TextAlignment labelAlign) {
+  auto& labelFont = context.getFont(FontType::labels);
+  uint32_t labelX = labelMesh.x();
+  if (labelAlign != TextAlignment::left)
+    labelX += (labelAlign == TextAlignment::right) ? labelMesh.width() : (labelMesh.width() >> 1);
+
+  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(),
+                       labelX, labelMesh.y(), labelAlign);
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
+
+  if ((suffix != nullptr && *suffix != (char32_t)0) || suffixMesh.width()) {
+    const uint32_t suffixX = labelMesh.x() + (int32_t)labelWidthWithMargin + (int32_t)controlMesh.width() + (int32_t)labelMargin();
+    suffixMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(),
+                          suffixX, suffixMesh.y());
+  }
+
+  const uint32_t controlX = labelMesh.x() + (int32_t)labelWidthWithMargin;
+  if (controlX != controlMesh.x()) {
+    const int32_t thumbOffsetX = thumbMesh.x() - controlMesh.x();
+    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, controlMesh.y());
+    fillerMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, fillerMesh.y());
+    fillerMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, fillerMesh.y());
+    thumbMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX + thumbOffsetX, thumbMesh.y());
+  }
 }
 
 

@@ -30,14 +30,13 @@ namespace menu {
       /// @param boundValue  Data/config value to bind to the check-box value (get/set)
       /// @param enabler     Optional data/config value to which the button state should be bound
       CheckBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-               bool isLabelBeforeBox, uint32_t minLabelWidth, uint32_t operationId,
-               std::function<void(uint32_t,uint32_t)> onChange, bool& boundValue, const bool* enabler = nullptr)
+               uint32_t minLabelWidth, uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange,
+               bool& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
           onChange(std::move(onChange)),
           operationId(operationId),
-          minLabelWidth(minLabelWidth),
-          isLabelBeforeBox(isLabelBeforeBox) {
+          minLabelWidth(minLabelWidth) {
         init(context, label, x, labelY);
       }
 
@@ -57,7 +56,7 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return isLabelBeforeBox ? labelMesh.x() : checkedMesh.x(); }
+      inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return checkedMesh.y() + 1; }
       inline uint32_t width() const noexcept {
         const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
@@ -88,6 +87,7 @@ namespace menu {
         }
       }
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
+      void updateLabel(RendererContext& context, const char32_t* label); ///< Change control label
 
       // -- rendering --
 
@@ -102,15 +102,6 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY);
-      inline int32_t getBoxX(int32_t x, uint32_t labelWidth) const noexcept {
-        if (isLabelBeforeBox) {
-          if (minLabelWidth >= labelWidth)
-            labelWidth = minLabelWidth;
-          if (labelWidth)
-            return (x + (int32_t)labelWidth + (int32_t)labelMargin());
-        }
-        return x;
-      }
       
     private:
       display::controls::IconMesh checkedMesh;
@@ -122,7 +113,6 @@ namespace menu {
       std::function<void(uint32_t, bool)> onChange;
       uint32_t operationId = 0;
       uint32_t minLabelWidth = 0;
-      bool isLabelBeforeBox = false;
     };
   }
 }

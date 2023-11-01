@@ -40,7 +40,7 @@ namespace menu {
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       int32_t x, int32_t labelY, uint32_t minLabelWidth, uint32_t fixedWidth, const float backgroundColor[4],
                        uint32_t operationId, std::function<void(uint32_t)> onChange, const char32_t* textValue,
                        uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
@@ -48,17 +48,15 @@ namespace menu {
           operationId(operationId),
           valueType(TextBoxType::text),
           maxValueLength(maxValueLength),
-          minLabelWidth(style.minLabelWidth),
-          paddingX(style.paddingX),
-          paddingY(style.paddingY) {
-        init(context, label, suffix, x, labelY, fixedWidth, style.color, textValue);
+          minLabelWidth(minLabelWidth) {
+        init(context, label, suffix, x, labelY, fixedWidth, backgroundColor, textValue);
       }
       /// @brief Create text edit control -- integer value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       int32_t x, int32_t labelY, uint32_t minLabelWidth, uint32_t fixedWidth, const float backgroundColor[4],
                        uint32_t operationId, std::function<void(uint32_t)> onChange, uint32_t integerValue,
                        uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
@@ -66,18 +64,16 @@ namespace menu {
           operationId(operationId),
           valueType(TextBoxType::integer),
           maxValueLength(maxValueLength),
-          minLabelWidth(style.minLabelWidth),
-          paddingX(style.paddingX),
-          paddingY(style.paddingY) {
+          minLabelWidth(minLabelWidth) {
         char32_t buffer[MAX_INTEGER_LENGTH+1];
-        init(context, label, suffix, x, labelY, fixedWidth, style.color, fromInteger(integerValue, buffer));
+        init(context, label, suffix, x, labelY, fixedWidth, backgroundColor, fromInteger(integerValue, buffer));
       }
       /// @brief Create text edit control -- number value
       /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                       int32_t x, int32_t labelY, const ControlStyle& style, uint32_t fixedWidth,
+                       int32_t x, int32_t labelY, uint32_t minLabelWidth, uint32_t fixedWidth, const float backgroundColor[4],
                        uint32_t operationId, std::function<void(uint32_t)> onChange, double numberValue,
                        uint32_t maxValueLength, const bool* enabler = nullptr)
         : enabler(enabler),
@@ -85,11 +81,9 @@ namespace menu {
           operationId(operationId),
           valueType(TextBoxType::number),
           maxValueLength(maxValueLength),
-          minLabelWidth(style.minLabelWidth),
-          paddingX(style.paddingX),
-          paddingY(style.paddingY) {
+          minLabelWidth(minLabelWidth) {
         auto buffer = fromNumber(numberValue, maxValueLength);
-        init(context, label, suffix, x, labelY, fixedWidth, style.color, buffer.get());
+        init(context, label, suffix, x, labelY, fixedWidth, backgroundColor, buffer.get());
       }
 
       TextBox() = default;
@@ -118,7 +112,6 @@ namespace menu {
                                   : (controlMesh.x() + (int32_t)controlMesh.width());
       }
       inline int32_t labelY() const noexcept { return labelMesh.y(); }
-      inline int32_t paddingTop() const noexcept { return paddingY; }
 
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }
@@ -162,6 +155,7 @@ namespace menu {
       void replaceValueText(RendererContext& context, const char32_t* textValue); ///< Replace text input value (only with TextBoxType::text)
       void replaceValueInteger(RendererContext& context, uint32_t integerValue);  ///< Replace text input value (only with TextBoxType::integer or number)
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
+      void updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix); ///< Change control label + suffix
 
       // -- rendering --
 
@@ -200,8 +194,6 @@ namespace menu {
       TextBoxType valueType = TextBoxType::text;
       uint32_t maxValueLength = 0xFFFFFFFFu;
       uint32_t minLabelWidth = 0;
-      uint32_t paddingX = 0;
-      uint32_t paddingY = 0;
     };
   }
 }

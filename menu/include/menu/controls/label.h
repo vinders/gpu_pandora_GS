@@ -18,6 +18,7 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/text_mesh.h>
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
@@ -47,13 +48,17 @@ namespace menu {
 
       inline int32_t x() const noexcept { return iconMesh.width() ? iconMesh.x() : labelMesh.x(); }
       inline int32_t y() const noexcept { return iconMesh.width() ? iconMesh.y() : labelMesh.y(); }
-      inline uint32_t width() const noexcept { return iconMesh.width() ? (iconMesh.width() + labelMesh.width() + labelMargin()) : labelMesh.width(); }
+      inline uint32_t width() const noexcept { return iconMesh.width()
+                                                      ? (iconMesh.width() + labelMesh.width() + Control::labelMargin())
+                                                      : labelMesh.width(); }
       inline uint32_t height() const noexcept { return iconMesh.width() ? iconMesh.height() : labelMesh.height(); }
 
       // -- operations --
 
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 display::controls::TextAlignment align = display::controls::TextAlignment::left);
+      void updateLabel(RendererContext& context, const char32_t* label, ///< Change control label
+                       display::controls::TextAlignment align = display::controls::TextAlignment::left);
 
       // -- rendering --
 
@@ -79,7 +84,6 @@ namespace menu {
     private:
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                 display::controls::TextAlignment align, display::ControlIconType icon);
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }
       
     private:
       display::controls::IconMesh iconMesh;

@@ -16,9 +16,9 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <display/controls/control_mesh.h>
 #include <display/controls/text_mesh.h>
-#include "menu/color_theme.h"
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
@@ -27,8 +27,7 @@ namespace menu {
     public:
       /// @brief Create fieldset control
       Fieldset(RendererContext& context, const char32_t* label, FieldsetStyle style,
-               const float color[4], int32_t x, int32_t labelY, uint32_t paddingX,
-               uint32_t paddingY, uint32_t width, uint32_t contentHeight);
+               const float color[4], int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight);
 
       Fieldset() = default;
       Fieldset(const Fieldset&) = delete;
@@ -53,6 +52,7 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 uint32_t width, uint32_t contentHeight);
+      void updateLabel(RendererContext& context, const char32_t* label); ///< Change control label
 
       // -- rendering --
 

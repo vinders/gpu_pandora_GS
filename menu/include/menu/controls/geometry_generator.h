@@ -65,6 +65,13 @@ namespace menu {
       static void fillVerticalRectangleVertices(display::controls::ControlVertex* outVertexIt,
                                                const float rgba1[4], const float rgba2[4],
                                                float x1, float x2, float y1, float y2);
+      /// @brief Generate rectangle with double gradient (in 10 menu control vertices)
+      ///        (expected indices: 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9)
+      /// @param outVertexIt  Must point to an array of at least 10 control vertices
+      /// @param rgba         [0]: primary color / [1]: top lighter color / [2]: middle darker color
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillDoubleGradientRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[3][4],
+                                                      float x1, float x2, float y1, float y2, float topGradHeight);
       /// @brief Generate oblique rectangle (in 4 menu control vertices)
       /// @param outVertexIt  Must point to an array of at least 4 control vertices
       /// @param yOffset      Offset at x2 vertices added to y1 & y2
@@ -84,13 +91,30 @@ namespace menu {
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillRightRoundedRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                                     float x1, float x2, float y1, float y2);
+      
+      /// @brief Generate rectangle with rounded edges (in <getRoundedRectangleVertexCount(radius)> menu control vertices)
+      /// @param outVertexIt  Must point to an array of at least <getRoundedRectangleVertexCount(radius)> control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillRoundedRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                               float x1, float x2, float y1, float y2, float radius);
+      /// @brief Generate rectangle with rounded edges vertex indices (in <getRoundedRectangleVertexIndexCount(radius)> vertex indices)
+      /// @param outIndexIt  Must point to an array of at least <getRoundedRectangleVertexIndexCount(radius)> indices
+      static void fillRoundedRectangleIndices(uint32_t* outIndexIt, uint32_t firstVertexIndex, float radius);
+      /// @brief Count vertices required to draw a rectangle with rounded edges
+      static inline uint32_t getRoundedRectangleVertexCount(float radius) {
+        return 4u + (static_cast<uint32_t>(radius + 0.5f) << 3);
+      }
+      /// @brief Count vertex indices required to draw a rectangle with rounded edges
+      static inline uint32_t getRoundedRectangleVertexIndexCount(float radius) {
+        return ((getRoundedRectangleVertexCount(radius) >> 1) - 1u)*6u;
+      }
 
       /// @brief Generate rectangle with top-right corner cut and double gradient (in 10 menu control vertices)
       ///        (expected indices: 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9)
       /// @param outVertexIt  Must point to an array of at least 10 control vertices
+      /// @param rgba         [0]: primary color / [1]: top lighter color / [2]: middle darker color
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt,
-                                                   const float rgba[4], const float rgbaTop[4],
+      static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[3][4],
                                                    float x1, float x2, float y1, float y2, float cornerSize);
       /// @brief Generate rectangle with two cut corners (in 6 menu control vertices)
       ///        (expected indices: 0,1,2, 2,1,3, 2,3,4, 4,3,5)
@@ -105,6 +129,11 @@ namespace menu {
       static void fillCornerCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                                  float x1, float x2, float y1, float y2, float cornerSize);
 
+      /// @brief Generate rectangle borders (in 16 menu control vertices)
+      /// @param outVertexIt  Must point to an array of at least 16 control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillRectangleBorderVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                              float x1, float x2, float y1, float y2);
       /// @brief Generate rectangle borders with top-right corner cut (in 20 menu control vertices)
       /// @param outVertexIt  Must point to an array of at least 20 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
@@ -115,6 +144,8 @@ namespace menu {
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillDoubleCutBorderVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                               float x1, float x2, float y1, float y2, float cornerSize);
+
+      // -- rectangle resize --
 
       /// @brief Resize existing rectangle horizontally (update 4 menu control vertices)
       static inline void resizeRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x2) {
@@ -141,6 +172,8 @@ namespace menu {
         (vertexIt + 7)->position[0] = x2;
         (vertexIt + 8)->position[0] = x2;
       }
+      /// @brief Resize horizontally existing rectangle with all edges rounded (update <4 + 8*radius> menu control vertices)
+      static void resizeRoundedRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x2, float radius);
       /// @brief Resize horizontally existing rectangle with all corners cut (update 8 menu control vertices)
       static inline void resizeCornerCutRectangleVerticesX(display::controls::ControlVertex* vertexIt,
                                                            float x2, float cornerSize) {
@@ -169,12 +202,15 @@ namespace menu {
       ///                          (note: total vertex count = circleVertexCount)
       static void fillCircleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                      uint32_t circleVertexCount, double radius, float centerX, float centerY);
-
-      /// @brief Generate filled circle vertex indices (in <circleVertexCount*3> vertex indices)
-      /// @param outIndexIt        Must point to an array of at least <(circleVertexCount-2)*3> indices
+      /// @brief Generate filled circle vertex indices (in <getCircleVertexIndexCount(circleVertexCount)> vertex indices)
+      /// @param outIndexIt        Must point to an array of at least <getCircleVertexIndexCount(circleVertexCount)> indices
       /// @param circleVertexCount Number of vertices around the circle
       ///                          (note: total vertex count = circleVertexCount)
-      static void fillCircleIndices(uint32_t* outIndexIt, uint32_t firstIndex, uint32_t circleVertexCount);
+      static void fillCircleIndices(uint32_t* outIndexIt, uint32_t firstVertexIndex, uint32_t circleVertexCount);
+      /// @brief Count vertex indices required to draw a circle
+      static inline uint32_t getCircleVertexIndexCount(uint32_t circleVertexCount) {
+        return (circleVertexCount-2u)*3u;
+      }
     };
   }
 }

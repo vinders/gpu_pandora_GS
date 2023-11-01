@@ -14,8 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstring>
 #include <video/window_keycodes.h>
-#include "menu/controls/button.h"
-#include "menu/controls/check_box.h"
+#include "menu/controls/control.h"
 #include "menu/controls/combo_box.h"
 #include "menu/controls/text_box.h"
 #include "menu/controls/ruler.h"
@@ -28,6 +27,8 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
+#define HOVER_BORDER_RADIUS 3.f
+
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
            const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip)
@@ -38,18 +39,17 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   assert(this->context != nullptr && this->buffers != nullptr);
 
   // create page scrollbar
-  const int32_t scrollBarX = x + (int32_t)width - (int32_t)ColorTheme::scrollbarWidth();
+  const int32_t scrollBarX = x + (int32_t)width - (int32_t)Control::scrollbarWidth();
   auto scrollHandler = std::bind(&Page::onScroll, this, std::placeholders::_1);
   scrollbar = ScrollBar(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor(),
-                        scrollBarX, y, ColorTheme::scrollbarWidth(), std::move(scrollHandler),
-                        visibleHeight, visibleHeight, (ColorTheme::pageLineHeight() >> 1));
+                        scrollBarX, y, Control::scrollbarWidth(), std::move(scrollHandler),
+                        visibleHeight, visibleHeight, (Control::pageLineHeight() >> 1));
 
   // create tooltip bar
   if (enableTooltip) {
     tooltip = Tooltip(*context, U" ", FontType::inputText, LabelBufferType::regular,
-                      x, y + (int32_t)visibleHeight - (int32_t)ColorTheme::tooltipBarHeight(),
-                      width, ColorTheme::tooltipBarHeight(), theme.scrollbarWidth(),
-                      theme.tooltipControlColor(), display::ControlIconType::none);
+                      x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(),
+                      width, Control::tooltipBarHeight(), theme.tooltipControlColor(), display::ControlIconType::none);
   }
 
   // create page background
@@ -60,7 +60,6 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   *backgroundMidColor     = theme.backgroundColor()[0]*0.7f + theme.backgroundCornerColor()[0]*0.3f;
   *(++backgroundMidColor) = theme.backgroundColor()[1]*0.7f + theme.backgroundCornerColor()[1]*0.3f;
   *(++backgroundMidColor) = theme.backgroundColor()[2]*0.7f + theme.backgroundCornerColor()[2]*0.3f;
-  *(++backgroundMidColor) = theme.backgroundColor()[3];
   memcpy(backgroundVertices[3].color, theme.backgroundCornerColor(), sizeof(float)*4u);
   std::vector<uint32_t> indices{ 0,1,2,2,1,3 };
 
@@ -68,17 +67,19 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
                                context->pixelSizeY(), x, y, width, visibleHeight);
 
   // create control line hover area
-  const int32_t controlHoverX = x + (int32_t)ColorTheme::pageFieldsetMarginX(width)
-                              + (int32_t)ColorTheme::fieldsetPaddingX(width) - ColorTheme::lineHoverPaddingX();
-  constexpr const uint32_t controlHoverWidth = ColorTheme::pageLabelWidth() + ColorTheme::pageControlWidth()
-                                             + (ColorTheme::lineHoverPaddingX() << 1) + Control::labelMargin();
-  std::vector<ControlVertex> controlHoverVertices(static_cast<size_t>(8));
-  GeometryGenerator::fillCornerCutRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
-                                                    0.f, (float)controlHoverWidth, 0.f, -(float)ColorTheme::pageLineHeight(), 3.f);
-  indices = { 0,1,2,2,1,3,  2,3,4,4,3,5,  4,5,6,6,5,7 };
+  const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
+                              + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
+  constexpr const uint32_t controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                                             + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+  std::vector<ControlVertex> controlHoverVertices(GeometryGenerator::getRoundedRectangleVertexCount(HOVER_BORDER_RADIUS));
+  GeometryGenerator::fillRoundedRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
+                                                  0.f, (float)controlHoverWidth, 0.f, -(float)Control::pageLineHeight(),
+                                                  HOVER_BORDER_RADIUS);
+  indices.resize(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
+  GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
 
   controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
-                                 context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, ColorTheme::pageLineHeight());
+                                 context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, Control::pageLineHeight());
 }
 
 Page::~Page() noexcept {
@@ -100,7 +101,7 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
   scrollbar.moveControl(*context, scrollBarX, y, visibleHeight);
 
   if (tooltip.width()) {
-    tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)ColorTheme::tooltipBarHeight(), width);
+    tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(), width);
     if (activeControlIndex != noControlSelection())
       tooltip.updateLabel(*context, U" ", LabelBufferType::regular);
   }
@@ -110,8 +111,8 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
   backgroundMesh.update(context->renderer(), std::move(backgroundVertices), context->pixelSizeX(), context->pixelSizeY(),
                         x, y, width, visibleHeight);
 
-  const int32_t controlHoverX = x + (int32_t)ColorTheme::pageFieldsetMarginX(width)
-                              + (int32_t)ColorTheme::fieldsetPaddingX(width) - ColorTheme::lineHoverPaddingX();
+  const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
+                              + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
   controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, 0);
   activeControlIndex = noControlSelection();
 
@@ -143,19 +144,19 @@ void Page::onHover(int32_t controlIndex) {
       int32_t controlHoverX;
       uint32_t controlHoverWidth;
       if (isLeftPadded && isRightPadded) {
-        controlHoverX = control->x() - (int32_t)ColorTheme::lineHoverPaddingX();
-        controlHoverWidth = ColorTheme::pageLabelWidth() + ColorTheme::pageControlWidth()
-                          + (ColorTheme::lineHoverPaddingX() << 1) + Control::labelMargin();
+        controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
+        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
       }
       else {
-        controlHoverX = isLeftPadded ? (control->x() - (int32_t)ColorTheme::lineHoverPaddingX()) : (control->x() - 3);
-        controlHoverWidth = control->width() + ColorTheme::lineHoverPaddingX() + 3;
+        controlHoverX = isLeftPadded ? (control->x() - (int32_t)Control::lineHoverPaddingX()) : (control->x() - 3);
+        controlHoverWidth = control->width() + Control::lineHoverPaddingX() + 3;
       }
       
-      const int32_t controlHoverY = control->y() - static_cast<int32_t>((ColorTheme::pageLineHeight() - control->height()) >> 1) - 1;
+      const int32_t controlHoverY = control->y() - static_cast<int32_t>((Control::pageLineHeight() - control->height()) >> 1) - 1;
       if (controlHoverWidth != controlHoverMesh.width()) {
         std::vector<ControlVertex> controlHoverVertices = controlHoverMesh.relativeVertices();
-        GeometryGenerator::resizeCornerCutRectangleVerticesX(controlHoverVertices.data(), (float)controlHoverWidth, 3.f);
+        GeometryGenerator::resizeRoundedRectangleVerticesX(controlHoverVertices.data(), (float)controlHoverWidth, 3.f);
         controlHoverMesh.update(context->renderer(), std::move(controlHoverVertices), context->pixelSizeX(), context->pixelSizeY(),
                                 controlHoverX, controlHoverY, controlHoverWidth, controlHoverMesh.height());
       }
@@ -266,14 +267,14 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
     if (scrollbar.isEnabled()) { // auto-scroll if needed
       const uint32_t controlTopLevel = static_cast<uint32_t>(control->y() - scrollbar.y());
       if (controlTopLevel < scrollbar.visibleTop()) {
-        scrollbar.setTopPosition(*context, (controlTopLevel > ColorTheme::autoScrollPaddingY())
-                                           ? controlTopLevel - ColorTheme::autoScrollPaddingY() : 0);
+        scrollbar.setTopPosition(*context, (controlTopLevel > Control::autoScrollPaddingY())
+                                           ? controlTopLevel - Control::autoScrollPaddingY() : 0);
       }
       else {
         const uint32_t tooltipHeight = tooltip.width() ? tooltip.height() : 0;
         const uint32_t controlBottomLevel = static_cast<uint32_t>(control->bottomY() - scrollbar.y());
         if (controlBottomLevel >= scrollbar.visibleBottom() - tooltipHeight)
-          scrollbar.setBottomPosition(*context, controlBottomLevel + ColorTheme::autoScrollPaddingY() + tooltipHeight);
+          scrollbar.setBottomPosition(*context, controlBottomLevel + Control::autoScrollPaddingY() + tooltipHeight);
       }
     }
     if (control->control()->Type() == ControlType::textBox) { // automatic focus if text-box

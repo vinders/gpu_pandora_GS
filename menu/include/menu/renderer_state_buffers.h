@@ -21,11 +21,13 @@ GNU General Public License for more details (LICENSE file).
 
 namespace menu {
   enum class ControlBufferType : uint32_t { ///< Control/icon buffer type, based on control status
-    regular = 0, ///< neutral control/icon
-    disabled,    ///< disabled control/icon
-    active,      ///< active/hover control/icon
-    activeLight, ///< active/hover control/icon with lighter color
-    activeInvert,///< active/hover control/icon with inverted logic (lighter <-> darker)
+    regular = 0, ///< neutral control
+    disabled,    ///< disabled control
+    active,      ///< active/hover control
+    activeScroll,///< active/hover scroll arrow/thumb
+    regularIcon, ///< neutral icon
+    disabledIcon,///< disabled icon
+    activeIcon,  ///< active/hover icon
     COUNT
   };
   enum class LabelBufferType : uint32_t { ///< State buffer type, based on control type and status

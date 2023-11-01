@@ -29,11 +29,10 @@ namespace menu {
     public:
       /// @brief Create tooltip control
       Tooltip(RendererContext& context, const char32_t* label, FontType fontType, LabelBufferType textColor,
-              int32_t x, int32_t y, uint32_t width, uint32_t height, uint32_t paddingX,
-              const float backgroundColor[4], display::ControlIconType icon = display::ControlIconType::none)
+              int32_t x, int32_t y, uint32_t width, uint32_t height, const float backgroundColor[4],
+              display::ControlIconType icon = display::ControlIconType::none)
         : fontType(fontType),
-          textColor(textColor),
-          paddingX(paddingX) {
+          textColor(textColor) {
         init(context, label, x, y, width, height, backgroundColor, icon);
       }
 
@@ -90,8 +89,6 @@ namespace menu {
       display::controls::TextMesh labelMesh;
       FontType fontType = FontType::inputText;
       LabelBufferType textColor = LabelBufferType::regular;
-      
-      uint32_t paddingX = 0;
     };
   }
 }

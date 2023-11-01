@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 
 using namespace video_api;
 using namespace menu;
+using namespace menu::controls;
 
 #define SET_MULTIPLIER(renderer, r,g,b,a, output) { \
           float color[4] = { r,g,b,a }; \
@@ -29,11 +30,13 @@ using namespace menu;
 
 void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type) {
   switch (type) {
-    case ColorThemeType::darkBlue: { // TODO -> teinte -2 sur chaque couleur
-      SET_MULTIPLIER(renderer, 0.3f,0.6f,0.8f,0.2f, disabledControl)
+    case ColorThemeType::blue: { // TODO -> teinte -2 sur chaque couleur
+      SET_MULTIPLIER(renderer, 0.3f,0.6f,0.8f,0.2f,   disabledControl)
       SET_MULTIPLIER(renderer, 1.35f,1.35f,1.35f,1.f, activeControl)
-      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f, activeLightControl)
-      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeInvertControl)
+      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeScrollControl)
+      SET_MULTIPLIER(renderer, 1.f,1.f,1.f,1.f,       regularIcon)
+      SET_MULTIPLIER(renderer, 0.3f,0.6f,0.8f,0.2f,   disabledIcon)
+      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,    activeIcon)
       SET_THEME_COLOR(renderer,  83,171,196, 1.f, regularLabel) // 105,191,222  // 84,168,192
       SET_THEME_COLOR(renderer,  57,102,123, 1.f, disabledLabel)
       SET_THEME_COLOR(renderer, 134,214,242, 1.f, activeLabel)
@@ -62,24 +65,26 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 180,223,247, 1.f, buttonLabel)
       SET_THEME_COLOR(renderer,  35, 81,108, 1.f, textBoxControl) // 170,223,247  // 119,192,208  // 135,199,213  // 88,156,180  // 21, 65, 96
       SET_THEME_COLOR(renderer,  96,178,203, 1.f, textBoxLabel)  // 53, 77, 93  // 41, 72, 84
-      SET_THEME_COLOR(renderer,  42,121,160, 1.f, comboBoxControl) // 38,113,149
-      SET_THEME_COLOR(renderer,  77,153,189, 1.f, comboBoxTopControl) // 70,164,197 // 74,150,186
-      SET_THEME_COLOR(renderer, 150,187,216, 1.f, comboBoxDropdown)
+      SET_THEME_COLOR(renderer,  42,121,160, 1.f, comboBoxControlColors.colors[0]) // 38,113,149
+      SET_THEME_COLOR(renderer,  77,153,189, 1.f, comboBoxControlColors.colors[1]) // 70,164,197 // 74,150,186
+      SET_THEME_COLOR(renderer, 150,187,216, 1.f, comboBoxControlColors.colors[2])
       SET_THEME_COLOR(renderer,  18, 54, 79, 1.f, comboBoxLabel) // 23, 59, 88  // 19, 57, 83
       SET_THEME_COLOR(renderer,  23, 53, 76, 1.f, comboBoxDropdownLabel)
-      SET_THEME_COLOR(renderer,  51, 87,112, 1.f, rulerControl)
-      SET_THEME_COLOR(renderer,  69, 82, 92, 1.f, rulerBorder)
-      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerThumb)
-      SET_THEME_COLOR(renderer,  83,171,196, 1.f, rulerFiller)
+      SET_THEME_COLOR(renderer,  51, 87,112, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR(renderer,  69, 82, 92, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
+      SET_THEME_COLOR(renderer,  83,171,196, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  54,141,182, 1.f, sliderArrow) // 43,161,229
-      fieldsetType = FieldsetStyle::title;
+      fieldsetType = FieldsetStyle::gradient;
       break;
     }
-    case ColorThemeType::darkGreen: { // TODO -> teinte -3 sur tout sauf title
-      SET_MULTIPLIER(renderer, 0.5f,0.7f,0.65f,0.2f, disabledControl)
+    case ColorThemeType::green: {
+      SET_MULTIPLIER(renderer, 0.5f,0.7f,0.65f,0.2f,  disabledControl)
       SET_MULTIPLIER(renderer, 1.35f,1.35f,1.35f,1.f, activeControl)
-      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f, activeLightControl)
-      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeInvertControl)
+      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeScrollControl)
+      SET_MULTIPLIER(renderer, 1.f,1.f,1.f,1.f,       regularIcon)
+      SET_MULTIPLIER(renderer, 0.5f,0.7f,0.65f,0.2f,  disabledIcon)
+      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,    activeIcon)
       SET_THEME_COLOR(renderer, 177,235,142, 1.f, regularLabel)
       SET_THEME_COLOR(renderer,  80,130, 68, 1.f, disabledLabel)
       SET_THEME_COLOR(renderer, 213,247,193, 1.f, activeLabel)
@@ -108,24 +113,74 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,  41, 72,  8, 1.f, buttonLabel)
       SET_THEME_COLOR(renderer,  46,111, 40, 1.f, textBoxControl)
       SET_THEME_COLOR(renderer, 130,208,123, 1.f, textBoxLabel)
-      SET_THEME_COLOR(renderer, 104,148, 27, 1.f, comboBoxControl) // 105,151,  3
-      SET_THEME_COLOR(renderer, 148,198, 61, 1.f, comboBoxTopControl) // 151,198, 60
-      SET_THEME_COLOR(renderer, 195,228,149, 1.f, comboBoxDropdown)
+      SET_THEME_COLOR(renderer, 104,148, 27, 1.f, comboBoxControlColors.colors[0]) // 105,151,  3
+      SET_THEME_COLOR(renderer, 148,198, 61, 1.f, comboBoxControlColors.colors[1]) // 151,198, 60
+      SET_THEME_COLOR(renderer, 195,228,149, 1.f, comboBoxControlColors.colors[2])
       SET_THEME_COLOR(renderer,  41, 72,  8, 1.f, comboBoxLabel)
       SET_THEME_COLOR(renderer,  50, 74, 19, 1.f, comboBoxDropdownLabel)
-      SET_THEME_COLOR(renderer,  44, 92, 40, 1.f, rulerControl)
-      SET_THEME_COLOR(renderer,  57, 88, 49, 1.f, rulerBorder)
-      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerThumb)
-      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerFiller)
+      SET_THEME_COLOR(renderer,  44, 92, 40, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR(renderer,  57, 88, 49, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  83,166, 52, 1.f, sliderArrow)
-      fieldsetType = FieldsetStyle::title;
+      fieldsetType = FieldsetStyle::gradient;
+      break;
+    }
+    case ColorThemeType::darkGreen: {
+      SET_MULTIPLIER(renderer, 0.5f,0.7f,0.65f,0.2f,  disabledControl)
+      SET_MULTIPLIER(renderer, 1.35f,1.35f,1.35f,1.f, activeControl)
+      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeScrollControl)
+      SET_MULTIPLIER(renderer, 1.f,1.f,1.f,1.f,       regularIcon)
+      SET_MULTIPLIER(renderer, 0.5f,0.7f,0.65f,0.2f,  disabledIcon)
+      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,    activeIcon)
+      SET_THEME_COLOR(renderer, 177,235,142, 1.f, regularLabel)
+      SET_THEME_COLOR(renderer,  80,130, 68, 1.f, disabledLabel)
+      SET_THEME_COLOR(renderer, 213,247,193, 1.f, activeLabel)
+
+      SET_THEME_COLOR(renderer,  22, 65, 18, 1.f, background)
+      SET_THEME_COLOR(renderer,  22, 65, 18, 1.f, backgroundCorner)
+      SET_THEME_COLOR(renderer,  36, 83, 32, 1.f, scrollbarControl)
+      SET_THEME_COLOR(renderer,  46,104, 41, 1.f, scrollbarThumb)
+      SET_THEME_COLOR(renderer,  33, 89, 25, 0.75f, lineSelectorControl)
+      SET_THEME_COLOR(renderer,  22, 86, 16, 1.f, tooltipControl)
+      SET_THEME_COLOR(renderer, 193,227,166, 1.f, titleLabel)
+      SET_THEME_COLOR(renderer,  43,120, 18, 1.f, fieldsetControl)
+      SET_THEME_COLOR(renderer, 110,182, 82, 1.f, fieldsetLabel)
+
+      SET_THEME_COLOR(renderer,  22, 55, 80, 1.f, tabControl)
+      SET_THEME_COLOR(renderer,  27, 69,101, 1.f, tabLine)
+      SET_THEME_COLOR(renderer,  42, 94,134, 1.f, tabActiveLine)
+      SET_THEME_COLOR(renderer, 101,148,183, 1.f, tabLabel)
+      SET_THEME_COLOR(renderer, 146,187,218, 1.f, tabActiveLabel)
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, verticalTabControl)
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, verticalTabBorder)
+      SET_THEME_COLOR(renderer, 100,100,100, 1.f, verticalTabLabel)
+      SET_THEME_COLOR(renderer,  40, 40, 40, 1.f, verticalTabActiveLabel)
+
+      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, buttonControl)
+      SET_THEME_COLOR(renderer,  41, 72,  8, 1.f, buttonLabel)
+      SET_THEME_COLOR(renderer,  46,111, 40, 1.f, textBoxControl)
+      SET_THEME_COLOR(renderer, 130,208,123, 1.f, textBoxLabel)
+      SET_THEME_COLOR(renderer, 104,148, 27, 1.f, comboBoxControlColors.colors[0]) // 105,151,  3
+      SET_THEME_COLOR(renderer, 148,198, 61, 1.f, comboBoxControlColors.colors[1]) // 151,198, 60
+      SET_THEME_COLOR(renderer, 195,228,149, 1.f, comboBoxControlColors.colors[2])
+      SET_THEME_COLOR(renderer,  41, 72,  8, 1.f, comboBoxLabel)
+      SET_THEME_COLOR(renderer,  50, 74, 19, 1.f, comboBoxDropdownLabel)
+      SET_THEME_COLOR(renderer,  44, 92, 40, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR(renderer,  57, 88, 49, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
+      SET_THEME_COLOR(renderer,  83,166, 52, 1.f, sliderArrow)
+      fieldsetType = FieldsetStyle::gradient;
       break;
     }
     case ColorThemeType::darkYellow: {
-      SET_MULTIPLIER(renderer, 0.7f,0.65f,0.5f,0.2f, disabledControl)
+      SET_MULTIPLIER(renderer, 0.7f,0.65f,0.5f,0.2f,  disabledControl)
       SET_MULTIPLIER(renderer, 1.35f,1.35f,1.35f,1.f, activeControl)
-      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f, activeLightControl)
-      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeInvertControl)
+      SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeScrollControl)
+      SET_THEME_COLOR(renderer, 255, 242, 213,0.75f,  regularIcon)
+      SET_THEME_COLOR(renderer, 255, 217, 159,0.2f,   disabledIcon)
+      SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,    activeIcon)
       SET_THEME_COLOR(renderer, 255,217,159, 1.f, regularLabel)
       SET_THEME_COLOR(renderer, 143,115, 73, 1.f, disabledLabel)
       SET_THEME_COLOR(renderer, 255,231,195, 1.f, activeLabel)
@@ -154,25 +209,27 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 255,228,176, 1.f, buttonLabel)
       SET_THEME_COLOR(renderer, 116, 87, 29, 1.f, textBoxControl)
       SET_THEME_COLOR(renderer, 255,217,159, 1.f, textBoxLabel)
-      SET_THEME_COLOR(renderer, 191,136, 33, 1.f, comboBoxControl)
-      SET_THEME_COLOR(renderer, 214,166, 76, 1.f, comboBoxTopControl)
-      SET_THEME_COLOR(renderer, 255,231,195, 1.f, comboBoxDropdown)
+      SET_THEME_COLOR(renderer, 191,136, 33, 1.f, comboBoxControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 214,166, 76, 1.f, comboBoxControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 255,231,195, 1.f, comboBoxControlColors.colors[2])
       SET_THEME_COLOR(renderer,  64, 48, 18, 1.f, comboBoxLabel)
       SET_THEME_COLOR(renderer,  52, 43, 21, 1.f, comboBoxDropdownLabel)
-      SET_THEME_COLOR(renderer,  44, 92, 40, 1.f, rulerControl)
-      SET_THEME_COLOR(renderer,  57, 88, 49, 1.f, rulerBorder)
-      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerThumb)
-      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerFiller)
+      SET_THEME_COLOR(renderer,  44, 92, 40, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR(renderer,  57, 88, 49, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer, 191,136, 33, 1.f, sliderArrow)
-      fieldsetType = FieldsetStyle::titleBack;
+      fieldsetType = FieldsetStyle::gradientBox;
       break;
     }
-    case ColorThemeType::lightBlue:
+    case ColorThemeType::white:
     default: {
       SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 0.6f, disabledControl)
       SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,  activeControl)
-      SET_MULTIPLIER(renderer, 1.1f,1.1f,1.1f,1.f,  activeLightControl)
-      SET_MULTIPLIER(renderer, 0.8f,0.8f,0.8f,1.f,  activeInvertControl)
+      SET_MULTIPLIER(renderer, 0.8f,0.8f,0.8f,1.f,  activeScrollControl)
+      SET_THEME_COLOR(renderer,233, 239, 244, 1.f,  regularIcon)
+      SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 0.6f, disabledIcon)
+      SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 1.f,  activeIcon)
       SET_THEME_COLOR(renderer,  64, 64, 64, 1.f, regularLabel)
       SET_THEME_COLOR(renderer, 160,160,160, 1.f, disabledLabel)
       SET_THEME_COLOR(renderer,  82, 82, 82, 1.f, activeLabel)
@@ -181,7 +238,7 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 255,255,255, 1.f, backgroundCorner)
       SET_THEME_COLOR(renderer, 240,240,240, 1.f, scrollbarControl)
       SET_THEME_COLOR(renderer, 205,205,205, 1.f, scrollbarThumb)
-      SET_THEME_COLOR(renderer, 138,174,208, 0.25f, lineSelectorControl)
+      SET_THEME_COLOR(renderer, 213,223,229, 0.5f, lineSelectorControl) // 138,174,208, 0.25f
       SET_THEME_COLOR(renderer, 213,223,229, 0.8f, tooltipControl)
       SET_THEME_COLOR(renderer,  22, 22, 22, 1.f, titleLabel)
       SET_THEME_COLOR(renderer, 213,223,229, 1.f, fieldsetControl)
@@ -201,15 +258,15 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,  67, 82, 97, 1.f, buttonLabel)
       SET_THEME_COLOR(renderer, 240,240,240, 1.f, textBoxControl)
       SET_THEME_COLOR(renderer, 112,112,112, 1.f, textBoxLabel)
-      SET_THEME_COLOR(renderer, 147,184,218, 0.8f, comboBoxControl)
-      SET_THEME_COLOR(renderer, 174,202,228, 0.7f, comboBoxTopControl)
-      SET_THEME_COLOR(renderer, 233,239,244, 1.f, comboBoxDropdown)
+      SET_THEME_COLOR(renderer, 147,184,218, 0.8f, comboBoxControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 174,202,228, 0.7f, comboBoxControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 233,239,244, 1.f, comboBoxControlColors.colors[2])
       SET_THEME_COLOR(renderer,  78, 93,109, 1.f, comboBoxLabel)
       SET_THEME_COLOR(renderer,  88,100,116, 1.f, comboBoxDropdownLabel)
-      SET_THEME_COLOR(renderer, 102,102,102, 1.f, rulerControl)
-      SET_THEME_COLOR(renderer,  80, 80, 80, 1.f, rulerBorder)
-      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerThumb)
-      SET_THEME_COLOR(renderer,   0, 83,166, 1.f, rulerFiller)
+      SET_THEME_COLOR(renderer, 102,102,102, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR(renderer,  80, 80, 80, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
+      SET_THEME_COLOR(renderer,   0, 83,166, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  85,138,191, 1.f, sliderArrow) // 74,120,166
       fieldsetType = FieldsetStyle::classic;
       break;

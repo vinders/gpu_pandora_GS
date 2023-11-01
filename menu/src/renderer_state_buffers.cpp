@@ -83,10 +83,14 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeControlModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  memcpy(colorData.color, theme.activeLightControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::activeLight] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  memcpy(colorData.color, theme.activeInvertControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::activeInvert] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.activeScrollControlModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::activeScroll] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.regularIconModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::regularIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.disabledIconModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::disabledIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.activeIconModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::activeIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   // fragment slot 0 - text background color
   memcpy(colorData.color, theme.regularLabelColor(), sizeof(float)*4);

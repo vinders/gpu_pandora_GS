@@ -37,7 +37,6 @@ namespace menu {
     /// @brief Selectable menu control -- interface
     class Control {
     public:
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; } ///< Horizontal margin between label and control mesh
       virtual ~Control() noexcept = default;
 
       virtual ControlType Type() const noexcept = 0; ///< Get control type
@@ -54,32 +53,64 @@ namespace menu {
       virtual bool mouseUp(RendererContext& /*context*/, int32_t /*mouseX*/) { return false; }
       /// @brief Force-close the control (if open: dropdown, text editing, dragging...)
       virtual void close() {}
+
+      // -- page sizes --
+
+      static constexpr inline uint32_t pageLineHeight() noexcept { return 26; }   ///< Content line height (includes inter-line space)
+      static constexpr inline uint32_t pageLabelWidth() noexcept { return 200; }  ///< Minimum label width (before controls)
+      static constexpr inline uint32_t pageControlWidth() noexcept { return 260; }///< Fixed control/value width
+      static constexpr inline uint32_t scrollbarWidth() noexcept { return 16; }   ///< Total scroll-bar width
+      static constexpr inline uint32_t tooltipBarHeight() noexcept { return 30; } ///< General tooltip bar height
+      static constexpr inline uint32_t tooltipPaddingX() noexcept { return 16; }  ///< Horizontal tooltip padding
+      static constexpr inline uint32_t lineHoverPaddingX() noexcept { return 10; }///< Control line hover left/right padding
+      static constexpr inline uint32_t autoScrollPaddingY() noexcept { return 8; }///< Padding above/below control during auto-scroll
+
+      // -- control sizes --
+
+      static constexpr inline uint32_t fieldsetTitleShortPaddingX() noexcept{ return 9; }///< Fieldset title horizontal padding -- gradient style
+      static constexpr inline uint32_t fieldsetTitleWidePaddingX() noexcept{ return 12; }///< Fieldset title horizontal padding -- classic style
+      static constexpr inline uint32_t fieldsetTitlePaddingY() noexcept { return 10; }   ///< Fieldset title vertical padding
+      static constexpr inline int32_t fieldsetMarginX(uint32_t pageWidth) noexcept {     ///< Fieldset left margin in the page
+        return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 30 : 10;
+      }
+      static constexpr inline uint32_t fieldsetContentMarginX(uint32_t pageWidth) noexcept { ///< Margin to the left of fieldset inner controls
+        return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 20 : 8;
+      }
+      static constexpr inline uint32_t fieldsetContentPaddingY() noexcept { return 5; }  ///< Padding above first and below last fieldset inner control
+      static constexpr inline uint32_t fieldsetContentBottomMargin() noexcept{ return 12; }///< Margin after last fieldset inner control (before next fieldset)
+      static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 720; }       ///< Fieldset maximum width
+
+      // -- control sizes --
+
+      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }       ///< Horizontal margin between label and control mesh
+      static constexpr inline uint32_t comboBoxPaddingX() noexcept { return 10u; } ///< Horizontal combo-box padding
+      static constexpr inline uint32_t comboBoxPaddingY() noexcept { return 7u; }  ///< Vertical combo-box padding
+      static constexpr inline uint32_t textBoxPaddingX() noexcept { return 10u; }  ///< Horizontal text-box padding
+      static constexpr inline uint32_t textBoxPaddingY() noexcept { return 6u; }   ///< Vertical text-box padding
+      static constexpr inline uint32_t rulerPaddingX() noexcept { return 10u; }    ///< Horizontal sliding-ruler padding
+      static constexpr inline uint32_t rulerPaddingY() noexcept { return 4u; }     ///< Vertical sliding-ruler padding
+      static constexpr inline uint32_t sliderPaddingY() noexcept { return 6u; }    ///< Vertical slider padding
     };
     
     
     // -- control styling -- ---------------------------------------------------
-    
-    /// @brief Visual style properties for a complex control
-    struct ControlStyle final {
-      ControlStyle(const float color_[4], uint32_t minLabelWidth, uint32_t paddingX = 0, uint32_t paddingY = 0)
-        : minLabelWidth(minLabelWidth), paddingX(paddingX), paddingY(paddingY) {
-        this->color[0] = color_[0];
-        this->color[1] = color_[1];
-        this->color[2] = color_[2];
-        this->color[3] = color_[3];
-      }
-      ControlStyle() = default;
-      ControlStyle(const ControlStyle&) = default;
-      ControlStyle(ControlStyle&&) noexcept = default;
-      ControlStyle& operator=(const ControlStyle&) = default;
-      ControlStyle& operator=(ControlStyle&&) noexcept = default;
-      ~ControlStyle() noexcept = default;
 
-      float color[4]{ 0.f,0.f,0.f,1.f }; ///< Primary color type (background, symbols...)
-      uint32_t minLabelWidth = 0; ///< Minimum width of the label prefixed (if any label value is provided)
-      uint32_t paddingX = 0; ///< Left/right padding (between content and container)
-      uint32_t paddingY = 0; ///< Top/bottom padding (between content and container)
+    enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
+      classic = 0, ///< Contour border with a title bar
+      gradient,    ///< Title bar and top/left borders with gradients
+      gradientBox  ///< Title bar and content box with gradients
     };
+    enum class ComboBoxStyle : uint32_t { ///< Combo-box visual style
+      classic = 0, ///< Rectangle
+      cutCorner    ///< Rectangle with top-right corner cut
+    };
+
+    template <size_t ColorCount>
+    struct ControlColors { ///< Multi-color control style
+      float colors[ColorCount][4]; ///< RGBA colors (e.g. background, border...)
+    };
+
+    // ---
 
     /// @brief Visual style properties for a button control
     struct ButtonStyle final {

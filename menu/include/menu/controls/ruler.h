@@ -25,24 +25,22 @@ namespace menu {
     class Ruler final : public Control {
     public:
       /// @brief Create sliding ruler control
+      /// @param colors      [0]: ruler background / [1]: ruler border / [2]: thumb / [3]: left-side ruler fill
       /// @param operationId Unique ruler operation identifier (should be cast from an enum or constant)
       /// @param onClick     Event handler to call (with 'operationId') when the ruler is clicked
       /// @param enabler     Optional data/config value to which the ruler state should be bound
       Ruler(RendererContext& context, const char32_t* label, const char32_t* suffix,
-            display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
-            uint32_t fixedRulerWidth, float borderColor[4], float thumbColor[4], float leftFillColor[4],
-            uint32_t minValue, uint32_t maxValue, uint32_t step, uint32_t& boundValue, const bool* enabler = nullptr)
+            display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, uint32_t minLabelWidth,
+            uint32_t fixedRulerWidth, const ControlColors<4>& colors, uint32_t minValue, uint32_t maxValue, uint32_t step,
+            uint32_t& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
           lastValue(boundValue),
           minValue(minValue),
           maxValue(maxValue),
           step(step),
-          minLabelWidth(style.minLabelWidth),
-          paddingX(style.paddingX),
-          paddingY(style.paddingY) {
-        init(context, label, suffix, labelAlign, x, labelY, style,
-             fixedRulerWidth, borderColor, thumbColor, leftFillColor);
+          minLabelWidth(minLabelWidth) {
+        init(context, label, suffix, labelAlign, x, labelY, fixedRulerWidth, colors);
       }
 
       Ruler() = default;
@@ -101,6 +99,8 @@ namespace menu {
 
       /// @brief Change control location (on window resize)
       void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign);
+      void updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix, ///< Change control label + suffix
+                        display::controls::TextAlignment labelAlign);
 
       // -- rendering --
 
@@ -114,10 +114,8 @@ namespace menu {
       void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
-      void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, const ControlStyle& style,
-                uint32_t fixedRulerWidth, const float borderColor[4], const float thumbColor[4], float leftFillColor[4]);
-
+      void init(RendererContext& context, const char32_t* label, const char32_t* suffix, display::controls::TextAlignment labelAlign,
+                int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const ControlColors<4>& colors);
       void updateThumbPosition(RendererContext& context, uint32_t value);
 
     private:
@@ -134,8 +132,6 @@ namespace menu {
       uint32_t maxValue = 0;
       uint32_t step = 1;
       uint32_t minLabelWidth = 0;
-      uint32_t paddingX = 0;
-      uint32_t paddingY = 0;
       uint32_t firstStepOffset = 0;
       uint32_t stepWidth = 1;
       bool isDragging = false;

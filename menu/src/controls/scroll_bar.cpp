@@ -164,15 +164,15 @@ void ScrollBar::drawControl(RendererContext& context, int32_t mouseX, int32_t mo
     ControlBufferType downBuffer = ControlBufferType::regular;
     ControlBufferType thumbBuffer = ControlBufferType::regular;
     if (isDragged()) {
-      thumbBuffer = ControlBufferType::activeInvert;
+      thumbBuffer = ControlBufferType::activeScroll;
     }
     else if (isHover(mouseX, mouseY)) {
       if (mouseY < thumbAreaY) // UP hover/pressed
-        upBuffer = ControlBufferType::activeInvert;
+        upBuffer = ControlBufferType::activeScroll;
       else if (mouseY >= downMesh.y()) // DOWN hover/pressed
-        downBuffer = ControlBufferType::activeInvert;
+        downBuffer = ControlBufferType::activeScroll;
       else if (mouseY >= thumbMesh.y() && mouseY < thumbMesh.y() + (int32_t)thumbMesh.height()) // thumb hover/pressed
-        thumbBuffer = ControlBufferType::activeInvert;
+        thumbBuffer = ControlBufferType::activeScroll;
     }
 
     buffers.bindControlBuffer(context.renderer(), upBuffer);

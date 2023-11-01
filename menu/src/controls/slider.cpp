@@ -29,8 +29,8 @@ ControlType Slider::Type() const noexcept { return ControlType::slider; }
 void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                   const float arrowColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& font = context.getFont(FontType::labels);
-  const uint32_t sliderHeight = font.XHeight() + (paddingY << 1); // width==height
-  const int32_t y = labelY - (int32_t)paddingY;
+  const uint32_t sliderHeight = font.XHeight() + (Control::sliderPaddingY() << 1); // width==height
+  const int32_t y = labelY - (int32_t)Control::sliderPaddingY();
 
   // create label
   labelMesh = TextMesh(context.renderer(), font, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
@@ -47,8 +47,8 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
 
   // create arrows
   const uint32_t arrowWidth = (sliderHeight >> 1) - 1;
-  const uint32_t arrowNeckTop = (sliderHeight >> 1) - paddingY;
-  const uint32_t arrowNeckBottom = (sliderHeight >> 1) + paddingY - 2;
+  const uint32_t arrowNeckTop = (sliderHeight >> 1) - Control::sliderPaddingY();
+  const uint32_t arrowNeckBottom = (sliderHeight >> 1) + Control::sliderPaddingY() - 2;
   const float shadowColor[4]{ arrowColor[0]*0.65f,arrowColor[1]*0.65f,arrowColor[2]*0.65f,1.f };
 
   std::vector<ControlVertex> vertices(static_cast<size_t>(15u));
@@ -84,7 +84,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
 
 void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
   const uint32_t oldOriginX = labelMesh.x();
-  const int32_t y = labelY - (int32_t)paddingY;
+  const int32_t y = labelY - (int32_t)Control::sliderPaddingY();
 
   labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY);
   uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
@@ -96,10 +96,49 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
                          x + option.nameMesh.x() - oldOriginX, labelY);
   }
 
-  const uint32_t sliderHeight = labelMesh.height() + (paddingY << 1);
+  const uint32_t sliderHeight = labelMesh.height() + (Control::sliderPaddingY() << 1);
   arrowLeftMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + labelWidthWithMargin, y);
   arrowRightMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                       x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y);
+}
+
+// ---
+
+void Slider::updateLabel(RendererContext& context, const char32_t* label) {
+  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label, context.pixelSizeX(),
+                       context.pixelSizeY(), labelMesh.x(), labelMesh.y());
+  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
+  if (labelWidthWithMargin)
+    labelWidthWithMargin += labelMargin();
+
+  const int32_t controlX = labelMesh.x() + (int32_t)labelWidthWithMargin;
+  if (controlX != arrowLeftMesh.x()) {
+    int32_t optionOffsetX = controlX - arrowLeftMesh.x();
+    for (auto& option : selectableValues) {
+      option.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                           option.nameMesh.x() + optionOffsetX, option.nameMesh.y());
+    }
+    arrowLeftMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, arrowLeftMesh.y());
+    arrowRightMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                        controlX + fixedSliderWidth - arrowRightMesh.height(), arrowRightMesh.y());
+  }
+}
+
+void Slider::replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex_) {
+  if (arrowLeftMesh.width() == 0)
+    return;
+  this->selectedIndex = (selectedIndex_ < (int32_t)valueCount) ? selectedIndex_ : -1;
+
+  // re-create options
+  selectableValues.clear();
+  {
+    auto& font = context.getFont(FontType::labels);
+    const uint32_t optionCenterX = arrowLeftMesh.x() + (int32_t)(fixedSliderWidth >> 1) - 2;
+    selectableValues.reserve(valueCount);
+    for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
+      selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelMesh.y(), values->value);
+    }
+  }
 }
 
 

@@ -264,7 +264,7 @@ void TextMesh::removeAt(video_api::Renderer& renderer, const float pxSizeX, uint
   width_ -= retreatX;
   
   const float vertexOffsetX = (float)retreatX*pxSizeX; // move vertices located after removed glyph
-  for (auto vertexIt = vertices.begin() + (vertexIndex + 4); vertexIt != vertices.end(); ++vertexIt)
+  for (auto vertexIt = vertices.begin() + ((intptr_t)vertexIndex + 4); vertexIt != vertices.end(); ++vertexIt)
     vertexIt->position[0] -= vertexOffsetX;
 
   if (!(*glyph)->texture.isEmpty()) {
