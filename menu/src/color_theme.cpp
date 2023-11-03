@@ -146,8 +146,8 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,  22, 93, 39, 0.75f, lineSelectorControl)
       SET_THEME_COLOR(renderer,  28, 71, 40, 1.f, tooltipControl)
       SET_THEME_COLOR(renderer, 137,184,146, 1.f, titleLabel)
-      SET_THEME_COLOR(renderer,  35,148, 67, 1.f, fieldsetControl)
-      SET_THEME_COLOR(renderer,  60,217,105, 1.f, fieldsetLabel)
+      SET_THEME_COLOR(renderer,  42,140, 70, 1.f, fieldsetControl) // 35,148, 67
+      SET_THEME_COLOR(renderer,  63,200,102, 1.f, fieldsetLabel) // 60,217,105
       backgroundType = BackgroundStyle::radialGradient;
       fieldsetType = FieldsetStyle::gradientBox;
 

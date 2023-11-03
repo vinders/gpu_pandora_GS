@@ -97,35 +97,21 @@ void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY, uint32_
   std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
   ControlVertex* vertexIt = vertices.data();
 
-  if (style != FieldsetStyle::classic) {
-    if (style == FieldsetStyle::gradientBox) {
-      GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background
-      (vertexIt + 1)->position[0] = (float)width + (vertexIt + 2)->position[1];
-      (vertexIt + 3)->position[0] = (float)width;
-      vertexIt += 4;
-    }
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background (gradient) -or- content background (gradientBox)
+  if (style == FieldsetStyle::gradientBox) {
+    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background
+    (vertexIt + 1)->position[0] = (float)width + (vertexIt + 2)->position[1];
+    (vertexIt + 3)->position[0] = (float)width;
     vertexIt += 4;
-    const uint32_t solidWidth = (width << 1) / 3u;
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)solidWidth);   // title underline
-    vertexIt += 4;
-    GeometryGenerator::moveRectangleVerticesX(vertexIt, (float)solidWidth, (float)width); // title underline gradient
-    vertexIt += 8;
-    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)totalHeight); // vertical line
   }
-  else { // FieldsetStyle::classic
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)(width-1)); // title bar background
-    vertexIt += 4;
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);     // contour top
-    vertexIt += 4;
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);     // contour bottom
-    GeometryGenerator::moveRectangleVerticesY(vertexIt, -(float)(totalHeight-1), -(float)totalHeight);
-    vertexIt += 4;
-    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)(totalHeight-1)); // contour left
-    vertexIt += 4;
-    GeometryGenerator::moveRectangleVerticesX(vertexIt, (float)(width-1), (float)width); // contour right
-    GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)(totalHeight-1));
-  }
+  GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background (gradient) -or- content background (gradientBox)
+  vertexIt += 4;
+  const uint32_t solidWidth = (width << 1) / 3u;
+  GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)solidWidth);   // title underline
+  vertexIt += 4;
+  GeometryGenerator::moveRectangleVerticesX(vertexIt, (float)solidWidth, (float)width); // title underline gradient
+  vertexIt += 8;
+  GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)totalHeight); // vertical line
+
   controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                      x, labelY - Control::fieldsetTitlePaddingY() - 1, width, totalHeight);
   
