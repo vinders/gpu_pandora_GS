@@ -23,7 +23,7 @@ namespace menu {
     blue,       ///< blue background, blue controls, gradients
     green,      ///< green background, green controls, gradients
     darkGreen,  ///< dark background, green controls, gradient boxes
-    darkYellow  ///< dark background, yellow controls, gradient boxes
+    yellow  ///< dark background, yellow controls, gradient boxes
   };
 
   // ---
@@ -56,7 +56,7 @@ namespace menu {
     inline const float* activeLabelColor() const noexcept { return activeLabel; }        ///< Active/hover control label color
 
     inline const float* backgroundColor() const noexcept { return background; }             ///< Page background color
-    inline const float* backgroundCornerColor() const noexcept { return backgroundCorner; } ///< Page background bottom-right color
+    inline const float* backgroundGradientColor() const noexcept{ return backgroundGradient; }///< Page background gradient secondary color
     inline const float* scrollbarControlColor() const noexcept { return scrollbarControl; } ///< Page scroll-bar background color
     inline const float* scrollbarThumbColor() const noexcept { return scrollbarThumb; }     ///< Page scroll-bar thumb color
     inline const float* lineSelectorControlColor() const noexcept{ return lineSelectorControl; }///< Page active/hover line selector background color
@@ -64,11 +64,13 @@ namespace menu {
     inline const float* titleLabelColor() const noexcept { return titleLabel; }          ///< Page title label color
     inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
     inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
+    inline controls::BackgroundStyle backgroundStyle() const noexcept{ return backgroundType; }///< Page background visual style
     inline controls::FieldsetStyle fieldsetStyle() const noexcept{ return fieldsetType; }///< Fieldset visual style
 
-    inline const float* tabControlColor() const noexcept { return tabControl; }          ///< Tab-control tab background color
-    inline const float* tabLineColor() const noexcept { return tabLine; }                ///< Tab-control bar color
-    inline const float* tabActiveLineColor() const noexcept { return tabActiveLine; }    ///< Tab-control bar active area color
+    inline const controls::TabControlColors& tabControlColorParams() const noexcept { return tabControlColors;  }
+    inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; }    ///< Tab-control tab background color
+    inline const float* tabLineColor() const noexcept { return tabControlColors.colors[1]; }       ///< Tab-control bar color
+    inline const float* tabActiveLineColor() const noexcept { return tabControlColors.colors[2]; } ///< Tab-control bar active area color
     inline const float* tabLabelColor() const noexcept { return tabLabel; }              ///< Tab-control tab text color
     inline const float* tabActiveLabelColor() const noexcept { return tabActiveLabel; }  ///< Tab-control active/hover tab text color
     inline const float* verticalTabControlColor() const noexcept { return verticalTabControl; }///< Vertical tab bar color
@@ -80,13 +82,13 @@ namespace menu {
     inline const float* buttonLabelColor() const noexcept { return buttonLabel; }        ///< Regular button text color
     inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
     inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
-    inline const controls::ControlColors<3>& comboBoxColorParams() const noexcept { return comboBoxControlColors;  }
+    inline const controls::ComboBoxColors& comboBoxColorParams() const noexcept { return comboBoxControlColors;  }
     inline const float* comboBoxControlColor() const noexcept { return comboBoxControlColors.colors[0]; }  ///< Combo-box control background color
     inline const float* comboBoxTopControlColor() const noexcept{ return comboBoxControlColors.colors[1]; }///< Combo-box control top of gradient
     inline const float* comboBoxDropdownColor() const noexcept { return comboBoxControlColors.colors[2]; } ///< Combo-box drop-down background color
     inline const float* comboBoxLabelColor() const noexcept { return comboBoxLabel; }               ///< Combo-box control text color
     inline const float* comboBoxDropdownLabelColor() const noexcept{ return comboBoxDropdownLabel; }///< Combo-box drop-down text color
-    inline const controls::ControlColors<4>& rulerColorParams() const noexcept { return rulerControlColors;  }
+    inline const controls::RulerColors& rulerColorParams() const noexcept { return rulerControlColors;  }
     inline const float* rulerControlColor() const noexcept { return rulerControlColors.colors[0]; }///< Sliding-ruler background color
     inline const float* rulerBorderColor() const noexcept { return rulerControlColors.colors[1]; } ///< Sliding-ruler border color
     inline const float* rulerThumbColor() const noexcept { return rulerControlColors.colors[2]; }  ///< Sliding-ruler thumb color
@@ -105,7 +107,7 @@ namespace menu {
     float activeLabel[4];
 
     float background[4];
-    float backgroundCorner[4];
+    float backgroundGradient[4]{ 0.f,0.f,0.f,1.f };
     float scrollbarControl[4];
     float scrollbarThumb[4];
     float lineSelectorControl[4];
@@ -113,10 +115,10 @@ namespace menu {
     float titleLabel[4];
     float fieldsetControl[4];
     float fieldsetLabel[4];
+    controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
+    controls::FieldsetStyle fieldsetType = controls::FieldsetStyle::classic;
 
-    float tabControl[4];
-    float tabLine[4];
-    float tabActiveLine[4];
+    controls::TabControlColors tabControlColors;
     float tabLabel[4];
     float tabActiveLabel[4];
     float verticalTabControl[4];
@@ -130,11 +132,10 @@ namespace menu {
     float textBoxLabel[4];
     float comboBoxLabel[4];
     float comboBoxDropdownLabel[4];
+    controls::ComboBoxColors comboBoxControlColors;
+    controls::RulerColors rulerControlColors;
     float sliderArrow[4];
-    controls::ControlColors<3> comboBoxControlColors;
-    controls::ControlColors<4> rulerControlColors;
     
-    controls::FieldsetStyle fieldsetType = controls::FieldsetStyle::classic;
     ColorThemeType themeType_ = (ColorThemeType)-1;
   };
 }

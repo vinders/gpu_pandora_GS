@@ -38,7 +38,7 @@ ControlType ComboBox::Type() const noexcept { return ControlType::comboBox; }
 
 static inline void generateBackground(float width, uint32_t height, ComboBoxStyle style,
                                       const float primaryColor[4], const float topColor[4],
-                                      std::vector<ControlVertex>& outVertices, std::vector<uint32_t>& outIndices) {
+                                      std::vector<ControlVertex>& outVertices, std::vector<uint32_t>* outIndices) {
   const float gradientColors[3][4]{
     { primaryColor[0], primaryColor[1], primaryColor[2], primaryColor[3] },
     { topColor[0], topColor[1], topColor[2], topColor[3] },
@@ -57,8 +57,9 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
     GeometryGenerator::fillTopRightCutBorderVertices(vertexIt, colorBorder, 0.f, width, // borders (cut corner)
                                                      0.f, -(float)height, (float)Control::comboBoxPaddingY());
     vertexIt += 20;
-    outIndices = { 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
-                   18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28,28,27,29,  30,31,32 };
+    if (outIndices)
+      *outIndices = { 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
+                      18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28,28,27,29,  30,31,32 };
   }
   else { // ComboBoxStyle::classic -> simple rectangle
     outVertices.resize(static_cast<size_t>(10 + 16 + 3));
@@ -68,8 +69,9 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
     vertexIt += 10;
     GeometryGenerator::fillRectangleBorderVertices(vertexIt, colorBorder, 0.f, width, 0.f, -(float)height); // borders
     vertexIt += 16;
-    outIndices = { 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
-                   18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28 };
+    if (outIndices)
+      *outIndices = { 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
+                      18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28 };
   }
   // down arrow
   GeometryGenerator::fillInvertedTriangleVertices(vertexIt, colorArrow,
@@ -81,7 +83,7 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
 // ---
 
 void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-                    ComboBoxStyle style, const ControlColors<3>& colors, ComboBoxOption* values, size_t valueCount) {
+                    ComboBoxStyle style, const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
@@ -117,7 +119,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
   // create background
   std::vector<ControlVertex> vertices;
   std::vector<uint32_t> indices;
-  generateBackground((float)boxWidth, boxHeight, style, colors.colors[0], colors.colors[1], vertices, indices);
+  generateBackground((float)boxWidth, boxHeight, style, colors.colors[0], colors.colors[1], vertices, &indices);
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                             x + (int32_t)labelWidthWithMargin, y, boxWidth, boxHeight);
 
@@ -185,19 +187,6 @@ void ComboBox::moveDropdownHover(RendererContext& context, int32_t valueIndex) {
     return;
   const int32_t hoverY = selectableValues[valueIndex].nameMesh.y() - (int32_t)comboBoxPaddingY() - 1;
   dropdownHoverMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), dropdownHoverMesh.x(), hoverY);
-}
-
-// ---
-
-void ComboBox::updateLabel(RendererContext& context, const char32_t* label) {
-  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label,
-                       context.pixelSizeX(), context.pixelSizeY(), labelMesh.x(), labelMesh.y());
-  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidthWithMargin)
-    labelWidthWithMargin += labelMargin();
-
-  if (labelMesh.x() + (int32_t)labelWidthWithMargin != controlMesh.x())
-    move(context, controlMesh.x(), labelMesh.y());
 }
 
 void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex_) {

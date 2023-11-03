@@ -22,14 +22,14 @@ using namespace menu::controls;
 // -- triangle generation -- ---------------------------------------------------
 
 void GeometryGenerator::fillTriangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                             float x, float y, float width, float height) {
+                                             float x, float y, float width, float height) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x,              y - height);
   fillControlVertex(*(++outVertexIt), rgba, x + width*0.5f, y);
   fillControlVertex(*(++outVertexIt), rgba, x + width,      y - height);
 }
 
 void GeometryGenerator::fillInvertedTriangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                     float x, float y, float width, float height) {
+                                                     float x, float y, float width, float height) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x,              y);
   fillControlVertex(*(++outVertexIt), rgba, x + width,      y);
   fillControlVertex(*(++outVertexIt), rgba, x + width*0.5f, y - height);
@@ -39,7 +39,7 @@ void GeometryGenerator::fillInvertedTriangleVertices(ControlVertex* outVertexIt,
 // -- rectangle generation -- --------------------------------------------------
 
 void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                              float x1, float x2, float y1, float y2) {
+                                              float x1, float x2, float y1, float y2) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba, x1, y2);
@@ -47,7 +47,7 @@ void GeometryGenerator::fillRectangleVertices(ControlVertex* outVertexIt, const 
 }
 
 void GeometryGenerator::fillHorizontalRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
-                                              float x1, float x2, float y1, float y2) {
+                                              float x1, float x2, float y1, float y2) noexcept {
   fillControlVertex(*outVertexIt,     rgba1, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba2, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba1, x1, y2);
@@ -55,7 +55,7 @@ void GeometryGenerator::fillHorizontalRectangleVertices(ControlVertex* outVertex
 }
 
 void GeometryGenerator::fillVerticalRectangleVertices(ControlVertex* outVertexIt, const float rgba1[4], const float rgba2[4],
-                                                      float x1, float x2, float y1, float y2) {
+                                                      float x1, float x2, float y1, float y2) noexcept {
   fillControlVertex(*outVertexIt,     rgba1, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba1, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba2, x1, y2);
@@ -63,7 +63,7 @@ void GeometryGenerator::fillVerticalRectangleVertices(ControlVertex* outVertexIt
 }
 
 void GeometryGenerator::fillDoubleGradientRectangleVertices(ControlVertex* outVertexIt, const float rgba[3][4],
-                                                            float x1, float x2, float y1, float y2, float topGradHeight) {
+                                                            float x1, float x2, float y1, float y2, float topGradHeight) noexcept {
   const float yLine = y1 - topGradHeight - 2.f;
   fillControlVertex(*outVertexIt,     rgba[1], x1, y1);
   fillControlVertex(*(++outVertexIt), rgba[1], x2, y1);
@@ -77,8 +77,36 @@ void GeometryGenerator::fillDoubleGradientRectangleVertices(ControlVertex* outVe
   fillControlVertex(*(++outVertexIt), rgba[0], x2, y2);
 }
 
+void GeometryGenerator::fillRadialGradientRectangleVertices(display::controls::ControlVertex* outVertexIt,
+                                                            const float rgba1[4], const float rgba2[4],
+                                                            float x1, float x2, float y1, float y2) noexcept {
+  const float radiusX = floorf((x2 - x1)*0.5f);
+  const float radiusY = floorf((y1 - y2)*0.5f);
+  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
+  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
+
+  const float rgbaDarker[4]{ rgba1[0]*0.4f, rgba1[1]*0.4f, rgba1[2]*0.4f, rgba1[3] };
+  fillControlVertex(*outVertexIt,     rgbaDarker, x1,           y1);
+  fillControlVertex(*(++outVertexIt), rgbaDarker, x1 + radiusX, y1);
+  fillControlVertex(*(++outVertexIt), rgbaDarker, x2,           y1);
+
+  const float rgbaHalf[4]{ rgba1[0]*0.7f, rgba1[1]*0.7f, rgba1[2]*0.7f, rgba1[3] };
+  fillControlVertex(*(++outVertexIt), rgbaDarker, x1 + offsetX, y1 - offsetY);
+  fillControlVertex(*(++outVertexIt), rgbaDarker, x2 - offsetX, y1 - offsetY);
+  fillControlVertex(*(++outVertexIt), rgbaDarker, x1,           y1 - radiusY);
+  fillControlVertex(*(++outVertexIt), rgbaHalf,   x2,           y1 - radiusY);
+  fillControlVertex(*(++outVertexIt), rgba2,      x1 + radiusX, y1 - radiusY);
+  fillControlVertex(*(++outVertexIt), rgbaHalf,   x1 + offsetX, y2 + offsetY);
+  fillControlVertex(*(++outVertexIt), rgba1,      x2 - offsetX, y2 + offsetY);
+
+  const float rgba3_4[4]{ rgba1[0]*0.85f, rgba1[1]*0.85f, rgba1[2]*0.85f, rgba1[3] };
+  fillControlVertex(*(++outVertexIt), rgbaHalf, x1,           y2);
+  fillControlVertex(*(++outVertexIt), rgba3_4,  x1 + radiusX, y2);
+  fillControlVertex(*(++outVertexIt), rgba1,    x2,           y2);
+}
+
 void GeometryGenerator::fillObliqueRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                     float x1, float x2, float y1, float y2, float yOffset) {
+                                                     float x1, float x2, float y1, float y2, float yOffset) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba, x2, y1 + yOffset);
   fillControlVertex(*(++outVertexIt), rgba, x1, y2);
@@ -86,7 +114,7 @@ void GeometryGenerator::fillObliqueRectangleVertices(ControlVertex* outVertexIt,
 }
 
 void GeometryGenerator::fillRectangleBorderVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                    float x1, float x2, float y1, float y2) {
+                                                    float x1, float x2, float y1, float y2) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1, y1);
   fillControlVertex(*(++outVertexIt), rgba, x2, y1);
   fillControlVertex(*(++outVertexIt), rgba, x1, y1 - 1.f);
@@ -110,7 +138,7 @@ void GeometryGenerator::fillRectangleBorderVertices(ControlVertex* outVertexIt, 
 // ---
 
 void GeometryGenerator::fillLeftRoundedRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                         float x1, float x2, float y1, float y2) {
+                                                         float x1, float x2, float y1, float y2) noexcept {
   double radius = fabs((double)y2 - (double)y1)*0.5;
   float centerX = x1 + (float)radius;
   float centerY = y1 - (float)radius;
@@ -131,7 +159,7 @@ void GeometryGenerator::fillLeftRoundedRectangleVertices(ControlVertex* outVerte
 }
 
 void GeometryGenerator::fillRightRoundedRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                          float x1, float x2, float y1, float y2) {
+                                                          float x1, float x2, float y1, float y2) noexcept {
   double radius = fabs((double)y2 - (double)y1)*0.5;
   float centerX = x2 - (float)radius;
   float centerY = y1 - (float)radius;
@@ -152,7 +180,7 @@ void GeometryGenerator::fillRightRoundedRectangleVertices(ControlVertex* outVert
 }
 
 void GeometryGenerator::fillRoundedRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
-                                                     float x1, float x2, float y1, float y2, float radius) {
+                                                     float x1, float x2, float y1, float y2, float radius) noexcept {
   const uint32_t vertexCount = getRoundedRectangleVertexCount(radius);
   const double sector = 2.0*M_PI / (double)(vertexCount - 4u);
 
@@ -183,7 +211,7 @@ void GeometryGenerator::fillRoundedRectangleVertices(display::controls::ControlV
   fillControlVertex(*(++outVertexIt), rgba, centerX2, y2);
 }
 
-void GeometryGenerator::fillRoundedRectangleIndices(uint32_t* outIndexIt, uint32_t firstVertexIndex, float radius) {
+void GeometryGenerator::fillRoundedRectangleIndices(uint32_t* outIndexIt, uint32_t firstVertexIndex, float radius) noexcept {
   const uint32_t lastVertexIndex = firstVertexIndex + getRoundedRectangleVertexCount(radius) - 4u;
   for (; firstVertexIndex <= lastVertexIndex; firstVertexIndex += 2u, ++outIndexIt) {
     *outIndexIt     = firstVertexIndex;
@@ -198,7 +226,7 @@ void GeometryGenerator::fillRoundedRectangleIndices(uint32_t* outIndexIt, uint32
 // ---
 
 void GeometryGenerator::fillTopRightCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[3][4],
-                                                         float x1, float x2, float y1, float y2, float cornerSize) {
+                                                         float x1, float x2, float y1, float y2, float cornerSize) noexcept {
   const float yLine = y1 - cornerSize - 2.f;
   fillControlVertex(*outVertexIt,     rgba[1], x1,              y1);
   fillControlVertex(*(++outVertexIt), rgba[1], x2 - cornerSize, y1);
@@ -213,7 +241,7 @@ void GeometryGenerator::fillTopRightCutRectangleVertices(ControlVertex* outVerte
 }
 
 void GeometryGenerator::fillTopRightCutBorderVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                      float x1, float x2, float y1, float y2, float cornerSize) {
+                                                      float x1, float x2, float y1, float y2, float cornerSize) noexcept {
   GeometryGenerator::fillRectangleVertices(outVertexIt, rgba, x1, x2-cornerSize, y1, y1-1.f); // border top
   outVertexIt += 4;
   GeometryGenerator::fillRectangleVertices(outVertexIt, rgba, x1, x2, y2+1.f, y2);            // border bottom
@@ -228,7 +256,7 @@ void GeometryGenerator::fillTopRightCutBorderVertices(ControlVertex* outVertexIt
 // ---
 
 void GeometryGenerator::fillDoubleCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                   float x1, float x2, float y1, float y2, float cornerSize) {
+                                                   float x1, float x2, float y1, float y2, float cornerSize) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1,              y1 - cornerSize);
   fillControlVertex(*(++outVertexIt), rgba, x1 + cornerSize, y1);
   fillControlVertex(*(++outVertexIt), rgba, x1,              y2);
@@ -238,7 +266,7 @@ void GeometryGenerator::fillDoubleCutRectangleVertices(ControlVertex* outVertexI
 }
 
 void GeometryGenerator::fillDoubleCutBorderVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                float x1, float x2, float y1, float y2, float cornerSize) {
+                                                float x1, float x2, float y1, float y2, float cornerSize) noexcept {
   GeometryGenerator::fillRectangleVertices(outVertexIt, rgba, x1+cornerSize, x2, y1, y1-1.f);  // border top
   outVertexIt += 4;
   GeometryGenerator::fillRectangleVertices(outVertexIt, rgba, x1, x2-cornerSize, y2+1.f, y2);  // border bottom
@@ -257,7 +285,7 @@ void GeometryGenerator::fillDoubleCutBorderVertices(ControlVertex* outVertexIt, 
 // ---
 
 void GeometryGenerator::fillCornerCutRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                                       float x1, float x2, float y1, float y2, float cornerSize) {
+                                                       float x1, float x2, float y1, float y2, float cornerSize) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1 + cornerSize, y1);
   fillControlVertex(*(++outVertexIt), rgba, x2 - cornerSize, y1);
   fillControlVertex(*(++outVertexIt), rgba, x1,              y1 - cornerSize);
@@ -271,7 +299,41 @@ void GeometryGenerator::fillCornerCutRectangleVertices(ControlVertex* outVertexI
 
 // -- rectangle resize -- ------------------------------------------------------
 
-void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt, float x2, float radius) {
+void GeometryGenerator::resizeRadialGradientRectangleVertices(ControlVertex* vertexIt, float x2, float y2) noexcept {
+  const float x1 = vertexIt->position[0];
+  const float y1 = vertexIt->position[1];
+  const float radiusX = floorf((x2 - x1)*0.5f);
+  const float radiusY = floorf((y1 - y2)*0.5f);
+  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
+  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
+
+  (++vertexIt)->position[0] = x1 + radiusX;
+  (++vertexIt)->position[0] = x2;
+
+  (++vertexIt)->position[0] = x1 + offsetX;
+  vertexIt->position[1] = y1 - offsetY;
+  (++vertexIt)->position[0] = x2 - offsetX;
+  vertexIt->position[1] = y1 - offsetY;
+
+  (++vertexIt)->position[1] = y1 - radiusY;
+  (++vertexIt)->position[0] = x2;
+  vertexIt->position[1] = y1 - radiusY;
+  (++vertexIt)->position[0] = x1 + radiusX;
+  vertexIt->position[1] = y1 - radiusY;
+
+  (++vertexIt)->position[0] = x1 + offsetX;
+  vertexIt->position[1] = y2 + offsetY;
+  (++vertexIt)->position[0] = x2 - offsetX;
+  vertexIt->position[1] = y2 + offsetY;
+
+  (++vertexIt)->position[1] = y2;
+  (++vertexIt)->position[0] = x1 + radiusX;
+  vertexIt->position[1] = y2;
+  (++vertexIt)->position[0] = x2;
+  vertexIt->position[1] = y2;
+}
+
+void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt, float x2, float radius) noexcept {
   const uint32_t vertexCount = getRoundedRectangleVertexCount(radius);
   const float offset = x2 - vertexIt[(vertexCount >> 1) + 1u].position[0];
   const display::controls::ControlVertex* endIt = vertexIt + (intptr_t)vertexCount;
@@ -287,7 +349,7 @@ void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt,
 // -- circle generation -- -----------------------------------------------------
 
 void GeometryGenerator::fillCircleVertices(display::controls::ControlVertex* topIt, const float rgba[4],
-                                           uint32_t circleVertexCount, double radius, float centerX, float centerY) {
+                                           uint32_t circleVertexCount, double radius, float centerX, float centerY) noexcept {
   ControlVertex* bottomIt = topIt + ((intptr_t)circleVertexCount - 1);
 
   // top/bottom vertices
@@ -310,7 +372,7 @@ void GeometryGenerator::fillCircleVertices(display::controls::ControlVertex* top
   }
 }
 
-void GeometryGenerator::fillCircleIndices(uint32_t* outIndexIt, uint32_t firstIndex, uint32_t circleVertexCount) {
+void GeometryGenerator::fillCircleIndices(uint32_t* outIndexIt, uint32_t firstIndex, uint32_t circleVertexCount) noexcept {
   //{ 0,1,2,  2,1,3,2,3,4,  4,3,5,4,5,6,  6,5,7,6,7,8,  ...,  14,13,15 }
   uint32_t currentIndex = firstIndex;
   *outIndexIt = currentIndex;

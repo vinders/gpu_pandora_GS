@@ -31,7 +31,7 @@ namespace menu {
       /// @param enabler     Optional data/config value to which the ruler state should be bound
       Ruler(RendererContext& context, const char32_t* label, const char32_t* suffix,
             display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, uint32_t minLabelWidth,
-            uint32_t fixedRulerWidth, const ControlColors<4>& colors, uint32_t minValue, uint32_t maxValue, uint32_t step,
+            uint32_t fixedRulerWidth, const RulerColors& colors, uint32_t minValue, uint32_t maxValue, uint32_t step,
             uint32_t& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
           enabler(enabler),
@@ -99,8 +99,6 @@ namespace menu {
 
       /// @brief Change control location (on window resize)
       void move(RendererContext& context, int32_t x, int32_t labelY, display::controls::TextAlignment labelAlign);
-      void updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix, ///< Change control label + suffix
-                        display::controls::TextAlignment labelAlign);
 
       // -- rendering --
 
@@ -115,7 +113,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix, display::controls::TextAlignment labelAlign,
-                int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const ControlColors<4>& colors);
+                int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const RulerColors& colors);
       void updateThumbPosition(RendererContext& context, uint32_t value);
 
     private:

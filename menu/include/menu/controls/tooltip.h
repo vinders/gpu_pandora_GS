@@ -62,6 +62,7 @@ namespace menu {
       
       void updateIcon(RendererContext& context, display::ControlIconType icon); ///< Replace tooltip icon
       void updateLabel(RendererContext& context, const char32_t* label, LabelBufferType textColor); ///< Replace tooltip text
+      void updateColors(RendererContext& context, const float backgroundColor[4]); ///< Change control color (on theme change)
 
       // -- rendering --
 

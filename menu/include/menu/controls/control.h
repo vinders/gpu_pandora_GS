@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <display/font.h>
 #include "menu/renderer_context.h"
 
@@ -83,6 +84,7 @@ namespace menu {
       // -- control sizes --
 
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }       ///< Horizontal margin between label and control mesh
+      static constexpr inline uint32_t buttonIconLabelMargin() noexcept { return 4u; } ///< Margin between button icon and label
       static constexpr inline uint32_t comboBoxPaddingX() noexcept { return 10u; } ///< Horizontal combo-box padding
       static constexpr inline uint32_t comboBoxPaddingY() noexcept { return 7u; }  ///< Vertical combo-box padding
       static constexpr inline uint32_t textBoxPaddingX() noexcept { return 10u; }  ///< Horizontal text-box padding
@@ -95,9 +97,12 @@ namespace menu {
     
     // -- control styling -- ---------------------------------------------------
 
+    enum class BackgroundStyle : uint32_t { ///< Background visual style
+      plain = 0,       ///< Unique color
+      radialGradient   ///< Centered radial gradient
+    };
     enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
-      classic = 0, ///< Contour border with a title bar
-      gradient,    ///< Title bar and top/left borders with gradients
+      classic = 0, ///< Title bar and top/left borders with simplegradients
       gradientBox  ///< Title bar and content box with gradients
     };
     enum class ComboBoxStyle : uint32_t { ///< Combo-box visual style
@@ -109,18 +114,26 @@ namespace menu {
     struct ControlColors { ///< Multi-color control style
       float colors[ColorCount][4]; ///< RGBA colors (e.g. background, border...)
     };
+    using ComboBoxColors = ControlColors<3>;
+    using RulerColors = ControlColors<4>;
+    using TabControlColors = ControlColors<3>;
 
     // ---
 
     /// @brief Visual style properties for a button control
     struct ButtonStyle final {
-      ButtonStyle(const float color_[4], FontType fontType, display::ControlIconType icon,
+      ButtonStyle(FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
                   uint32_t minButtonWidth = 0, uint32_t paddingX = 0, uint32_t paddingY = 0)
         : fontType(fontType), icon(icon), minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
-        this->color[0] = color_[0];
-        this->color[1] = color_[1];
-        this->color[2] = color_[2];
-        this->color[3] = color_[3];
+        memcpy(this->backgroundColor, backgroundColor_, sizeof(float)*4u);
+      }
+      ButtonStyle(FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
+                  const float borderColor_[4], size_t borderSize_, uint32_t minButtonWidth = 0,
+                  uint32_t paddingX = 0, uint32_t paddingY = 0)
+        : borderSize(borderSize_), fontType(fontType), icon(icon),
+          minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
+        memcpy(this->backgroundColor, backgroundColor_, sizeof(float)*4u);
+        memcpy(this->borderColor, borderColor_, sizeof(float)*4u);
       }
       ButtonStyle() = default;
       ButtonStyle(const ButtonStyle&) = default;
@@ -129,8 +142,10 @@ namespace menu {
       ButtonStyle& operator=(ButtonStyle&&) noexcept = default;
       ~ButtonStyle() noexcept = default;
 
-      float color[4]{ 0.f,0.f,0.f,1.f };    ///< Background color type
-      FontType fontType = FontType::titles; ///< Font type to use
+      float backgroundColor[4]{ 0.f,0.f,0.f,1.f }; ///< Background color type
+      float borderColor[4]{ 0.f,0.f,0.f,1.f };     ///< Border color type
+      size_t borderSize = 0;                       ///< Border pixel size
+      FontType fontType = FontType::titles;        ///< Font type to use
       display::ControlIconType icon = display::ControlIconType::none; ///< Icon to display (if available)
       uint32_t minButtonWidth = 0; ///< Minimum button width (if text + paddingX doesn't reach it)
       uint32_t paddingX = 0; ///< Left/right padding (between border and inner text/icon)

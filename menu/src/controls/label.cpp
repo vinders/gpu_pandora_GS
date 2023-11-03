@@ -62,11 +62,3 @@ void Label::move(RendererContext& context, int32_t x, int32_t labelY, TextAlignm
     iconMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), iconX, iconY);
   }
 }
-
-void Label::updateLabel(RendererContext& context, const char32_t* label, TextAlignment align) {
-  uint32_t labelX = labelMesh.x();
-  if (align != TextAlignment::left)
-    labelX += (align == TextAlignment::right) ? labelMesh.width() : (labelMesh.width() >> 1);
-  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label,
-                       context.pixelSizeX(), context.pixelSizeY(), labelX, labelMesh.y(), align);
-}

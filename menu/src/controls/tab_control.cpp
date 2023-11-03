@@ -84,8 +84,8 @@ static std::vector<ControlVertex> generateTabBarGeometry(uint32_t barWidth, uint
 
 // ---
 
-void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],
-                      const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount) {
+void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
+                      const char32_t** tabLabels, size_t tabCount) {
   auto& font = context.getFont(FontType::labels);
   uint32_t tabHeight = font.XHeight() + (paddingY << 1);
 
@@ -120,11 +120,11 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
   // tab bar
   std::vector<uint32_t> indices;
   auto vertices = generateTabBarGeometry(barWidth, tabHeight, (barWidth >= 800u) ? 200u : (barWidth >> 2),
-                                         tabsColor, barColor, &indices);
+                                         colors.colors[0], colors.colors[1], &indices);
   barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                         x, y, barWidth, tabHeight + 3u);
 
-  vertices = generateTabBarGeometry(minTabWidth + (paddingX << 1), tabHeight, paddingX, nullptr, activeBarColor, &indices);
+  vertices = generateTabBarGeometry(minTabWidth + (paddingX << 1), tabHeight, paddingX, nullptr, colors.colors[2], &indices);
   const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
   activeBarMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                               activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), y, barWidth, tabHeight + 3u);

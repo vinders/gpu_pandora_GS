@@ -30,15 +30,14 @@ namespace menu {
       /// @param operationId Unique button operation identifier (should be cast from an enum or constant)
       /// @param onClick     Event handler to call (with 'operationId') when the button is clicked
       /// @param enabler     Optional data/config value to which the button state should be bound
-      Button(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-             const ButtonStyle& style, uint32_t operationId, std::function<void(uint32_t)> onClick,
-             const float* borderColor = nullptr, const bool* enabler = nullptr)
+      Button(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style,
+             uint32_t operationId, std::function<void(uint32_t)> onClick, const bool* enabler = nullptr)
         : enabler(enabler),
           onClick(std::move(onClick)),
           operationId(operationId),
           paddingX(style.paddingX),
           paddingY(style.paddingY) {
-        init(context, label, x, labelY, style, borderColor);
+        init(context, label, x, labelY, style);
       }
 
       Button() = default;
@@ -97,8 +96,7 @@ namespace menu {
       void drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-                const ButtonStyle& style, const float* borderColor);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style);
       static constexpr inline uint32_t iconMarginRight() noexcept { return 4u; }
 
     private:

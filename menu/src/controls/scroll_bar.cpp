@@ -47,7 +47,7 @@ void ScrollBar::init(RendererContext& context, const float barColor[4], const fl
                           context.pixelSizeX(), context.pixelSizeY(), x, thumbAreaY, width, thumbHeight);
 
   // create up/down arrows
-  const float arrowColorMultiplier = (thumbColor[0]+thumbColor[1]+thumbColor[2] >= 1.5f) ? 0.65f : 1.5f;
+  const float arrowColorMultiplier = arrowColorFactor(thumbColor);
   const float arrowColor[4]{ thumbColor[0]*arrowColorMultiplier, thumbColor[1]*arrowColorMultiplier,
                              thumbColor[2]*arrowColorMultiplier, thumbColor[3] };
   const uint32_t arrowPaddingX = (width >> 2);
@@ -115,6 +115,36 @@ void ScrollBar::updateThumbPosition(RendererContext& context, uint32_t top) {
 
     onChange(topPosition);
   }
+}
+
+// ---
+
+void ScrollBar::updateColors(RendererContext& context, const float barColor[4], const float thumbColor[4]) {
+  std::vector<ControlVertex> vertices = backMesh.relativeVertices();
+  for (auto& vertex : vertices)
+    memcpy(vertex.color, barColor, sizeof(float)*4u);
+  backMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                  backMesh.x(), backMesh.y(), backMesh.width(), backMesh.height());
+
+  vertices = thumbMesh.relativeVertices();
+  for (auto& vertex : vertices)
+    memcpy(vertex.color, thumbColor, sizeof(float)*4u);
+  thumbMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                   thumbMesh.x(), thumbMesh.y(), thumbMesh.width(), thumbMesh.height());
+
+  const float arrowColorMultiplier = arrowColorFactor(thumbColor);
+  const float arrowColor[4]{ thumbColor[0]*arrowColorMultiplier, thumbColor[1]*arrowColorMultiplier,
+                             thumbColor[2]*arrowColorMultiplier, thumbColor[3] };
+  vertices = upMesh.relativeVertices();
+  for (auto& vertex : vertices)
+    memcpy(vertex.color, arrowColor, sizeof(float)*4u);
+  upMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                upMesh.x(), upMesh.y(), upMesh.width(), upMesh.height());
+  vertices = downMesh.relativeVertices();
+  for (auto& vertex : vertices)
+    memcpy(vertex.color, arrowColor, sizeof(float)*4u);
+  downMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                  downMesh.x(), downMesh.y(), downMesh.width(), downMesh.height());
 }
 
 

@@ -63,20 +63,6 @@ void CheckBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, boxY);
 }
 
-void CheckBox::updateLabel(RendererContext& context, const char32_t* label) {
-  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label, context.pixelSizeX(),
-                       context.pixelSizeY(), labelMesh.x(), labelMesh.y());
-  uint32_t labelWidth = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidth)
-    labelWidth += labelMargin();
-
-  const int32_t boxX = labelMesh.x() + (int32_t)labelWidth;
-  if (boxX != checkedMesh.x()) {
-    checkedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, checkedMesh.y());
-    uncheckedMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX, uncheckedMesh.y());
-  }
-}
-
 
 // -- accessors/operations -- --------------------------------------------------
 

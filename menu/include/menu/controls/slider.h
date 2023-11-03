@@ -91,7 +91,6 @@ namespace menu {
       void selectNext();          ///< Select next entry if available (on keyboard/pad action)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
-      void updateLabel(RendererContext& context, const char32_t* label); ///< Change control label
       void replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1); ///< Replace selectable values
 
       // -- rendering --

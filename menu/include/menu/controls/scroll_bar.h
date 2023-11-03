@@ -98,6 +98,8 @@ namespace menu {
       /// @warning Must be called AFTER moveControl, once the page knows its total content height
       void moveThumb(RendererContext& context, uint32_t totalScrollAreaPx);
 
+      void updateColors(RendererContext& context, const float barColor[4], const float thumbColor[4]); ///< Change control color (on theme change)
+
       // -- rendering --
 
       /// @brief Draw scroll-bar background
@@ -109,6 +111,10 @@ namespace menu {
                 int32_t x, int32_t y, uint32_t width);
       void updateThumbPosition(RendererContext& context, uint32_t top);
       static constexpr inline int32_t noDrag() noexcept { return -1; }
+
+      static inline float arrowColorFactor(const float thumbColor[4]) noexcept {
+        return (thumbColor[0] + thumbColor[1] + thumbColor[2] >= 1.5f) ? 0.65f : 1.5f;
+      }
 
     private:
       display::controls::ControlMesh backMesh;

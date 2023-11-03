@@ -155,7 +155,6 @@ namespace menu {
       void replaceValueText(RendererContext& context, const char32_t* textValue); ///< Replace text input value (only with TextBoxType::text)
       void replaceValueInteger(RendererContext& context, uint32_t integerValue);  ///< Replace text input value (only with TextBoxType::integer or number)
       void replaceValueNumber(RendererContext& context, double numberValue);      ///< Replace text input value (only with TextBoxType::number)
-      void updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix); ///< Change control label + suffix
 
       // -- rendering --
 

@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/general_settings_page.h"
 
 using namespace video_api;
+using namespace pandora::hardware;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
@@ -94,49 +95,49 @@ static std::unique_ptr<char32_t[]> FormatRate(uint32_t value) {
 
 // ---
 
-static constexpr inline uint32_t ToResolutionId(uint32_t width, uint32_t height) noexcept {
-  return ((width << 16) | height);
-}
-static inline void FromResolutionId(uint32_t id, uint32_t& width, uint32_t& height) noexcept {
-  width = ((id >> 16) & 0xFFFFu);
-  height = (id & 0xFFFFu);
-}
-static constexpr inline uint32_t GetWindowWidth(uint32_t windowHeight, bool isWidescreen) noexcept {
-  return isWidescreen ? (((windowHeight*16u + 6u)/9u) & ~(uint32_t)0x1) : (windowHeight*4u/3u);
+static constexpr inline uint64_t ToResolutionId(uint32_t width, uint32_t height) noexcept {
+  return (((uint64_t)width << 32) | (uint64_t)height);
 }
 
-// ---
+static void ListFullscreenModes(const DisplayMonitor& monitor, std::vector<ScreenResolution>& outFullscreenResolutions,
+                                std::vector<std::vector<uint32_t> >& outRatesPerSize) {
+  auto displayModes = monitor.listAvailableDisplayModes();
+  outFullscreenResolutions.reserve(displayModes.size());
+  outRatesPerSize.reserve(displayModes.size());
 
-static uint32_t ListFullscreenResolutions(const pandora::hardware::DisplayMonitor& monitor,
-                                        std::vector<ComboBoxOption>& fullscreenSizeOptions,
-                                        std::unordered_map<uint32_t, std::vector<uint32_t> >& fullscreenRatesPerSize) {
+  std::unordered_map<uint64_t,size_t> currentResolutions;
   if (!monitor.attributes().id.empty()) {
     auto desktopMode = monitor.getDisplayMode();
-    uint32_t resId = ToResolutionId(desktopMode.width, desktopMode.height);
-
-    fullscreenSizeOptions.emplace_back(FormatResolution(desktopMode.width, desktopMode.height), (ComboValue)resId);
-    fullscreenRatesPerSize[resId].emplace_back(desktopMode.refreshRate);
+    currentResolutions.emplace(ToResolutionId(desktopMode.width, desktopMode.height), (size_t)0);
+    outFullscreenResolutions.emplace_back(desktopMode.width, desktopMode.height);
+    outRatesPerSize.emplace_back(std::vector<uint32_t>{ desktopMode.refreshRate });
   }
-
-  auto displayModes = monitor.listAvailableDisplayModes();
-  fullscreenSizeOptions.reserve(displayModes.size());
   for (const auto& mode : displayModes) {
-    if (mode.width >= 640u && mode.height >= 480u && mode.bitDepth >= 24u && mode.refreshRate >= 30u
+    if (mode.width >= 640u && mode.height >= 480u && mode.bitDepth >= 32u && mode.refreshRate >= 25u
     && (mode.width < 1100u || mode.width > 1200u)) { // remove nonsense resolutions to reduce list length
-      uint32_t resId = ToResolutionId(mode.width, mode.height);
+      uint64_t resolutionId = ToResolutionId(mode.width, mode.height);
 
-      auto ratePerSizeIt = fullscreenRatesPerSize.find(resId);
-      if (ratePerSizeIt == fullscreenRatesPerSize.end()) { // resolution not yet defined -> add to size options
-        if (resId == ToResolutionId(1920,1080) && fullscreenSizeOptions.size() > 1u) { // give priority to fullHD
-          fullscreenSizeOptions.insert(fullscreenSizeOptions.begin() + 1,
-                                       ComboBoxOption(FormatResolution(mode.width, mode.height), (ComboValue)resId));
+      // resolution not yet defined -> new vector entries
+      auto existing = currentResolutions.find(resolutionId);
+      if (existing == currentResolutions.end()) {
+        if (resolutionId == ToResolutionId(1920, 1080) && outFullscreenResolutions.size() > (size_t)1u) {
+          // insert fullHD on top of the list (below desktop resolution)
+          for (auto& it : currentResolutions) {
+            if (it.second != 0)
+              ++(it.second);
+          }
+          currentResolutions.emplace(resolutionId, (size_t)1);
+          outFullscreenResolutions.insert(outFullscreenResolutions.begin() + 1, ScreenResolution(mode.width, mode.height));
+          outRatesPerSize.insert(outRatesPerSize.begin() + 1, std::vector<uint32_t>{ mode.refreshRate });
         }
-        else fullscreenSizeOptions.emplace_back(FormatResolution(mode.width, mode.height), (ComboValue)resId);
-
-        fullscreenRatesPerSize[resId].emplace_back(mode.refreshRate); // create list of rates for this resolution
+        else {
+          currentResolutions.emplace(resolutionId, outFullscreenResolutions.size());
+          outFullscreenResolutions.emplace_back(mode.width, mode.height);
+          outRatesPerSize.emplace_back(std::vector<uint32_t>{ mode.refreshRate });
+        }
       }
-      else { // insert rate in order (for this resolution)
-        auto& rates = ratePerSizeIt->second;
+      else { // insert rate in order (existing resolution)
+        auto& rates = outRatesPerSize[existing->second];
         auto it = rates.begin();
         while (it != rates.end() && *it < mode.refreshRate)
           ++it;
@@ -148,11 +149,28 @@ static uint32_t ListFullscreenResolutions(const pandora::hardware::DisplayMonito
       }
     }
   }
+}
+
+// ---
+
+static constexpr inline uint32_t GetWindowWidth(uint32_t windowHeight, bool isWidescreen) noexcept {
+  return isWidescreen ? (((windowHeight*16u + 6u)/9u) & ~(uint32_t)0x1) : (windowHeight*4u/3u);
+}
+
+static uint32_t GetFullscreenResolutionValues(const std::vector<ScreenResolution>& fullscreenResolutions,
+                                          std::vector<ComboBoxOption>& outResolutionOptions) {
+  outResolutionOptions.reserve(fullscreenResolutions.size());
+
+  uint32_t index = 0;
+  for (const auto& resolution : fullscreenResolutions) {
+    outResolutionOptions.emplace_back(FormatResolution(resolution.width, resolution.height), (ComboValue)index);
+    ++index;
+  }
   return 0;
 }
 
-static uint32_t ListFullscreenRates(std::vector<uint32_t>& fullscreenRates, uint32_t previousRate,
-                                  std::vector<ComboBoxOption>& fullscreenRateOptions) {
+static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, uint32_t previousRate,
+                                        std::vector<ComboBoxOption>& fullscreenRateOptions) {
   uint32_t selectedIndex = 0, currentIndex = 0;
   for (auto rate : fullscreenRates) {
     if (rate == previousRate)
@@ -175,9 +193,16 @@ static uint32_t ListFullscreenRates(std::vector<uint32_t>& fullscreenRates, uint
 #define FRAMERATE_FIXED_ID   6
 
 GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
-                                         const ColorTheme& theme, const pandora::hardware::DisplayMonitor& monitor,
-                                         int32_t x, int32_t y, uint32_t width, uint32_t height)
-  : Page(std::move(context_), std::move(buffers_), theme, x, y, width, height, true) {
+                                         const std::shared_ptr<ColorTheme>& theme_, const pandora::hardware::DisplayMonitor& monitor,
+                                         int32_t x, int32_t y, uint32_t width, uint32_t height, std::function<void()> onThemeChange_)
+  : Page(std::move(context_), std::move(buffers_), *theme_, x, y, width, height, true),
+    theme(theme_),
+    onThemeChange(std::move(onThemeChange_)) {
+  ListFullscreenModes(monitor, fullscreenResolutions, fullscreenRatesPerSize);
+  init(x, y, width, height);
+}
+
+void GeneralSettingsPage::init(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
   uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
@@ -193,7 +218,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   auto changeHandler = std::bind(&GeneralSettingsPage::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- display group ---
-  displayGroup = Fieldset(*context, U"Output settings", theme.fieldsetStyle(), theme.fieldsetControlColor(),
+  displayGroup = Fieldset(*context, U"Output settings", theme->fieldsetStyle(), theme->fieldsetControlColor(),
                           x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                           Control::pageLineHeight()*3 + (Control::fieldsetContentPaddingY() << 1));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
@@ -204,7 +229,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
                                          ComboBoxOption(U"Borderless",  1/*TMP*/),
                                          ComboBoxOption(U"Window mode", 2/*TMP*/) };
     displayMode = Slider(*context, U"Display mode", controlX, currentLineY, Control::pageLabelWidth(),
-                         Control::pageControlWidth(), theme.sliderArrowColor(), DISPLAY_MODE_ID, changeHandler,
+                         Control::pageControlWidth(), theme->sliderArrowColor(), DISPLAY_MODE_ID, changeHandler,
                          displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0);
     registry.emplace_back(displayMode, true, U"Modes: fullscreen / borderless (fullscreen window) / window mode (resizable)");
     isFullscreenMode = true;
@@ -217,18 +242,17 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   constexpr const int32_t fullscreenRateMargin = 3;
   {
     std::vector<ComboBoxOption> fullscreenSizeOptions;
-    uint32_t selectedFullSize = ListFullscreenResolutions(monitor, fullscreenSizeOptions, fullscreenRatesPerSize);
+    uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, fullscreenSizeOptions);
 
     fullscreenSize = ComboBox(*context, U"Fullscreen resolution", controlX, currentLineY, Control::pageLabelWidth(),
-                              fullscreenSizeWidth, ComboBoxStyle::classic, theme.comboBoxColorParams(), FULLSCREEN_SIZE_ID, changeHandler,
-                              fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedFullSize, &isFullscreenMode);
+                              fullscreenSizeWidth, ComboBoxStyle::classic, theme->comboBoxColorParams(), FULLSCREEN_SIZE_ID, changeHandler,
+                              fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedResolutionIndex, &isFullscreenMode);
     registry.emplace_back(fullscreenSize, true, U"Display output resolution (pixels) in fullscreen mode");
 
     std::vector<ComboBoxOption> fullscreenRateOptions;
-    uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[fullscreenSizeOptions[selectedFullSize].value],
-                                                    60000, fullscreenRateOptions);
+    uint32_t selectedFullRate = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], 60000, fullscreenRateOptions);
     fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + fullscreenRateMargin,
-                              currentLineY, 0, fullscreenRateWidth, ComboBoxStyle::cutCorner, theme.comboBoxColorParams(), 0, nullptr,
+                              currentLineY, 0, fullscreenRateWidth, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0, nullptr,
                               fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
     registry.emplace_back(fullscreenRate, true, U"Display output refresh rate (Hz) in fullscreen mode");
     currentLineY += Control::pageLineHeight();
@@ -237,7 +261,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   constexpr const uint32_t windowHeightValue = 720u;
   constexpr const uint32_t windowHeightBoxOffsetX = Control::pageLabelWidth() + 11 + ((fullscreenSizeWidth+1) >> 1);
   windowHeight = TextBox(*context, U"Window size", nullptr, controlX, currentLineY, windowHeightBoxOffsetX,
-                         (fullscreenSizeWidth >> 1) - 11, theme.textBoxControlColor(), WINDOW_SIZE_ID,
+                         (fullscreenSizeWidth >> 1) - 11, theme->textBoxControlColor(), WINDOW_SIZE_ID,
                          [this](uint32_t id){ this->onChange(id, this->windowHeight.valueInteger()); },
                          windowHeightValue, 4u, &isWindowMode);
   registry.emplace_back(windowHeight, true, U"Display output height (pixels) in window mode");
@@ -246,7 +270,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
 
   // --- compatibility group ---
-  compatibilityGroup = Fieldset(*context, U"Emulator compatibility", theme.fieldsetStyle(), theme.fieldsetControlColor(),
+  compatibilityGroup = Fieldset(*context, U"Emulator compatibility", theme->fieldsetStyle(), theme->fieldsetControlColor(),
                                 x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                                 Control::pageLineHeight()*2 + (Control::fieldsetContentPaddingY() << 1));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
@@ -256,7 +280,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
     ComboBoxOption subprecisionOptions[]{ ComboBoxOption(U"Original (integer)",      0/*TMP*/),
                                           ComboBoxOption(U"Subprecision (smoother)", 1/*TMP*/) };
     subprecisionMode = Slider(*context, U"Pixel precision", controlX, currentLineY, Control::pageLabelWidth(),
-                              Control::pageControlWidth(), theme.sliderArrowColor(), 0, nullptr,
+                              Control::pageControlWidth(), theme->sliderArrowColor(), 0, nullptr,
                               subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
     registry.emplace_back(subprecisionMode, true, U"Anti-jitter geometry subprecision (needed if GTE-subprecision is enabled in emulator)");
     currentLineY += Control::pageLineHeight();
@@ -268,7 +292,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
 
   // --- framerate group ---
-  framerateGroup = Fieldset(*context, U"Frame rate", theme.fieldsetStyle(), theme.fieldsetControlColor(),
+  framerateGroup = Fieldset(*context, U"Frame rate", theme->fieldsetStyle(), theme->fieldsetControlColor(),
                             x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                             Control::pageLineHeight()*4 + (Control::fieldsetContentPaddingY() << 1));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
@@ -279,7 +303,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
                                         ComboBoxOption(U"Autodetect (NTSC/PAL)", 1/*TMP*/),
                                         ComboBoxOption(U"Fixed limit (custom)",  2/*TMP*/) };
     framerateLimit = Slider(*context, U"Frame rate limit", controlX, currentLineY, Control::pageLabelWidth(),
-                            Control::pageControlWidth(), theme.sliderArrowColor(),FRAMERATE_LIMIT_ID, changeHandler,
+                            Control::pageControlWidth(), theme->sliderArrowColor(),FRAMERATE_LIMIT_ID, changeHandler,
                             frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1);
     registry.emplace_back(framerateLimit, true, U"Enable frame rate limiter (recommended with most emulators)");
     isFramerateLimit = true;
@@ -290,7 +314,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   {
     double fixedRateValue = 59.94;
     fixedFramerate = TextBox(*context, U"Custom frame rate", U"fps", controlX, currentLineY, Control::pageLabelWidth(), 80u,
-                             theme.textBoxControlColor(), FRAMERATE_FIXED_ID, [this](uint32_t id) { this->onChange(id, 0); },
+                             theme->textBoxControlColor(), FRAMERATE_FIXED_ID, [this](uint32_t id) { this->onChange(id, 0); },
                              fixedRateValue, 6u, &isFixedFramerate);
     registry.emplace_back(fixedFramerate, true, U"Custom frame rate limit value (frames per second)");
     currentLineY += Control::pageLineHeight();
@@ -308,7 +332,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
 
   // --- user interface group ---
-  userInterfaceGroup = Fieldset(*context, U"User interface", theme.fieldsetStyle(), theme.fieldsetControlColor(),
+  userInterfaceGroup = Fieldset(*context, U"User interface", theme->fieldsetStyle(), theme->fieldsetControlColor(),
                                 x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                                 Control::pageLineHeight()*2 + (Control::fieldsetContentPaddingY() << 1));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
@@ -319,10 +343,24 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
                                    ComboBoxOption(U"Blue theme",   (ComboValue)ColorThemeType::blue),
                                    ComboBoxOption(U"Green theme",   (ComboValue)ColorThemeType::green),
                                    ComboBoxOption(U"Dark green theme",  (ComboValue)ColorThemeType::darkGreen),
-                                   ComboBoxOption(U"Dark yellow theme", (ComboValue)ColorThemeType::darkYellow) };
+                                   ComboBoxOption(U"Yellow theme", (ComboValue)ColorThemeType::yellow) };
+    uint32_t selectedIndex = 0;
+    switch (theme->themeType()) {
+      case ColorThemeType::white: selectedIndex = 0; break;
+      case ColorThemeType::blue: selectedIndex = 1; break;
+      case ColorThemeType::green: selectedIndex = 2; break;
+      case ColorThemeType::darkGreen: selectedIndex = 3; break;
+      case ColorThemeType::yellow: selectedIndex = 4; break;
+      default: break;
+    }
     interfaceColor = Slider(*context, U"Menu theme", controlX, currentLineY, Control::pageLabelWidth(),
-                            Control::pageControlWidth(), theme.sliderArrowColor(), 0, nullptr,
-                            colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), 2);
+                            Control::pageControlWidth(), theme->sliderArrowColor(), 0, [this](uint32_t, uint32_t theme){
+                              this->theme->updateTheme(this->context->renderer(), (ColorThemeType)theme);
+                              this->buffers->updateColorBuffers(this->context->renderer(), *(this->theme));
+                              Page::updateColors(*(this->theme));
+                              init(this->x(), this->y(), this->width(), this->height());
+                            },
+                            colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), selectedIndex);
     registry.emplace_back(interfaceColor, true, U"Choose user interface color theme");
     currentLineY += Control::pageLineHeight();
   }
@@ -331,7 +369,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
     ComboBoxOption languageOptions[]{ ComboBoxOption(U"English",  0/*TMP*/),
                                       ComboBoxOption(U"Français", 1/*TMP*/) };
     interfaceLanguage = ComboBox(*context, U"Language", controlX, currentLineY, Control::pageLabelWidth(),
-                                 105u, ComboBoxStyle::cutCorner, theme.comboBoxColorParams(), 0, nullptr,
+                                 105u, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0, nullptr,
                                  languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), 0);
     registry.emplace_back(interfaceLanguage, true, U"Choose user interface language");
   }
@@ -447,7 +485,8 @@ void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
     case FULLSCREEN_SIZE_ID: {
       std::vector<ComboBoxOption> fullscreenRateOptions;
       const auto* currentRate = fullscreenRate.getSelectedValue();
-      uint32_t selectedFullRate = ListFullscreenRates(fullscreenRatesPerSize[value], currentRate ? *currentRate : 60000, fullscreenRateOptions);
+      uint32_t selectedFullRate = GetFullscreenRateValues(fullscreenRatesPerSize[value],
+                                                          currentRate ? *currentRate : 60000, fullscreenRateOptions);
       fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
       break;
     }

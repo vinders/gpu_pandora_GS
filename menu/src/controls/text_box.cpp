@@ -149,27 +149,6 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), boxX + Control::textBoxPaddingX(), caretY);
 }
 
-void TextBox::updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix) {
-  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label, context.pixelSizeX(),
-                       context.pixelSizeY(), labelMesh.x(), labelMesh.y());
-  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidthWithMargin)
-    labelWidthWithMargin += labelMargin();
-
-  const int32_t controlX = labelMesh.x() + (int32_t)labelWidthWithMargin;
-  if ((suffix != nullptr && *suffix) || suffixMesh.width()) {
-    suffixMesh = TextMesh(context.renderer(), context.getFont(FontType::inputText), suffix, context.pixelSizeX(),
-                          context.pixelSizeY(), controlX + (int32_t)controlMesh.width() + (int32_t)labelMargin(), suffixMesh.y());
-  }
-
-  if (controlX != controlMesh.x()) {
-    const int32_t offsetX = controlX - controlMesh.x();
-    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlMesh.x() + offsetX, controlMesh.y());
-    inputMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), inputMesh.x() + offsetX, inputMesh.y());
-    caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), caretMesh.x() + offsetX, caretMesh.y());
-  }
-}
-
 // ---
 
 void TextBox::updateCaretLocation(RendererContext& context) {

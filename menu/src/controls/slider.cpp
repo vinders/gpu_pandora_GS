@@ -102,28 +102,6 @@ void Slider::move(RendererContext& context, int32_t x, int32_t labelY) {
                       x + labelWidthWithMargin + fixedSliderWidth - sliderHeight, y);
 }
 
-// ---
-
-void Slider::updateLabel(RendererContext& context, const char32_t* label) {
-  labelMesh = TextMesh(context.renderer(), context.getFont(FontType::labels), label, context.pixelSizeX(),
-                       context.pixelSizeY(), labelMesh.x(), labelMesh.y());
-  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidthWithMargin)
-    labelWidthWithMargin += labelMargin();
-
-  const int32_t controlX = labelMesh.x() + (int32_t)labelWidthWithMargin;
-  if (controlX != arrowLeftMesh.x()) {
-    int32_t optionOffsetX = controlX - arrowLeftMesh.x();
-    for (auto& option : selectableValues) {
-      option.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                           option.nameMesh.x() + optionOffsetX, option.nameMesh.y());
-    }
-    arrowLeftMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, arrowLeftMesh.y());
-    arrowRightMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                        controlX + fixedSliderWidth - arrowRightMesh.height(), arrowRightMesh.y());
-  }
-}
-
 void Slider::replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex_) {
   if (arrowLeftMesh.width() == 0)
     return;

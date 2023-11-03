@@ -27,15 +27,41 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-#define HOVER_BORDER_RADIUS 3.f
 
+static ControlMesh generateBackground(RendererContext& context, const ColorTheme& theme,
+                                      int32_t x, int32_t y, uint32_t width, uint32_t height) {
+  std::vector<ControlVertex> backgroundVertices;
+  std::vector<uint32_t> indices;
+
+  if (theme.backgroundStyle() == BackgroundStyle::radialGradient) {
+    backgroundVertices.resize(static_cast<size_t>(13));
+    GeometryGenerator::fillRadialGradientRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
+                                                           theme.backgroundGradientColor(),
+                                                           0.f, (float)width, 0.f, -(float)height);
+    indices = { 0,1,3,0,3,5,  1,2,4,2,6,4,    3,1,7,1,4,7,  3,7,5,4,6,7,
+                5,7,8,7,11,8, 5,8,10,8,11,10, 7,6,9,7,9,11, 6,12,9,9,12,11 };
+  }
+  else { // BackgroundStyle::plain
+    backgroundVertices.resize(static_cast<size_t>(4));
+    GeometryGenerator::fillRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
+                                             0.f, (float)width, 0.f, -(float)height);
+    indices = { 0,1,2,2,1,3 };
+  }
+  return ControlMesh(context.renderer(), std::move(backgroundVertices), indices,
+                     context.pixelSizeX(), context.pixelSizeY(), x, y, width, height);
+}
+
+// ---
+
+#define HOVER_BORDER_RADIUS 3.f
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
            const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip)
   : context(std::move(context_)),
     buffers(std::move(buffers_)),
     scrollY(0),
-    activeControlIndex(noControlSelection()) {
+    activeControlIndex(noControlSelection()),
+    backgroundType(theme.backgroundStyle()) {
   assert(this->context != nullptr && this->buffers != nullptr);
 
   // create page scrollbar
@@ -53,18 +79,7 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   }
 
   // create page background
-  std::vector<ControlVertex> backgroundVertices(static_cast<size_t>(4));
-  GeometryGenerator::fillRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
-                                           0.f, (float)width, 0.f, -(float)visibleHeight);
-  float* backgroundMidColor = backgroundVertices[2].color;
-  *backgroundMidColor     = theme.backgroundColor()[0]*0.7f + theme.backgroundCornerColor()[0]*0.3f;
-  *(++backgroundMidColor) = theme.backgroundColor()[1]*0.7f + theme.backgroundCornerColor()[1]*0.3f;
-  *(++backgroundMidColor) = theme.backgroundColor()[2]*0.7f + theme.backgroundCornerColor()[2]*0.3f;
-  memcpy(backgroundVertices[3].color, theme.backgroundCornerColor(), sizeof(float)*4u);
-  std::vector<uint32_t> indices{ 0,1,2,2,1,3 };
-
-  backgroundMesh = ControlMesh(context->renderer(), std::move(backgroundVertices), indices, context->pixelSizeX(),
-                               context->pixelSizeY(), x, y, width, visibleHeight);
+  backgroundMesh = generateBackground(*context, theme, x, y, width, visibleHeight);
 
   // create control line hover area
   const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
@@ -75,7 +90,7 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   GeometryGenerator::fillRoundedRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
                                                   0.f, (float)controlHoverWidth, 0.f, -(float)Control::pageLineHeight(),
                                                   HOVER_BORDER_RADIUS);
-  indices.resize(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
+  std::vector<uint32_t> indices(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
   GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
 
   controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
@@ -107,7 +122,10 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
   }
 
   auto backgroundVertices = backgroundMesh.relativeVertices();
-  GeometryGenerator::resizeRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
+  if (backgroundType == BackgroundStyle::radialGradient)
+    GeometryGenerator::resizeRadialGradientRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
+  else
+    GeometryGenerator::resizeRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
   backgroundMesh.update(context->renderer(), std::move(backgroundVertices), context->pixelSizeX(), context->pixelSizeY(),
                         x, y, width, visibleHeight);
 
@@ -120,6 +138,21 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
     openControl->control()->close();
     openControl = nullptr;
   }
+}
+
+void Page::updateColors(const ColorTheme& theme) {
+  scrollbar.updateColors(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor());
+  if (tooltip.width())
+    tooltip.updateColors(*context, theme.tooltipControlColor());
+  backgroundMesh = generateBackground(*context, theme, backgroundMesh.x(), backgroundMesh.y(),
+                                      backgroundMesh.width(), backgroundMesh.height());
+  backgroundType = theme.backgroundStyle();
+
+  std::vector<ControlVertex> vertices = controlHoverMesh.relativeVertices();
+  for (auto& vertex : vertices)
+    memcpy(vertex.color, theme.lineSelectorControlColor(), sizeof(float) * 4u);
+  controlHoverMesh.update(context->renderer(), std::move(vertices), context->pixelSizeX(), context->pixelSizeY(),
+                          controlHoverMesh.x(), controlHoverMesh.y(), controlHoverMesh.width(), controlHoverMesh.height());
 }
 
 // ---

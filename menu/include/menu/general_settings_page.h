@@ -16,7 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include <unordered_map>
+#include <functional>
 #include <hardware/display_monitor.h>
 #include "menu/color_theme.h"
 #include "menu/renderer_state_buffers.h"
@@ -31,11 +31,26 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/tooltip.h"
 
 namespace menu {
+  struct ScreenResolution final {
+    ScreenResolution(uint32_t width, uint32_t height) noexcept
+      : width(width), height(height) {}
+    ScreenResolution() noexcept = default;
+    ScreenResolution(const ScreenResolution&) = default;
+    ScreenResolution& operator=(const ScreenResolution&) = default;
+    ~ScreenResolution() noexcept = default;
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+  };
+
+  // ---
+
   class GeneralSettingsPage final : public Page {
   public:
     GeneralSettingsPage(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-                        const ColorTheme& theme, const pandora::hardware::DisplayMonitor& monitor,
-                        int32_t x, int32_t y, uint32_t width, uint32_t height);
+                        const std::shared_ptr<ColorTheme>& theme, const pandora::hardware::DisplayMonitor& monitor,
+                        int32_t x, int32_t y, uint32_t width, uint32_t height,
+                        std::function<void()> onThemeChange = nullptr);
     ~GeneralSettingsPage() noexcept override;
 
     // -- window event --
@@ -56,6 +71,7 @@ namespace menu {
     void drawForegroundLabels() override;
 
   private:
+    void init(int32_t x, int32_t y, uint32_t width, uint32_t height);
     void onChange(uint32_t id, uint32_t value);
     bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
     void drawPageLabels() override;
@@ -72,7 +88,8 @@ namespace menu {
     display::controls::TextMesh windowSize;
     bool isFullscreenMode = false;
     bool isWindowMode = false;
-    std::unordered_map<uint32_t, std::vector<uint32_t> > fullscreenRatesPerSize;
+    std::vector<ScreenResolution> fullscreenResolutions;
+    std::vector<std::vector<uint32_t> > fullscreenRatesPerSize;
 
     // emulator compatibility
     controls::Fieldset compatibilityGroup;
@@ -95,5 +112,8 @@ namespace menu {
     controls::Fieldset userInterfaceGroup;
     controls::Slider interfaceColor;
     controls::ComboBox interfaceLanguage;
+
+    std::shared_ptr<ColorTheme> theme = nullptr;
+    std::function<void()> onThemeChange;
   };
 }

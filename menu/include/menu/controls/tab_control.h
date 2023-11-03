@@ -20,6 +20,7 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/text_mesh.h>
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
+#include "menu/controls/control.h"
 
 namespace menu {
   namespace controls {
@@ -28,16 +29,15 @@ namespace menu {
     public:
       /// @brief Create tab management control
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
-      TabControl(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth,
-                 uint32_t tabPaddingX, uint32_t tabPaddingY, uint32_t minTabWidth, const float tabsColor[4],
-                 const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount,
-                 uint32_t selectedIndex, std::function<void(uint32_t)> onChange)
+      TabControl(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, uint32_t tabPaddingX, uint32_t tabPaddingY,
+                 uint32_t minTabWidth, const TabControlColors& colors, const char32_t** tabLabels, size_t tabCount,
+                 std::function<void(uint32_t)> onChange, uint32_t selectedIndex = 0)
         : selectedIndex((selectedIndex < (uint32_t)tabCount) ? selectedIndex : 0),
           onChange(std::move(onChange)),
           minTabWidth(minTabWidth),
           paddingX(tabPaddingX),
           paddingY(tabPaddingY) {
-        init(context, x, y, barWidth, barColor, activeBarColor, tabsColor, tabLabels, tabCount);
+        init(context, x, y, barWidth, colors, tabLabels, tabCount);
       }
 
       TabControl() = default;
@@ -90,8 +90,8 @@ namespace menu {
       void drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
 
     private:
-      void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const float tabsColor[4],
-                const float barColor[4], const float activeBarColor[4], const char32_t** tabLabels, size_t tabCount);
+      void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
+                const char32_t** tabLabels, size_t tabCount);
 
     private:
       display::controls::ControlMesh barMesh;

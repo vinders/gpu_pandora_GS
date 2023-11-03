@@ -52,7 +52,6 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 uint32_t width, uint32_t contentHeight);
-      void updateLabel(RendererContext& context, const char32_t* label); ///< Change control label
 
       // -- rendering --
 

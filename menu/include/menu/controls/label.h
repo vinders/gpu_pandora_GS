@@ -57,8 +57,6 @@ namespace menu {
 
       void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
                 display::controls::TextAlignment align = display::controls::TextAlignment::left);
-      void updateLabel(RendererContext& context, const char32_t* label, ///< Change control label
-                       display::controls::TextAlignment align = display::controls::TextAlignment::left);
 
       // -- rendering --
 

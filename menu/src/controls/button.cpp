@@ -26,8 +26,7 @@ ControlType Button::Type() const noexcept { return ControlType::button; }
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
-                  const ButtonStyle& style, const float* borderColor) {
+void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
@@ -54,12 +53,12 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
 
   // create background
   const float cornerSize = (float)style.paddingY;
-  std::vector<ControlVertex> vertices(borderColor ? static_cast<size_t>(6 + 6*4) : (size_t)6);
-  GeometryGenerator::fillDoubleCutRectangleVertices(vertices.data(), style.color, // button background
+  std::vector<ControlVertex> vertices(style.borderSize ? static_cast<size_t>(6 + 6*4) : (size_t)6);
+  GeometryGenerator::fillDoubleCutRectangleVertices(vertices.data(), style.backgroundColor, // button background
                                                     0.f, (float)width, 0.f, -(float)height, cornerSize);
   std::vector<uint32_t> indices;
-  if (borderColor) {
-    GeometryGenerator::fillDoubleCutBorderVertices(vertices.data() + 6, borderColor, // button borders
+  if (style.borderSize) {
+    GeometryGenerator::fillDoubleCutBorderVertices(vertices.data() + 6, style.borderColor, // button borders
                                                     0.f, (float)width, 0.f, -(float)height, cornerSize);
     indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5,
                 6,7,8,8,7,9,        10,11,12,12,11,13,  14,15,16,16,15,17,

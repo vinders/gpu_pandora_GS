@@ -161,10 +161,13 @@ namespace menu {
   protected:
     Page(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
          const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip);
+
     void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
     inline void moveScrollbarThumb(int32_t bottomY) {
       scrollbar.moveThumb(*context, static_cast<uint32_t>(bottomY - scrollbar.y()) + tooltip.height()); // will call onScroll if needed
     }
+    void updateColors(const ColorTheme& theme);
+
     void onScroll(uint32_t visibleTopY);
     void onHover(int32_t controlIndex);
 
@@ -172,6 +175,8 @@ namespace menu {
     // -> note: fixed/non-scrollable controls must be at the beginning (top) or end of the vector (bottom)
     inline void registerControls(std::vector<ControlRegistration>&& controlsOrderedByLocation) {
       controlRegistry = std::move(controlsOrderedByLocation);
+      openControl = nullptr;
+      activeControlIndex = noControlSelection();
     }
     inline const controls::Control* getActiveControl() const noexcept {
       return (activeControlIndex != noControlSelection()) ? controlRegistry[activeControlIndex].control() : nullptr;
@@ -204,5 +209,6 @@ namespace menu {
     int32_t activeControlIndex = noControlSelection();
     int32_t mouseX_ = -1;
     int32_t mouseY_ = -1;
+    controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
   };
 }

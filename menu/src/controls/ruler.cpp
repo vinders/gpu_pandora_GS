@@ -37,7 +37,7 @@ static inline void clampColorComponents(float color[4]) {
 #define THUMB_CIRCLE_VERTICES 24
 
 void Ruler::init(RendererContext& context, const char32_t* label, const char32_t* suffix, TextAlignment labelAlign,
-                 int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const ControlColors<4>& colors) {
+                 int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const RulerColors& colors) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY, labelAlign);
@@ -173,36 +173,6 @@ void Ruler::updateThumbPosition(RendererContext& context, uint32_t value) {
                     fillerMesh.x(), fillerMesh.y(), fillerMesh.width(), fillerMesh.height());
 
   thumbMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), thumbX, thumbMesh.y());
-}
-
-// ---
-
-void Ruler::updateLabels(RendererContext& context, const char32_t* label, const char32_t* suffix, TextAlignment labelAlign) {
-  auto& labelFont = context.getFont(FontType::labels);
-  uint32_t labelX = labelMesh.x();
-  if (labelAlign != TextAlignment::left)
-    labelX += (labelAlign == TextAlignment::right) ? labelMesh.width() : (labelMesh.width() >> 1);
-
-  labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(),
-                       labelX, labelMesh.y(), labelAlign);
-  uint32_t labelWidthWithMargin = (minLabelWidth >= labelMesh.width()) ? minLabelWidth : labelMesh.width();
-  if (labelWidthWithMargin)
-    labelWidthWithMargin += labelMargin();
-
-  if ((suffix != nullptr && *suffix != (char32_t)0) || suffixMesh.width()) {
-    const uint32_t suffixX = labelMesh.x() + (int32_t)labelWidthWithMargin + (int32_t)controlMesh.width() + (int32_t)labelMargin();
-    suffixMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(),
-                          suffixX, suffixMesh.y());
-  }
-
-  const uint32_t controlX = labelMesh.x() + (int32_t)labelWidthWithMargin;
-  if (controlX != controlMesh.x()) {
-    const int32_t thumbOffsetX = thumbMesh.x() - controlMesh.x();
-    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, controlMesh.y());
-    fillerMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, fillerMesh.y());
-    fillerMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX, fillerMesh.y());
-    thumbMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), controlX + thumbOffsetX, thumbMesh.y());
-  }
 }
 
 
