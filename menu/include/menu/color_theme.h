@@ -19,8 +19,7 @@ GNU General Public License for more details (LICENSE file).
 
 namespace menu {
   enum class ColorThemeType : uint32_t { ///< Menu color theme type
-    white = 0,  ///< white background, blue controls, classic
-    blue,       ///< blue background, blue controls, gradients
+    blue = 0,       ///< blue background, blue controls, gradients
     green,      ///< green background, green controls, gradients
     darkGreen,  ///< dark background, green controls, gradient boxes
     yellow  ///< dark background, yellow controls, gradient boxes
@@ -31,8 +30,8 @@ namespace menu {
   /// @brief UI color theme -- used to customize controls
   class ColorTheme final {
   public:
-    inline ColorTheme(video_api::Renderer& renderer, ColorThemeType type_) {
-      updateTheme(renderer, type_);
+    inline ColorTheme(video_api::Renderer& renderer, ColorThemeType type) {
+      updateTheme(renderer, type);
     }
     ColorTheme(const ColorTheme&) = default;
     ColorTheme& operator=(const ColorTheme&) = default;
@@ -41,7 +40,7 @@ namespace menu {
     // -- theme selection --
 
     ColorThemeType themeType() const noexcept { return themeType_; } ///< Current theme type
-    void updateTheme(video_api::Renderer& renderer, ColorThemeType type); ///< Change theme type
+    void updateTheme(video_api::Renderer& renderer, ColorThemeType type) noexcept; ///< Change theme type
 
     // -- color accessors --
 

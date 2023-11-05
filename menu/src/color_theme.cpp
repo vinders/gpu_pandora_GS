@@ -28,9 +28,10 @@ using namespace menu::controls;
 
 // ---
 
-void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type) {
+void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type) noexcept {
   switch (type) {
-    case ColorThemeType::blue: { // TODO -> teinte -2 sur chaque couleur
+    case ColorThemeType::blue:
+    default: {
       SET_MULTIPLIER(renderer, 0.3f,0.6f,0.8f,0.2f,   disabledControl)
       SET_MULTIPLIER(renderer, 1.35f,1.35f,1.35f,1.f, activeControl)
       SET_MULTIPLIER(renderer, 1.25f,1.25f,1.25f,1.f, activeScrollControl)
@@ -42,7 +43,7 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 134,214,242, 1.f, activeLabel)
 
       SET_THEME_COLOR(renderer,  13, 39, 59, 1.f, background)
-      SET_THEME_COLOR(renderer,  12, 67,105, 1.f, backgroundGradient)
+      SET_THEME_COLOR(renderer,  11, 64,102, 1.f, backgroundGradient) // 12, 67,105
       SET_THEME_COLOR(renderer,  22, 55, 80, 1.f, scrollbarControl) // 22, 60, 91  // 23, 57, 80  // 26, 60, 87
       SET_THEME_COLOR(renderer,  36, 79,112, 1.f, scrollbarThumb) // 43, 86,122
       SET_THEME_COLOR(renderer,  23, 71,104, 0.75f, lineSelectorControl)
@@ -226,7 +227,7 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 191,136, 33, 1.f, sliderArrow)
       break;
     }
-    case ColorThemeType::white:
+    /*case ColorThemeType::white:
     default: {
       SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 0.6f, disabledControl)
       SET_MULTIPLIER(renderer, 1.2f,1.2f,1.2f,1.f,  activeControl)
@@ -236,7 +237,7 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_MULTIPLIER(renderer, 1.f, 1.f, 1.f, 1.f,  activeIcon)
       SET_THEME_COLOR(renderer,  67, 86,104, 1.f, regularLabel)
       SET_THEME_COLOR(renderer, 141,162,181, 1.f, disabledLabel)
-      SET_THEME_COLOR(renderer,  85,110,132, 1.f, activeLabel)
+      SET_THEME_COLOR(renderer,  54, 83,110, 1.f, activeLabel)
 
       SET_THEME_COLOR(renderer, 255,255,255, 1.f, background)
       SET_THEME_COLOR(renderer, 240,240,240, 1.f, scrollbarControl)
@@ -274,7 +275,7 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,   0, 83,166, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  85,138,191, 1.f, sliderArrow) // 74,120,166
       break;
-    }
+    }*/
   }
   themeType_ = type;
 }

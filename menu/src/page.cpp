@@ -330,6 +330,7 @@ void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
     else { // clicked elsewhere -> close open control (and don't click on any other control)
       openControl->control()->close();
       openControl = nullptr;
+      mouseMove(mouseX, mouseY);
     }
   }
   // click on scrollbar

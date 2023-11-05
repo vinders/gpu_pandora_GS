@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 #include <functional>
 #include <hardware/display_monitor.h>
 #include "menu/color_theme.h"
+#include "menu/message_resources.h"
 #include "menu/renderer_state_buffers.h"
 #include "menu/page.h"
 #include "menu/controls/button.h"
@@ -48,9 +49,9 @@ namespace menu {
   class GeneralSettingsPage final : public Page {
   public:
     GeneralSettingsPage(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-                        const std::shared_ptr<ColorTheme>& theme, const pandora::hardware::DisplayMonitor& monitor,
-                        int32_t x, int32_t y, uint32_t width, uint32_t height,
-                        std::function<void()> onThemeChange = nullptr);
+                        const std::shared_ptr<ColorTheme>& theme, const std::shared_ptr<MessageResources> localizedText,
+                        const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
+                        uint32_t width, uint32_t height, std::function<void()> onThemeChange = nullptr);
     ~GeneralSettingsPage() noexcept override;
 
     // -- window event --
@@ -71,7 +72,7 @@ namespace menu {
     void drawForegroundLabels() override;
 
   private:
-    void init(int32_t x, int32_t y, uint32_t width, uint32_t height);
+    void init(int32_t x, int32_t y, uint32_t width);
     void onChange(uint32_t id, uint32_t value);
     bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
     void drawPageLabels() override;
@@ -80,7 +81,7 @@ namespace menu {
     display::controls::TextMesh title;
 
     // display mode
-    controls::Fieldset displayGroup;
+    controls::Fieldset windowGroup;
     controls::Slider displayMode;
     controls::ComboBox fullscreenSize;
     controls::ComboBox fullscreenRate;
@@ -114,6 +115,7 @@ namespace menu {
     controls::ComboBox interfaceLanguage;
 
     std::shared_ptr<ColorTheme> theme = nullptr;
+    std::shared_ptr<MessageResources> localizedText = nullptr;
     std::function<void()> onThemeChange;
   };
 }
