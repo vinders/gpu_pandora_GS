@@ -132,6 +132,12 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   labelBuffers[(size_t)LabelBufferType::comboBoxValueDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.comboBoxDropdownLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::dropdownValue] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+
+  colorData.color[2] = colorData.color[1] = colorData.color[0] = 0.1f;
+  colorData.color[3] = 1.f;
+  labelBuffers[(size_t)LabelBufferType::keyboardKey] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  colorData.color[3] = theme.disabledControlModifier()[3];
+  labelBuffers[(size_t)LabelBufferType::keyboardKeyDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
 }
 
 void RendererStateBuffers::release() noexcept {

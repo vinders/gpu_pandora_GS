@@ -36,7 +36,6 @@ namespace menu {
     class TextBox final : public Control {
     public:
       /// @brief Create text edit control -- text value
-      /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
@@ -52,7 +51,6 @@ namespace menu {
         init(context, label, suffix, x, labelY, fixedWidth, backgroundColor, textValue);
       }
       /// @brief Create text edit control -- integer value
-      /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
@@ -69,7 +67,6 @@ namespace menu {
         init(context, label, suffix, x, labelY, fixedWidth, backgroundColor, fromInteger(integerValue, buffer));
       }
       /// @brief Create text edit control -- number value
-      /// @param boundValue  Data/config value to bind to the text-box value (get/set)
       /// @param onChange    Event handler to call (with 'operationId') when the text-box value changes
       /// @param enabler     Optional data/config value to which the text-box state should be bound
       explicit TextBox(RendererContext& context, const char32_t* label, const char32_t* suffix,
@@ -100,7 +97,7 @@ namespace menu {
         suffixMesh.release();
         inputMesh.release();
       }
-      ControlType Type() const noexcept override;
+      ControlType type() const noexcept override;
 
       // -- accessors --
 

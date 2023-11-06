@@ -93,6 +93,7 @@ namespace menu {
     inline const float* rulerThumbColor() const noexcept { return rulerControlColors.colors[2]; }  ///< Sliding-ruler thumb color
     inline const float* rulerFillerColor() const noexcept { return rulerControlColors.colors[3]; } ///< Sliding-ruler filler color
     inline const float* sliderArrowColor() const noexcept { return sliderArrow; }        ///< Slider-box arrow color
+    inline const controls::KeyboardKeyColors& keyboardKeyColorParams() const noexcept { return keyboardKeyControlColors;  }
 
   private:
     float disabledControl[4];
@@ -134,6 +135,7 @@ namespace menu {
     controls::ComboBoxColors comboBoxControlColors;
     controls::RulerColors rulerControlColors;
     float sliderArrow[4];
+    controls::KeyboardKeyColors keyboardKeyControlColors;
     
     ColorThemeType themeType_ = (ColorThemeType)-1;
   };

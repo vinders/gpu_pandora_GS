@@ -24,6 +24,8 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/tooltip.h"
 
 namespace menu {
+  namespace controls { class KeyBinding; }
+
   class ControlRegistration final { ///< Interactive control registration (to allow hover/click/drag/select)
   public:
     template <typename CtrlT>
@@ -153,10 +155,10 @@ namespace menu {
 
     /// @brief Draw page control foregrounds (if any) -- should only be called if 'drawBackgrounds' returns true
     /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-    virtual void drawForegrounds() = 0;
+    virtual void drawForegrounds() {}
     /// @brief Draw page control foreground labels (if any) -- should only be called if 'drawBackgrounds' returns true
     /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-    virtual void drawForegroundLabels() = 0;
+    virtual void drawForegroundLabels() {}
 
   protected:
     Page(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
@@ -184,6 +186,7 @@ namespace menu {
     inline const controls::Control* getOpenControl() const noexcept {
       return openControl ? openControl->control() : nullptr;
     }
+    virtual void resolveKeyboardBindings(const controls::KeyBinding*) noexcept {}
 
     int32_t findActiveControlIndex(int32_t mouseX, int32_t mouseY) const noexcept;
     void selectPreviousControlIndex() noexcept;

@@ -42,8 +42,8 @@ const char32_t* display::toDefaultLabel(ControlIconType type) noexcept {
     case ControlIconType::add:        return U"Add";
     case ControlIconType::edit:       return U"Edit";
     case ControlIconType::remove:     return U"Remove";
-    case ControlIconType::importFile: return U"Import";
-    case ControlIconType::exportFile: return U"Export";
+    case ControlIconType::keyboard:   return U"Keyboard";
+    case ControlIconType::controller: return U"Controller";
     default: return U"";
   };
 }
@@ -110,12 +110,12 @@ static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle, HBITMAP 
             const uint32_t width = bitmapInfo.bmiHeader.biWidth;
             const uint32_t height = bitmapInfo.bmiHeader.biHeight;
             Texture2DParams textureParams(width, height, DataFormat::rgba8_sRGB, 1u, 1u, 0, ResourceUsage::staticGpu, 1u);
-            std::unique_ptr<uint8_t[]> output(new uint8_t[width * height * 4]); // RGBA texture data
+            std::unique_ptr<uint8_t[]> output(new uint8_t[(size_t)width * (size_t)height * (size_t)4]); // RGBA texture data
 
             // read color pixels
             const uint32_t* srcIt = (const uint32_t*)pixels;
             for (uint32_t lines = height; lines; --lines) {
-              uint32_t* destIt = ((uint32_t*)output.get()) + (intptr_t)(width*(lines - 1)); // bitmaps are stored from bottom to top -> reverse
+              uint32_t* destIt = ((uint32_t*)output.get()) + ((intptr_t)width*((intptr_t)lines - 1)); // bitmaps are stored from bottom to top -> reverse
               for (uint32_t rows = width; rows; --rows, ++srcIt, ++destIt) {
                 uint32_t bgr = *srcIt;
                 *destIt = ((bgr >> 16) & 0xFFu) | (bgr & 0xFF00u) | ((bgr << 16) & 0xFF0000u) | 0xFF000000u;
@@ -126,7 +126,7 @@ static std::shared_ptr<Texture2D> bitmapToTexture(HBITMAP bitmapHandle, HBITMAP 
                                                     (LPVOID)pixels, &bitmapInfo, DIB_RGB_COLORS) != 0 && pixels) {
               const uint32_t* srcAlphaIt = (const uint32_t*)pixels;
               for (uint32_t lines = height; lines; --lines) {
-                uint32_t* destIt = ((uint32_t*)output.get()) + (intptr_t)(width*(lines - 1));
+                uint32_t* destIt = ((uint32_t*)output.get()) + ((intptr_t)width*((intptr_t)lines - 1));
                 for (uint32_t rows = width; rows; --rows, ++srcAlphaIt, ++destIt)
                   *destIt = (*destIt & 0xFFFFFFu) | (*srcAlphaIt << 24);
               }

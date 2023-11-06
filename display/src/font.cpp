@@ -83,7 +83,7 @@ Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, 
   // load "unknown" glyph (or create it, if not available)
   if (readGlyphFromFont(renderer, UnknownGlyphCode()) == glyphs.end())
     generateUnknownGlyph(renderer, heightPixels);
-  xHeight = getGlyph(renderer, U'x')->bearingTop;
+  xHeight = getGlyph(renderer, U'x').bearingTop;
   clearBuffer();
 }
 
@@ -142,12 +142,12 @@ Font::GlyphMap::iterator Font::readGlyphFromFont(Renderer& renderer, char32_t co
 
     Texture2DParams params(faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
                            DataFormat::rgba8_sRGB, 1, 1, 0, ResourceUsage::staticGpu, 1);
-    return glyphs.emplace(code, std::make_shared<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
+    return glyphs.emplace(code, std::make_unique<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
                                                             faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
                                                             faceGlyph->bitmap_left, faceGlyph->bitmap_top,
                                                             faceGlyph->advance.x)).first;
   }
-  return glyphs.emplace(code, std::make_shared<FontGlyph>(Texture2D{}, faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
+  return glyphs.emplace(code, std::make_unique<FontGlyph>(Texture2D{}, faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
                                                           faceGlyph->bitmap_left, faceGlyph->bitmap_top,
                                                           faceGlyph->advance.x)).first;
   // don't clear buffer here: if a bunch of characters are loaded, we don't want to realloc everytime
@@ -163,6 +163,6 @@ void Font::generateUnknownGlyph(Renderer& renderer, uint32_t heightPixels) {
   memset(buffer, 0xFF, dataSize); // fill rectangle
 
   Texture2DParams params(width, height, DataFormat::rgba8_sRGB, 1, 1, 0, ResourceUsage::staticGpu, 1);
-  glyphs.emplace(UnknownGlyphCode(), std::make_shared<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
+  glyphs.emplace(UnknownGlyphCode(), std::make_unique<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
                                                                  width, height, 1, height, (width << 6)));
 }

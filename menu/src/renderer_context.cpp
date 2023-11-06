@@ -39,7 +39,6 @@ void RendererContext::initFonts(const char* fontDirectoryPath) {
   // create path buffer for UI fonts
   size_t fontDirectoryPathSize = strlen(fontDirectoryPath);
   std::unique_ptr<char[]> pathBuffer;
-  int size = MAX_FONT_FILENAME_SIZE;
   if (fontDirectoryPathSize) {
     assert(fontDirectoryPath[fontDirectoryPathSize - 1] == '/' || fontDirectoryPath[fontDirectoryPathSize - 1] == '\\');
     pathBuffer.reset(new char[fontDirectoryPathSize + MAX_FONT_FILENAME_SIZE]);

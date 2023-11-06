@@ -26,10 +26,8 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/check_box.h"
 #include "menu/controls/combo_box.h"
 #include "menu/controls/fieldset.h"
-#include "menu/controls/scroll_bar.h"
 #include "menu/controls/slider.h"
 #include "menu/controls/text_box.h"
-#include "menu/controls/tooltip.h"
 
 namespace menu {
   struct ScreenResolution final {
@@ -49,7 +47,7 @@ namespace menu {
   class GeneralSettingsPage final : public Page {
   public:
     GeneralSettingsPage(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-                        const std::shared_ptr<ColorTheme>& theme, const std::shared_ptr<MessageResources> localizedText,
+                        const std::shared_ptr<ColorTheme>& theme, const std::shared_ptr<MessageResources>& localizedText,
                         const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
                         uint32_t width, uint32_t height, std::function<void()> onThemeChange = nullptr);
     ~GeneralSettingsPage() noexcept override;
@@ -80,7 +78,7 @@ namespace menu {
   private:
     display::controls::TextMesh title;
 
-    // display mode
+    // window/display mode
     controls::Fieldset windowGroup;
     controls::Slider displayMode;
     controls::ComboBox fullscreenSize;
@@ -96,18 +94,18 @@ namespace menu {
     controls::Fieldset compatibilityGroup;
     controls::Slider subprecisionMode;
     controls::CheckBox widescreenMode;
+    controls::CheckBox autosaveOnExit;
     bool enableWidescreenMode = false;
+    bool isAutosaved = false;
 
     // framerate
     controls::Fieldset framerateGroup;
     controls::Slider framerateLimit;
     controls::CheckBox frameSkipping;
     controls::TextBox fixedFramerate;
-    controls::CheckBox vsync;
     bool isFramerateLimit = true;
     bool isFixedFramerate = false;
     bool isFrameSkipping = false;
-    bool enableVsync = false;
 
     // user interface
     controls::Fieldset userInterfaceGroup;

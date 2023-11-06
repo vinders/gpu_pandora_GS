@@ -32,11 +32,11 @@ TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
   
   for (; *text; ++text) {
     const auto& glyph = font.getGlyph(renderer, *text);
-    if (!glyph->texture.isEmpty()) {
-      const float left = ToVertexPositionX(currentX + glyph->offsetLeft, pxSizeX);
-      const float right = left + glyph->width*pxSizeX;
-      const float bottom = baseVertexY - (glyph->height - glyph->bearingTop)*pxSizeY;
-      const float top = bottom + glyph->height*pxSizeY;
+    if (!glyph.texture.isEmpty()) {
+      const float left = ToVertexPositionX(currentX + glyph.offsetLeft, pxSizeX);
+      const float right = left + glyph.width*pxSizeX;
+      const float bottom = baseVertexY - (glyph.height - glyph.bearingTop)*pxSizeY;
+      const float top = bottom + glyph.height*pxSizeY;
       vertices.emplace_back(TextVertex{ {left,top},  {0.f,0.f} });
       vertices.emplace_back(TextVertex{ {right,top}, {1.f,0.f} });
       vertices.emplace_back(TextVertex{ {left,bottom}, {0.f,1.f} });
@@ -50,8 +50,8 @@ TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
       indices.emplace_back(glyphFirstIndex + 3);
       glyphFirstIndex += 4;
     }
-    currentX += (int32_t)(glyph->advance >> 6);
-    glyphs.emplace_back(glyph);
+    currentX += (int32_t)(glyph.advance >> 6);
+    glyphs.emplace_back(&glyph);
   }
   const auto& lastGlyph = glyphs.back();
   width_ = currentX - x - (int32_t)(lastGlyph->advance >> 6) + (int32_t)lastGlyph->width + lastGlyph->offsetLeft;
@@ -87,7 +87,7 @@ void TextMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
   auto* vertexIt = &vertices[0];
   const auto* endGlyph = &glyphs[0] + (intptr_t)glyphs.size();
   for (auto* glyph = &glyphs[0]; glyph < endGlyph; ++glyph) {
-    const auto* curGlyph = glyph->get();
+    const auto* curGlyph = *glyph;
     if (!curGlyph->texture.isEmpty()) {
       const float left = ToVertexPositionX(currentX + curGlyph->offsetLeft, pxSizeX);
       const float right = left + curGlyph->width*pxSizeX;
@@ -123,7 +123,7 @@ void TextMesh::cloneAtLocation(video_api::Renderer& renderer, const float pxSize
 
 bool TextMesh::push(video_api::Renderer& renderer, Font& font, const float pxSizeX, const float pxSizeY, char32_t code) {
   const auto& glyph = font.getGlyph(renderer, code);
-  if (glyph->advance == 0 && glyph->texture.isEmpty())
+  if (glyph.advance == 0 && glyph.texture.isEmpty())
     return false;
 
   int32_t advancePrevX = 0;
@@ -133,11 +133,11 @@ bool TextMesh::push(video_api::Renderer& renderer, Font& font, const float pxSiz
   }
   width_ += advancePrevX;
   
-  if (!glyph->texture.isEmpty()) {
-    const float left = ToVertexPositionX(this->x_ + (int32_t)width_ + glyph->offsetLeft, pxSizeX);
-    const float right = left + glyph->width*pxSizeX;
-    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph->height - glyph->bearingTop), pxSizeY);
-    const float top = bottom + glyph->height*pxSizeY;
+  if (!glyph.texture.isEmpty()) {
+    const float left = ToVertexPositionX(this->x_ + (int32_t)width_ + glyph.offsetLeft, pxSizeX);
+    const float right = left + glyph.width*pxSizeX;
+    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph.height - glyph.bearingTop), pxSizeY);
+    const float top = bottom + glyph.height*pxSizeY;
     uint32_t vertexCount = (uint32_t)vertices.size();
 
     vertices.emplace_back(TextVertex{ {left,top},  {0.f,0.f} });
@@ -156,8 +156,8 @@ bool TextMesh::push(video_api::Renderer& renderer, Font& font, const float pxSiz
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
                                                    indices.size()*sizeof(uint32_t), indices.data());
   }
-  width_ += static_cast<uint32_t>((int32_t)glyph->width + glyph->offsetLeft);
-  glyphs.emplace_back(glyph);
+  width_ += static_cast<uint32_t>((int32_t)glyph.width + glyph.offsetLeft);
+  glyphs.emplace_back(&glyph);
   return true;
 }
 
@@ -168,7 +168,7 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
   if (index >= (uint32_t)glyphs.size())
     return false;
   const auto& glyph = font.getGlyph(renderer, code);
-  if (glyph->advance == 0 && glyph->texture.isEmpty())
+  if (glyph.advance == 0 && glyph.texture.isEmpty())
     return false;
 
   const auto glyphAfter = glyphs.begin() + index;
@@ -179,18 +179,18 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
     if (!(*glyphIt)->texture.isEmpty())
       vertexIndex += 4;
   }
-  const int32_t advanceX = (int32_t)(glyph->advance >> 6);
+  const int32_t advanceX = (int32_t)(glyph.advance >> 6);
   width_ += advanceX;
 
   const float vertexOffsetX = (float)advanceX*pxSizeX; // move vertices located after inserted glyph
   for (auto vertexIt = vertices.begin() + vertexIndex; vertexIt != vertices.end(); ++vertexIt)
     vertexIt->position[0] += vertexOffsetX;
 
-  if (!glyph->texture.isEmpty()) {
-    const float left = ToVertexPositionX(insertedCharX + glyph->offsetLeft, pxSizeX);
-    const float right = left + glyph->width*pxSizeX;
-    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph->height - glyph->bearingTop), pxSizeY);
-    const float top = bottom + glyph->height*pxSizeY;
+  if (!glyph.texture.isEmpty()) {
+    const float left = ToVertexPositionX(insertedCharX + glyph.offsetLeft, pxSizeX);
+    const float right = left + glyph.width*pxSizeX;
+    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph.height - glyph.bearingTop), pxSizeY);
+    const float top = bottom + glyph.height*pxSizeY;
     uint32_t vertexCount = (uint32_t)vertices.size();
 
     vertices.insert(vertices.begin() + vertexIndex, {
@@ -211,7 +211,7 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
                                                    indices.size()*sizeof(uint32_t), indices.data());
   }
-  glyphs.insert(glyphAfter, glyph);
+  glyphs.insert(glyphAfter, &glyph);
   return true;
 }
 

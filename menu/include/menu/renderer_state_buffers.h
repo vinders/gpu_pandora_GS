@@ -48,6 +48,8 @@ namespace menu {
     comboBoxValue,        ///< selected combo-box value color
     comboBoxValueDisabled,///< disabled selected combo-box value color
     dropdownValue,        ///< combo-box drop-down option color
+    keyboardKey,          ///< keyboard key text color
+    keyboardKeyDisabled,          ///< keyboard key text color
     COUNT
   };
   

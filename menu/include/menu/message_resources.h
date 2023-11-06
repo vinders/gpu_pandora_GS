@@ -15,7 +15,7 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstddef>
 #include <cstdint>
-#include "menu/controls/control.h"
+#include "menu/hotkey_actions.h"
 
 namespace menu {
   enum class LocalizationType : uint32_t { ///< Message localization type (language)
@@ -34,8 +34,7 @@ namespace menu {
   
   enum class GeneralSettingsMessages : size_t { ///< Message types for general settings page
     title = 0,
-    
-    windowGroup,
+    windowGroup, // window/display group
     displayMode,
     displayMode_fullscreen,
     displayMode_borderless,
@@ -46,16 +45,16 @@ namespace menu {
     resolution_tooltip,
     windowSize,
     windowSize_tooltip,
-    
-    emulatorGroup,
+    emulatorGroup, // emulator compatibility group
     precision,
     precision_original,
     precision_subprecision,
     precision_tooltip,
     widescreen,
     widescreen_tooltip,
-    
-    rateGroup,
+    autosaveOnExit,
+    autosaveOnExit_tooltip,
+    rateGroup, // frame rate group
     rateLimit_tooltip,
     rateLimit,
     rateLimit_disabled,
@@ -68,8 +67,7 @@ namespace menu {
     frameSkip_tooltip,
     vsync,
     vsync_tooltip,
-    
-    uiGroup,
+    uiGroup, // user interface group
     theme,
     theme_blue,
     theme_green,
@@ -78,6 +76,47 @@ namespace menu {
     theme_tooltip,
     language,
     language_tooltip,
+    COUNT
+  };
+  enum class HotkeyBindingsMessages : size_t { ///< Message types for hotkey bindings page
+    title = 0,
+    behaviorGroup,
+    menuHintMouseMove,
+    menuHintMouseMove_tooltip,
+    enableKeyBindings,
+    enableKeyBindings_tooltip,
+    hotkey,
+    hotkey_tooltip,
+    toggle,
+    hold,
+    slowMotionMode,
+    slowMotionMode_tooltip,
+    fastForwardMode,
+    fastForwardMode_tooltip,
+    bindingsGroup,
+    COUNT
+  };
+  enum class OsdSettingsMessages : size_t { ///< Message types for OSD settings page
+    title = 0,
+    clockGroup, // clock settings group
+    clockVisibility,
+    clockVisibility_disabled,
+    clockVisibility_mouseMove,
+    clockVisibility_always,
+    clockFormat,
+    clockLocationX,
+    clockLocationX_left,
+    clockLocationX_center,
+    clockLocationX_right,
+    clockLocationY,
+    clockLocationY_top,
+    clockLocationY_bottom,
+    techInfoGroup, // technical info group
+    techInfoVisibility,
+    techInfoType,
+    techInfoType_fps,
+    techInfoType_format,
+    techInfoType_all,
     COUNT
   };
 
@@ -105,6 +144,18 @@ namespace menu {
     /// @brief Message resources for general settings UI page
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, GeneralSettingsMessages::<...>)
     inline const MessageResource* generalSettingsMessageArray() const noexcept { return generalSettings; }
+    /// @brief Message resources for hotkey bindings UI page - general
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyBindingsMessages::<...>)
+    inline const MessageResource* hotkeyBindingsMessageArray() const noexcept { return hotkeyBindings; }
+    /// @brief Message resources for hotkey bindings UI page - actions
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyActions::<...>)
+    inline const MessageResource* hotkeyActionsMessageArray() const noexcept { return hotkeyActions; }
+    /// @brief Message resources for hotkey bindings UI page - actions tooltips
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyActions::<...>)
+    inline const MessageResource* hotkeyActionsTooltipsMessageArray() const noexcept { return hotkeyActionsTooltips; }
+    /// @brief Message resources for on-screen display settings UI page
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, OsdSettingsMessages::<...>)
+    inline const MessageResource* osdSettingsMessageArray() const noexcept { return osdSettings; }
 
   private:
     void fillMessagesEN();
@@ -114,6 +165,10 @@ namespace menu {
     
   private:
     MessageResource generalSettings[(size_t)GeneralSettingsMessages::COUNT];
+    MessageResource hotkeyBindings[(size_t)HotkeyBindingsMessages::COUNT];
+    MessageResource hotkeyActions[(size_t)HotkeyActions::COUNT];
+    MessageResource hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
+    MessageResource osdSettings[(size_t)OsdSettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }

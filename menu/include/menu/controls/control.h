@@ -27,7 +27,8 @@ namespace menu {
       comboBox, ///< Combo-box dropdown selector (with optional label)
       textBox,  ///< Text edit box (with optional label and suffix)
       ruler,    ///< Sliding ruler (with optional label)
-      slider    ///< Left/right slider selector (with optional label)
+      slider,   ///< Left/right slider selector (with optional label)
+      keyBinding///< Key-binding box (with optional label)
     };
     enum class ControlStatus : uint32_t { ///< Control status type
       regular = 0, ///< Neutral status
@@ -40,7 +41,7 @@ namespace menu {
     public:
       virtual ~Control() noexcept = default;
 
-      virtual ControlType Type() const noexcept = 0; ///< Get control type
+      virtual ControlType type() const noexcept = 0; ///< Get control type
       /// @brief Get control status, based on mouse location (hover, disabled...)
       virtual ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept = 0;
 
@@ -79,6 +80,9 @@ namespace menu {
       }
       static constexpr inline uint32_t fieldsetContentPaddingY() noexcept { return 5; }  ///< Padding above first and below last fieldset inner control
       static constexpr inline uint32_t fieldsetContentBottomMargin() noexcept{ return 12; }///< Margin after last fieldset inner control (before next fieldset)
+      static constexpr inline uint32_t fieldsetContentHeight(uint32_t lineCount) { ///< Fieldset content height (based on the number of content lines)
+        return (pageLineHeight()*lineCount + (fieldsetContentPaddingY() << 1));
+      }
       static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 720; }       ///< Fieldset maximum width
 
       // -- control sizes --
@@ -92,6 +96,10 @@ namespace menu {
       static constexpr inline uint32_t rulerPaddingX() noexcept { return 10u; }    ///< Horizontal sliding-ruler padding
       static constexpr inline uint32_t rulerPaddingY() noexcept { return 4u; }     ///< Vertical sliding-ruler padding
       static constexpr inline uint32_t sliderPaddingY() noexcept { return 6u; }    ///< Vertical slider padding
+      static constexpr inline uint32_t keyboardKeySideX() noexcept { return 4u; }   ///< Keyboard key side width
+      static constexpr inline uint32_t keyboardKeySideY() noexcept { return 3u; }   ///< Keyboard key side height
+      static constexpr inline uint32_t keyboardKeyPaddingX() noexcept { return 6u; }///< Horizontal keyboard key inner padding
+      static constexpr inline uint32_t keyboardKeyPaddingY() noexcept { return 5u; }///< Vertical keyboard key inner padding
     };
     
     
@@ -117,6 +125,7 @@ namespace menu {
     using ComboBoxColors = ControlColors<3>;
     using RulerColors = ControlColors<4>;
     using TabControlColors = ControlColors<3>;
+    using KeyboardKeyColors = ControlColors<7>;
 
     // ---
 

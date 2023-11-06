@@ -28,7 +28,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType ComboBox::Type() const noexcept { return ControlType::comboBox; }
+ControlType ComboBox::type() const noexcept { return ControlType::comboBox; }
 
 
 // -- init/resize geometry -- --------------------------------------------------

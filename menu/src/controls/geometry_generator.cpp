@@ -346,9 +346,25 @@ void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt,
 }
 
 
+// -- cross generation -- ------------------------------------------------------
+
+void GeometryGenerator::fillCrossVertices(ControlVertex* outVertexIt, const float rgba[4],
+                                          float x1, float x2, float y1, float y2) noexcept {
+  fillControlVertex(*outVertexIt,     rgba, x1 + 1.f, y1 + 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 + 1.f, y2 + 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x1 - 1.f, y1 - 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - 1.f, y2 - 1.f);
+
+  fillControlVertex(*(++outVertexIt), rgba, x1 - 1.f, y2 + 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - 1.f, y1 + 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x1 + 1.f, y2 - 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 + 1.f, y1 - 1.f);
+}
+
+
 // -- circle generation -- -----------------------------------------------------
 
-void GeometryGenerator::fillCircleVertices(display::controls::ControlVertex* topIt, const float rgba[4],
+void GeometryGenerator::fillCircleVertices(ControlVertex* topIt, const float rgba[4],
                                            uint32_t circleVertexCount, double radius, float centerX, float centerY) noexcept {
   ControlVertex* bottomIt = topIt + ((intptr_t)circleVertexCount - 1);
 

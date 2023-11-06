@@ -19,6 +19,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/text_box.h"
 #include "menu/controls/ruler.h"
 #include "menu/controls/slider.h"
+#include "menu/controls/key_binding.h"
 #include "menu/controls/geometry_generator.h"
 #include "menu/page.h"
 
@@ -310,7 +311,7 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
           scrollbar.setBottomPosition(*context, controlBottomLevel + Control::autoScrollPaddingY() + tooltipHeight);
       }
     }
-    if (control->control()->Type() == ControlType::textBox) { // automatic focus if text-box
+    if (control->control()->type() == ControlType::textBox) { // automatic focus if text-box
       if (control->control()->click(*context, TextBox::noMouseCoord()))
         openControl = control;
     }
@@ -324,8 +325,14 @@ void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
   if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover) {
-      if (!openControl->control()->click(*context, mouseX))
+      if (!openControl->control()->click(*context, mouseX)) {
+        if (openControl->control()->type() == ControlType::keyBinding) {
+          const auto* target = reinterpret_cast<const KeyBinding*>(openControl->control());
+          if (target->keyboardValue() != KeyBinding::emptyKeyValue())
+            resolveKeyboardBindings(target);
+        }
         openControl = nullptr;
+      }
     }
     else { // clicked elsewhere -> close open control (and don't click on any other control)
       openControl->control()->close();
@@ -338,7 +345,7 @@ void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
     if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
       scrollbar.click(*context, mouseY, true);
   }
-  // page control index detection
+  // click on key binding -> open to redirect key/pad inputs
   else {
     int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
     if (controlIndex != noControlSelection()) {
@@ -401,7 +408,7 @@ void Page::mouseLeave() noexcept {
 // ---
 
 void Page::keyDown(char32_t keyCode) {
-  if (openControl != nullptr && openControl->control()->Type() == ControlType::textBox) {
+  if (openControl != nullptr && openControl->control()->type() == ControlType::textBox) {
     auto control = reinterpret_cast<TextBox*>(openControl->control());
     if (control->isEditMode()) {
       if ((keyCode > U'\x1F' && keyCode < U'\x7F') || keyCode > U'\x9F')
@@ -412,11 +419,11 @@ void Page::keyDown(char32_t keyCode) {
 
 void Page::vkeyDown(uint32_t virtualKeyCode) {
   if (openControl != nullptr) {
-    auto controlType = openControl->control()->Type();
+    auto controlType = openControl->control()->type();
 
     // control edit - text-box
     if (controlType == ControlType::textBox) {
-      auto target = reinterpret_cast<TextBox*>(openControl->control());
+      auto* target = reinterpret_cast<TextBox*>(openControl->control());
       if (target->isEditMode()) {
         switch (virtualKeyCode) {
           case _P_VK_DELETE:      if (target->nextChar(*context)) { target->removeChar(*context); } break; // erase next char
@@ -433,7 +440,7 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
     }
     // control edit - combo-box
     else if (controlType == ControlType::comboBox) {
-      auto target = reinterpret_cast<ComboBox*>(openControl->control());
+      auto* target = reinterpret_cast<ComboBox*>(openControl->control());
       if (target->isOpen()) {
         switch (virtualKeyCode) {
           case _P_VK_ENTER:
@@ -446,6 +453,14 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
       }
       else openControl = nullptr;
     }
+    else if (controlType == ControlType::keyBinding) {
+      auto* target = reinterpret_cast<KeyBinding*>(openControl->control());
+      if (!target->setKeyboardValue(*context, virtualKeyCode)) {
+        if (target->keyboardValue() != KeyBinding::emptyKeyValue())
+          resolveKeyboardBindings(target);
+        openControl = nullptr;
+      }
+    }
     else openControl = nullptr;
   }
   // control selection
@@ -455,9 +470,10 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
       case _P_VK_ENTER_PAD:
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
-          auto controlType = control->control()->Type();
-          if (controlType == ControlType::button || controlType == ControlType::checkBox || controlType == ControlType::comboBox) {
-            if (control->control()->click(*context, control->rightX() - 10))
+          auto controlType = control->control()->type();
+          if (controlType == ControlType::button || controlType == ControlType::checkBox
+           || controlType == ControlType::comboBox || controlType == ControlType::keyBinding) {
+            if (control->control()->click(*context, control->rightX() - control->height() - 10))
               openControl = control;
           }
         }
@@ -468,7 +484,7 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
       case _P_VK_ARROW_LEFT:
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
-          auto controlType = control->control()->Type();
+          auto controlType = control->control()->type();
           if (controlType == ControlType::ruler)
             reinterpret_cast<Ruler*>(control->control())->selectPrevious(*context);
           else if (controlType == ControlType::slider)
@@ -478,11 +494,21 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
       case _P_VK_ARROW_RIGHT:
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
-          auto controlType = control->control()->Type();
+          auto controlType = control->control()->type();
           if (controlType == ControlType::ruler)
             reinterpret_cast<Ruler*>(control->control())->selectNext(*context);
           else if (controlType == ControlType::slider)
             reinterpret_cast<Slider*>(control->control())->selectNext();
+        }
+        break;
+      case _P_VK_DELETE:
+      case _P_VK_BACKSPACE:
+        if (activeControlIndex != noControlSelection()) {
+          auto* control = &controlRegistry[activeControlIndex];
+          if (control->control()->type() == ControlType::keyBinding) { // clear binding
+            reinterpret_cast<KeyBinding*>(control->control())->setKeyboardValue(*context, KeyBinding::emptyKeyValue());
+            reinterpret_cast<KeyBinding*>(control->control())->setControllerValue(*context, KeyBinding::emptyKeyValue());
+          }
         }
         break;
       default: break;
@@ -520,7 +546,7 @@ bool Page::drawBackgrounds() {
   }
 
   bool hasForegroundGeometry = drawPageBackgrounds(mouseX_, mouseY_);
-  return (hasForegroundGeometry || (openControl != nullptr && openControl->control()->Type() == ControlType::comboBox));
+  return (hasForegroundGeometry || (openControl != nullptr && openControl->control()->type() == ControlType::comboBox));
 }
 
 void Page::drawLabels() {

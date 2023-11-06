@@ -19,7 +19,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType CheckBox::Type() const noexcept { return ControlType::checkBox; }
+ControlType CheckBox::type() const noexcept { return ControlType::checkBox; }
 
 
 // -- init/resize geometry -- --------------------------------------------------

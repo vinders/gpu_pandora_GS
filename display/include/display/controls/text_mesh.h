@@ -38,11 +38,13 @@ namespace display {
     
     ///< Text glyphs triangles
     /// @remarks Use uniform buffer to set text color
+    /// @warning The Font object provided in constructor/push/insertBefore MUST be kept alive as long as a TextMesh using it exists!!!
     class TextMesh final {
     public:
       /// @brief Create text mesh
       /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
+      /// @warning The Font object ('font') MUST be kept alive as long as the TextMesh object exists!!!
       TextMesh(video_api::Renderer& renderer, Font& font, const char32_t* text,
                const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
                TextAlignment align = TextAlignment::left);
@@ -65,7 +67,7 @@ namespace display {
       inline int32_t y() const noexcept { return y_; } ///< Top Y coord
       inline uint32_t width() const noexcept { return width_; } ///< Total width
       inline uint32_t height() const noexcept { return height_; } ///< X-height
-      inline const std::vector<std::shared_ptr<FontGlyph> >& meshGlyphs() const noexcept { return glyphs; } ///< Current mesh glyphs
+      inline const std::vector<const FontGlyph*>& meshGlyphs() const noexcept { return glyphs; } ///< Current mesh glyphs
 
       // -- operations --
       
@@ -80,9 +82,11 @@ namespace display {
 
       /// @brief Append character to the mesh
       /// @returns true if the code was a valid character
+      /// @warning The Font object ('font') MUST be kept alive as long as the TextMesh object exists!!!
       bool push(video_api::Renderer& renderer, Font& font, const float pxSizeX, const float pxSizeY, char32_t code);
       /// @brief Insert character before another character of the mesh
       /// @returns true if the code was a valid character + if index exists
+      /// @warning The Font object ('font') MUST be kept alive as long as the TextMesh object exists!!!
       bool insertBefore(video_api::Renderer& renderer, Font& font, const float pxSizeX,
                         const float pxSizeY, char32_t code, uint32_t index);
 
@@ -99,7 +103,7 @@ namespace display {
     private:
       video_api::Buffer<video_api::ResourceUsage::staticGpu> vertexBuffer;
       video_api::Buffer<video_api::ResourceUsage::staticGpu> indexBuffer;
-      std::vector<std::shared_ptr<FontGlyph> > glyphs;
+      std::vector<const FontGlyph*> glyphs;
       std::vector<TextVertex> vertices;
       std::vector<uint32_t> indices;
       int32_t x_ = 0;

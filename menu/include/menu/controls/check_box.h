@@ -52,7 +52,7 @@ namespace menu {
         uncheckedMesh.release();
         labelMesh.release();
       }
-      ControlType Type() const noexcept override;
+      ControlType type() const noexcept override;
 
       // -- accessors --
 

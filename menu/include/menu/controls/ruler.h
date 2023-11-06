@@ -57,7 +57,7 @@ namespace menu {
         labelMesh.release();
         suffixMesh.release();
       }
-      ControlType Type() const noexcept override;
+      ControlType type() const noexcept override;
 
       // -- accessors --
 

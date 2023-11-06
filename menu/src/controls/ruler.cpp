@@ -20,7 +20,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType Ruler::Type() const noexcept { return ControlType::ruler; }
+ControlType Ruler::type() const noexcept { return ControlType::ruler; }
 
 static inline void clampColorComponents(float color[4]) {
   if (color[0] > 1.f)

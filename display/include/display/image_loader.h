@@ -32,8 +32,8 @@ namespace display {
     add,
     edit,
     remove,
-    importFile,
-    exportFile
+    keyboard,
+    controller
   };
   const char32_t* toDefaultLabel(ControlIconType type) noexcept;
 

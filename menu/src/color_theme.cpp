@@ -78,6 +78,14 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(renderer,  83,171,196, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  54,141,182, 1.f, sliderArrow) // 43,161,229
+
+      SET_THEME_COLOR(renderer, 111,128,140, 1.f, keyboardKeyControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 182,182,182, 1.f, keyboardKeyControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 215,215,215, 1.f, keyboardKeyControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 144,144,144, 1.f, keyboardKeyControlColors.colors[3])
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, keyboardKeyControlColors.colors[4])
+      SET_THEME_COLOR(renderer, 240,240,240, 1.f, keyboardKeyControlColors.colors[5])
+      SET_THEME_COLOR(renderer, 210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }
     case ColorThemeType::green: {
@@ -127,6 +135,14 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  83,166, 52, 1.f, sliderArrow)
+
+      SET_THEME_COLOR(renderer, 130,130,130, 1.f, keyboardKeyControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 192,192,192, 1.f, keyboardKeyControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 230,230,230, 1.f, keyboardKeyControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 160,160,160, 1.f, keyboardKeyControlColors.colors[3])
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, keyboardKeyControlColors.colors[4])
+      SET_THEME_COLOR(renderer, 240,240,240, 1.f, keyboardKeyControlColors.colors[5])
+      SET_THEME_COLOR(renderer, 210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }
     case ColorThemeType::darkGreen: {
@@ -176,6 +192,14 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  44,176, 66, 1.f, sliderArrow)
+
+      SET_THEME_COLOR(renderer, 130,130,130, 1.f, keyboardKeyControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 192,192,192, 1.f, keyboardKeyControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 230,230,230, 1.f, keyboardKeyControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 160,160,160, 1.f, keyboardKeyControlColors.colors[3])
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, keyboardKeyControlColors.colors[4])
+      SET_THEME_COLOR(renderer, 240,240,240, 1.f, keyboardKeyControlColors.colors[5])
+      SET_THEME_COLOR(renderer, 210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }
     case ColorThemeType::yellow: {
@@ -225,6 +249,14 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(renderer, 119,166, 12, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer, 191,136, 33, 1.f, sliderArrow)
+
+      SET_THEME_COLOR(renderer, 130,130,130, 1.f, keyboardKeyControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 192,192,192, 1.f, keyboardKeyControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 230,230,230, 1.f, keyboardKeyControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 160,160,160, 1.f, keyboardKeyControlColors.colors[3])
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, keyboardKeyControlColors.colors[4])
+      SET_THEME_COLOR(renderer, 240,240,240, 1.f, keyboardKeyControlColors.colors[5])
+      SET_THEME_COLOR(renderer, 210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }
     /*case ColorThemeType::white:
@@ -274,6 +306,14 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(renderer,   0, 83,166, 1.f, rulerControlColors.colors[3])
       SET_THEME_COLOR(renderer,  85,138,191, 1.f, sliderArrow) // 74,120,166
+
+      SET_THEME_COLOR(renderer, 130,130,130, 1.f, keyboardKeyControlColors.colors[0])
+      SET_THEME_COLOR(renderer, 192,192,192, 1.f, keyboardKeyControlColors.colors[1])
+      SET_THEME_COLOR(renderer, 230,230,230, 1.f, keyboardKeyControlColors.colors[2])
+      SET_THEME_COLOR(renderer, 160,160,160, 1.f, keyboardKeyControlColors.colors[3])
+      SET_THEME_COLOR(renderer, 220,220,220, 1.f, keyboardKeyControlColors.colors[4])
+      SET_THEME_COLOR(renderer, 240,240,240, 1.f, keyboardKeyControlColors.colors[5])
+      SET_THEME_COLOR(renderer, 210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }*/
   }

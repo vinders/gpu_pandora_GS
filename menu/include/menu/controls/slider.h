@@ -58,7 +58,7 @@ namespace menu {
         labelMesh.release();
         selectableValues.clear();
       }
-      ControlType Type() const noexcept override;
+      ControlType type() const noexcept override;
 
       // -- accessors --
 

@@ -21,7 +21,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType Slider::Type() const noexcept { return ControlType::slider; }
+ControlType Slider::type() const noexcept { return ControlType::slider; }
 
 
 // -- init/resize geometry -- --------------------------------------------------

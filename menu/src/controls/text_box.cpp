@@ -26,7 +26,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType TextBox::Type() const noexcept { return ControlType::textBox; }
+ControlType TextBox::type() const noexcept { return ControlType::textBox; }
 
 
 // -- init/resize geometry -- --------------------------------------------------

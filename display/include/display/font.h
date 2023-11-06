@@ -44,7 +44,7 @@ namespace display {
   class Font final {
   public:
     static constexpr inline char32_t UnknownGlyphCode() noexcept { return (char32_t)0xFFFD; } ///< Unknown symbol representation
-    using GlyphMap = std::unordered_map<char32_t, std::shared_ptr<FontGlyph> >;
+    using GlyphMap = std::unordered_map<char32_t, std::unique_ptr<FontGlyph> >;
 
     /// @brief Load font face + preload ASCII characters
     Font(video_api::Renderer& renderer, const char* fontPath,
@@ -54,21 +54,20 @@ namespace display {
     Font& operator=(const Font&) = delete;
     Font& operator=(Font&&) noexcept = delete;
     ~Font() noexcept { release(); }
-    void release() noexcept;
+    void release() noexcept; ///< Release all glyphs and font (all objects using glyphs must have been released before!)
     void clearBuffer() noexcept; ///< Clear buffer after getting all required glyphs
 
     inline const GlyphMap& storedGlyphs() const noexcept { return glyphs; } ///< Access currently stored glyphs
-    inline GlyphMap& storedGlyphs() noexcept { return glyphs; } ///< Access currently stored glyphs
     inline uint32_t XHeight() const noexcept { return xHeight; } ///< X-Height of the font face
 
-    inline const std::shared_ptr<FontGlyph>& getGlyph(video_api::Renderer& renderer, char32_t code) noexcept { ///< Get (or load) character glyph
+    inline const FontGlyph& getGlyph(video_api::Renderer& renderer, char32_t code) noexcept { ///< Get (or load) character glyph
       auto it = glyphs.find(code);
       if (it == glyphs.end()) {
         it = readGlyphFromFont(renderer, code);
         if (it == glyphs.end())
           it = glyphs.find(UnknownGlyphCode());
       }
-      return it->second;
+      return *(it->second);
     }
       
   private:

@@ -21,7 +21,7 @@ using namespace display::controls;
 using namespace menu::controls;
 using namespace menu;
 
-ControlType Button::Type() const noexcept { return ControlType::button; }
+ControlType Button::type() const noexcept { return ControlType::button; }
 
 
 // -- init/resize geometry -- --------------------------------------------------
