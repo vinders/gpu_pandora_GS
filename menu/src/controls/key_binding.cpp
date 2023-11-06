@@ -45,6 +45,7 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
     case _P_VK_EXECUTE:   return U"EXECUTE";
     case _P_VK_ESC:       return U"ESC";
     case _P_VK_PAUSE:     return U"PAUSE";
+    case _P_VK_PRINT_SCR: return U"PRINTSCR";
     case _P_VK_SPACE:     return U"SPACE";
     case _P_VK_TAB:       return U"TAB";
     case _P_VK_DELETE:    return U"DEL";
@@ -94,6 +95,10 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
     case _P_VK_PUNCT_MINUS:  return U"-";
     case _P_VK_PUNCT_PLUS:   return U"+";
     case _P_VK_BACKSLASH:    return U"\\";
+    case _P_VK_MEDIA_NEXT: return U"NEXT";
+    case _P_VK_MEDIA_PREV: return U"PREV";
+    case _P_VK_MEDIA_PLAY: return U"PLAY";
+    case _P_VK_MEDIA_STOP: return U"STOP";
     default: return nullptr;
   }
 }

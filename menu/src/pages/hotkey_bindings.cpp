@@ -14,19 +14,20 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <video/window_keycodes.h>
 #include "menu/controls/geometry_generator.h"
-#include "menu/hotkey_bindings_page.h"
+#include "menu/pages/hotkey_bindings.h"
 
 using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu::pages;
 using namespace menu;
 
 
 // -- page -- ------------------------------------------------------------------
 
-void HotkeyBindingsPage::init(const ColorTheme& theme, const MessageResources& localizedText,
-                              int32_t x, int32_t y, uint32_t width) {
+void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& localizedText,
+                          int32_t x, int32_t y, uint32_t width) {
   const MessageResource* textResources = localizedText.hotkeyBindingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -108,7 +109,7 @@ void HotkeyBindingsPage::init(const ColorTheme& theme, const MessageResources& l
   registerControls(std::move(registry));
 }
 
-HotkeyBindingsPage::~HotkeyBindingsPage() noexcept {
+HotkeyBindings::~HotkeyBindings() noexcept {
   title.release();
 
   behaviorGroup.release();
@@ -126,7 +127,7 @@ HotkeyBindingsPage::~HotkeyBindingsPage() noexcept {
 
 // -- window events -- ---------------------------------------------------------
 
-void HotkeyBindingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -170,7 +171,7 @@ void HotkeyBindingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
 
-void HotkeyBindingsPage::resolveKeyboardBindings(const controls::KeyBinding* updatedControl) noexcept {
+void HotkeyBindings::resolveKeyboardBindings(const controls::KeyBinding* updatedControl) noexcept {
   // search for conflicts
   for (size_t i = 0; i < (size_t)HotkeyActions::COUNT; ++i) {
     auto& current = bindings[i];
@@ -185,7 +186,7 @@ void HotkeyBindingsPage::resolveKeyboardBindings(const controls::KeyBinding* upd
 
 // -- rendering -- -------------------------------------------------------------
 
-void HotkeyBindingsPage::drawIcons() {
+void HotkeyBindings::drawIcons() {
   // scrollable geometry
   buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
@@ -198,7 +199,7 @@ void HotkeyBindingsPage::drawIcons() {
     bindings[i].drawIcon(*context, *buffers);
 }
 
-bool HotkeyBindingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool HotkeyBindings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -216,7 +217,7 @@ bool HotkeyBindingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
   return false;
 }
 
-void HotkeyBindingsPage::drawPageLabels() {
+void HotkeyBindings::drawPageLabels() {
   // scrollable geometry
   auto& renderer = context->renderer();
   if (buffers->isFixedLocationBuffer())

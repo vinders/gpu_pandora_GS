@@ -12,12 +12,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cassert>
-#include "menu/osd_settings_page.h"
+#include "menu/pages/osd_settings.h"
 
 using namespace video_api;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu::pages;
 using namespace menu;
 
 
@@ -25,7 +26,7 @@ using namespace menu;
 
 #define CLOCK_VISIBILITY_ID     1
 
-void OsdSettingsPage::init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
+void OsdSettings::init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
   const MessageResource* textResources = localizedText.osdSettingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -39,7 +40,7 @@ void OsdSettingsPage::init(const ColorTheme& theme, const MessageResources& loca
   std::vector<ControlRegistration> registry;
   registry.reserve(6);
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&OsdSettingsPage::onChange,this,std::placeholders::_1,std::placeholders::_2);
+  auto changeHandler = std::bind(&OsdSettings::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- clock group ---
   clockGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockGroup), theme.fieldsetStyle(),
@@ -121,7 +122,7 @@ void OsdSettingsPage::init(const ColorTheme& theme, const MessageResources& loca
   registerControls(std::move(registry));
 }
 
-OsdSettingsPage::~OsdSettingsPage() noexcept {
+OsdSettings::~OsdSettings() noexcept {
   title.release();
 
   clockGroup.release();
@@ -138,7 +139,7 @@ OsdSettingsPage::~OsdSettingsPage() noexcept {
 
 // -- window events -- ---------------------------------------------------------
 
-void OsdSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -174,7 +175,7 @@ void OsdSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
 
-void OsdSettingsPage::onChange(uint32_t id, uint32_t value) {
+void OsdSettings::onChange(uint32_t id, uint32_t value) {
   switch (id) {
     case CLOCK_VISIBILITY_ID: isClockEnabled = (value != 0); break;
     default: assert(false); break;
@@ -184,7 +185,7 @@ void OsdSettingsPage::onChange(uint32_t id, uint32_t value) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void OsdSettingsPage::drawIcons() {
+void OsdSettings::drawIcons() {
   // scrollable geometry
   buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
@@ -192,7 +193,7 @@ void OsdSettingsPage::drawIcons() {
   techInfoVisibility.drawIcon(*context, *buffers, (hoverControl == &techInfoVisibility));
 }
 
-bool OsdSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool OsdSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -209,7 +210,7 @@ bool OsdSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
   return false;
 }
 
-void OsdSettingsPage::drawPageLabels() {
+void OsdSettings::drawPageLabels() {
   // scrollable geometry
   auto& renderer = context->renderer();
   if (buffers->isFixedLocationBuffer())

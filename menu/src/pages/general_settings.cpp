@@ -15,13 +15,14 @@ GNU General Public License for more details (LICENSE file).
 #include <vector>
 #include <unordered_map>
 #include "menu/controls/geometry_generator.h"
-#include "menu/general_settings_page.h"
+#include "menu/pages/general_settings.h"
 
 using namespace video_api;
 using namespace pandora::hardware;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu::pages;
 using namespace menu;
 
 #if !defined(_CPP_REVISION) || _CPP_REVISION != 14
@@ -191,10 +192,10 @@ static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, 
 #define FRAMERATE_LIMIT_ID   5
 #define FRAMERATE_FIXED_ID   6
 
-GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
-                                         const std::shared_ptr<ColorTheme>& theme_, const std::shared_ptr<MessageResources>& localizedText_,
-                                         const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
-                                         uint32_t width, uint32_t height, std::function<void()> onThemeChange_)
+GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
+                                 const std::shared_ptr<ColorTheme>& theme_, const std::shared_ptr<MessageResources>& localizedText_,
+                                 const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
+                                 uint32_t width, uint32_t height, std::function<void()> onThemeChange_)
   : Page(std::move(context_), std::move(buffers_), *theme_, x, y, width, height, true),
     theme(theme_),
     localizedText(localizedText_),
@@ -203,7 +204,7 @@ GeneralSettingsPage::GeneralSettingsPage(std::shared_ptr<RendererContext> contex
   init(x, y, width);
 }
 
-void GeneralSettingsPage::init(int32_t x, int32_t y, uint32_t width) {
+void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   const MessageResource* textResources = localizedText->generalSettingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -217,7 +218,7 @@ void GeneralSettingsPage::init(int32_t x, int32_t y, uint32_t width) {
   std::vector<ControlRegistration> registry;
   registry.reserve(12);
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&GeneralSettingsPage::onChange,this,std::placeholders::_1,std::placeholders::_2);
+  auto changeHandler = std::bind(&GeneralSettings::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- window group ---
   windowGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowGroup), theme->fieldsetStyle(),
@@ -389,7 +390,7 @@ void GeneralSettingsPage::init(int32_t x, int32_t y, uint32_t width) {
   registerControls(std::move(registry));
 }
 
-GeneralSettingsPage::~GeneralSettingsPage() noexcept {
+GeneralSettings::~GeneralSettings() noexcept {
   title.release();
 
   windowGroup.release();
@@ -418,7 +419,7 @@ GeneralSettingsPage::~GeneralSettingsPage() noexcept {
 
 // -- window events -- ---------------------------------------------------------
 
-void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
+void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
@@ -479,7 +480,7 @@ void GeneralSettingsPage::move(int32_t x, int32_t y, uint32_t width, uint32_t he
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
 
-void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
+void GeneralSettings::onChange(uint32_t id, uint32_t value) {
   switch (id) {
     case DISPLAY_MODE_ID: {
       isFullscreenMode = (value == 0/*TMP*/);
@@ -533,7 +534,7 @@ void GeneralSettingsPage::onChange(uint32_t id, uint32_t value) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void GeneralSettingsPage::drawIcons() {
+void GeneralSettings::drawIcons() {
   // scrollable geometry
   buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
@@ -543,7 +544,7 @@ void GeneralSettingsPage::drawIcons() {
   frameSkipping.drawIcon(*context, *buffers, (hoverControl == &frameSkipping));
 }
 
-bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -582,7 +583,7 @@ bool GeneralSettingsPage::drawPageBackgrounds(int32_t mouseX, int32_t) {
   //return hasForeground;
 }
 
-void GeneralSettingsPage::drawPageLabels() {
+void GeneralSettings::drawPageLabels() {
   // scrollable geometry
   auto& renderer = context->renderer();
   if (buffers->isFixedLocationBuffer())
@@ -615,7 +616,7 @@ void GeneralSettingsPage::drawPageLabels() {
   frameSkipping.drawLabel(*context, *buffers, (hoverControl == &frameSkipping));
 }
 
-void GeneralSettingsPage::drawForegrounds() {
+void GeneralSettings::drawForegrounds() {
   auto& renderer = context->renderer();
 
   ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
@@ -626,7 +627,7 @@ void GeneralSettingsPage::drawForegrounds() {
   interfaceLanguage.drawDropdown(*context, *buffers);
 }
 
-void GeneralSettingsPage::drawForegroundLabels() {
+void GeneralSettings::drawForegroundLabels() {
   ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
   buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
 

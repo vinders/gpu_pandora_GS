@@ -21,11 +21,12 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/slider.h"
 #include "menu/controls/key_binding.h"
 #include "menu/controls/geometry_generator.h"
-#include "menu/page.h"
+#include "menu/pages/page.h"
 
 using namespace video_api;
 using namespace display::controls;
 using namespace menu::controls;
+using namespace menu::pages;
 using namespace menu;
 
 
@@ -325,8 +326,9 @@ void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
   if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover) {
-      if (!openControl->control()->click(*context, mouseX)) {
-        if (openControl->control()->type() == ControlType::keyBinding) {
+      auto controlType = openControl->control()->type();
+      if (!openControl->control()->click(*context, mouseX)) { // on lang/theme change, the control will no longer exist after this call
+        if (controlType == ControlType::keyBinding) {         // -> store control type before call
           const auto* target = reinterpret_cast<const KeyBinding*>(openControl->control());
           if (target->keyboardValue() != KeyBinding::emptyKeyValue())
             resolveKeyboardBindings(target);
