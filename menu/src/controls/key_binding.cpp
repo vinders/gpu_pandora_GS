@@ -18,6 +18,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/geometry_generator.h"
 #include "menu/controls/key_binding.h"
 
+using namespace pandora::video;
 using namespace display;
 using namespace display::controls;
 using namespace menu::controls;
@@ -30,7 +31,6 @@ ControlType KeyBinding::type() const noexcept { return ControlType::keyBinding; 
 
 static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexcept {
   switch (virtualKeyCode) {
-    case KeyBinding::mouseKeyValue(): return U"MOUSE";
     case _P_VK_L_CTRL:    return U"CTRL";
     case _P_VK_R_CTRL:    return U"CTRL-R";
     case _P_VK_L_SHIFT:   return U"SHIFT";
@@ -99,6 +99,18 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
     case _P_VK_MEDIA_PREV: return U"PREV";
     case _P_VK_MEDIA_PLAY: return U"PLAY";
     case _P_VK_MEDIA_STOP: return U"STOP";
+    default: return nullptr;
+  }
+}
+
+static const char32_t* GetMouseKeyName(uint32_t virtualKeyCode) noexcept {
+  virtualKeyCode -= KeyBinding::leftMouseKey();
+  switch (virtualKeyCode) {
+    case (uint32_t)MouseButton::left: return U"MOUSE-L";
+    case (uint32_t)MouseButton::middle: return U"MOUSE-M";
+    case (uint32_t)MouseButton::right: return U"MOUSE-R";
+    case (uint32_t)MouseButton::button4: return U"MOUSE-4";
+    case (uint32_t)MouseButton::button5: return U"MOUSE-5";
     default: return nullptr;
   }
 }
@@ -238,7 +250,7 @@ void KeyBinding::init(RendererContext& context, const char32_t* label, int32_t x
     char32_t buffer[2]{ U'\0' };
     const char32_t* value = nullptr;
     if (keyboardValue_ != emptyKeyValue()) {
-      value = GetVirtualKeyboardKeyName(keyboardValue_);
+      value = (keyboardValue_ < leftMouseKey()) ? GetVirtualKeyboardKeyName(keyboardValue_) : GetMouseKeyName(keyboardValue_);
       if (value == nullptr) {
         *buffer = (char32_t)pandora::video::virtualKeyToChar(keyboardValue_);
         if (*buffer != (char32_t)0) {
@@ -327,12 +339,12 @@ bool KeyBinding::click(RendererContext& context, int32_t mouseX) {
     }
     else {
       isEditing = false;
-      if (mouseX != noMouseCoord() && (uint32_t)bindingType & (uint32_t)KeyBindingType::keyboard && keyboardValue_ != mouseKeyValue()) {
+      if (mouseX != noMouseCoord() && (uint32_t)bindingType & (uint32_t)KeyBindingType::keyboard && keyboardValue_ != leftMouseKey()) {
         const int32_t inputX = (bindingType == KeyBindingType::both) ? controlMesh.x() + (int32_t)(controlMesh.width() >> 2)
                                                                      : controlMesh.x() + (int32_t)(controlMesh.width() >> 1);
-        keyboardValue_ = mouseKeyValue();
+        keyboardValue_ = leftMouseKey();
         keyboardValueMesh = TextMesh(context.renderer(), context.getFont(FontType::inputText),
-                                     GetVirtualKeyboardKeyName(mouseKeyValue()), context.pixelSizeX(), context.pixelSizeY(),
+                                     GetMouseKeyName(leftMouseKey()), context.pixelSizeX(), context.pixelSizeY(),
                                      inputX, keyboardValueMesh.y(), TextAlignment::center);
         resizeKeyboardKeyMesh(context, keyboardValueMesh, keyboardMesh);
       }
@@ -350,7 +362,7 @@ bool KeyBinding::setKeyboardValue(RendererContext& context, uint32_t virtualKeyC
     char32_t buffer[2]{ U'\0' };
     const char32_t* value = nullptr;
     if (virtualKeyCode != emptyKeyValue()) {
-      value = GetVirtualKeyboardKeyName(virtualKeyCode);
+      value = (virtualKeyCode < leftMouseKey()) ? GetVirtualKeyboardKeyName(virtualKeyCode) : GetMouseKeyName(virtualKeyCode);
       if (value == nullptr) {
         *buffer = (char32_t)pandora::video::virtualKeyToChar(virtualKeyCode);
         if (*buffer == (char32_t)0)

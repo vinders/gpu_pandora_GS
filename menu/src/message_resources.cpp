@@ -98,7 +98,7 @@ void MessageResources::fillMessagesEN() {
   GET_UI_MESSAGE(hotkeyBindings, HotkeyBindingsMessages::slowMotionMode_tooltip) = U"Choose the behavior of the slow-motion key";
   GET_UI_MESSAGE(hotkeyBindings, HotkeyBindingsMessages::fastForwardMode) = U"Fast-forward key mode";
   GET_UI_MESSAGE(hotkeyBindings, HotkeyBindingsMessages::fastForwardMode_tooltip) = U"Choose the behavior of the fast-forward key";
-  GET_UI_MESSAGE(hotkeyBindings, HotkeyBindingsMessages::bindingsGroup) = U"Keyboard/controller bindings";
+  GET_UI_MESSAGE(hotkeyBindings, HotkeyBindingsMessages::bindingsGroup) = U"Keyboard/controller key bindings";
   GET_UI_MESSAGE(hotkeyActions, HotkeyActions::showOptions) = U"Show config menu";
   GET_UI_MESSAGE(hotkeyActions, HotkeyActions::previousProfile) = U"Previous config profile";
   GET_UI_MESSAGE(hotkeyActions, HotkeyActions::nextProfile) = U"Next config profile";

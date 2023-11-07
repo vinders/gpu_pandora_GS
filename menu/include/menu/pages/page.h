@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstdint>
 #include <vector>
+#include <video/window_events.h>
 #include <display/controls/control_mesh.h>
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
@@ -122,8 +123,13 @@ namespace menu {
     
       // -- user interactions --
     
-      /// @brief Report mouse down (click) -- coords relative to window
-      void mouseDown(int32_t mouseX, int32_t mouseY);
+      /// @brief Report mouse down (click/button) -- coords relative to window
+      inline void mouseDown(int32_t mouseX, int32_t mouseY, pandora::video::MouseButton button) {
+        if (button == pandora::video::MouseButton::left)
+          mouseClick(mouseX, mouseY);
+        else
+          mouseButton(mouseX, mouseY, button);
+      }
       /// @brief Report mouse move -- coords relative to window
       void mouseMove(int32_t mouseX, int32_t mouseY);
       /// @brief Report mouse up (end of click) -- coords relative to window
@@ -170,6 +176,8 @@ namespace menu {
       }
       void updateColors(const ColorTheme& theme);
 
+      void mouseClick(int32_t mouseX, int32_t mouseY);
+      void mouseButton(int32_t mouseX, int32_t mouseY, pandora::video::MouseButton button);
       void onScroll(uint32_t visibleTopY);
       void onHover(int32_t controlIndex);
 

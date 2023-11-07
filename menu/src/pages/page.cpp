@@ -24,6 +24,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/pages/page.h"
 
 using namespace video_api;
+using namespace pandora::video;
 using namespace display::controls;
 using namespace menu::controls;
 using namespace menu::pages;
@@ -321,7 +322,7 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
 
 // ---
 
-void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
+void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   // click with an open control -> verify and click/close it
   if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
@@ -354,6 +355,17 @@ void Page::mouseDown(int32_t mouseX, int32_t mouseY) {
       auto* activeControl = &controlRegistry[controlIndex];
       if (activeControl->control()->click(*context, mouseX))
         openControl = activeControl;
+    }
+  }
+}
+
+void Page::mouseButton(int32_t mouseX, int32_t mouseY, MouseButton button) {
+  if (openControl != nullptr && openControl->control()->type() == ControlType::keyBinding) {
+    auto* target = reinterpret_cast<KeyBinding*>(openControl->control());
+    if (!target->setKeyboardValue(*context, KeyBinding::toMouseKeyCode(button))) {
+      if (target->keyboardValue() != KeyBinding::emptyKeyValue())
+        resolveKeyboardBindings(target);
+      openControl = nullptr;
     }
   }
 }

@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 #include <cstddef>
+#include <video/window_events.h>
 #include <display/controls/control_mesh.h>
 #include <display/controls/icon_mesh.h>
 #include <display/controls/text_mesh.h>
@@ -33,6 +34,7 @@ namespace menu {
     class KeyBinding final : public Control {
     public:
       /// @brief Create key-binding control
+      /// @param keyboardValue  Keyboard virtual key code -or- mouse key code (button type converted to code with 'toMouseKeyCode')
       /// @param enabler     Optional data/config value to which the key-binding box state should be bound
       KeyBinding(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, uint32_t minLabelWidth,
                  uint32_t fixedWidth, const float backgroundColor[4], const KeyboardKeyColors& keyColors,
@@ -80,18 +82,26 @@ namespace menu {
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
-
       inline bool isEditMode() const noexcept { return isEditing; } ///< Verify if control is currently in edit mode
-      uint32_t keyboardValue() const noexcept { return keyboardValue_; } ///< Get keyboard binding value (or emptyKeyValue())
-      uint32_t controllerValue() const noexcept { return controllerValue_; } ///< Get controller binding value (or emptyKeyValue())
+
+      inline uint32_t keyboardValue() const noexcept { return keyboardValue_; } ///< Get keyboard binding value (or emptyKeyValue())
+      inline bool isMouseValue() const noexcept { ///< Verify if keyboardValue actually contains a mouse button (use 'fromMouseKeyCode' to convert it)
+        return (keyboardValue_ > leftMouseKey() && keyboardValue_ != emptyKeyValue());
+      }
+      inline uint32_t controllerValue() const noexcept { return controllerValue_; } ///< Get controller binding value (or emptyKeyValue())
 
       // -- operations --
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (virtual key listening mode)
       bool click(RendererContext& context, int32_t mouseX = noMouseCoord()) override;
-      bool setKeyboardValue(RendererContext& context, uint32_t virtualKeyCode); ///< Set keyboard virtual key (or emptyKeyValue() to disable)
-      bool setControllerValue(RendererContext& context, uint32_t virtualKeyCode); ///< Set controller virtual key (or emptyKeyValue() to disable)
+      /// @brief Set keyboard virtual key (or emptyKeyValue() to disable)
+      /// @param Keyboard  keyboard virtual key code -or- mouse key code if not left click (converted with 'toMouseKeyCode')
+      /// @returns True if the control is still open (virtual key listening mode)
+      bool setKeyboardValue(RendererContext& context, uint32_t virtualKeyCode);
+      /// @brief Set controller virtual key (or emptyKeyValue() to disable)
+      /// @returns True if the control is still open (virtual key listening mode)
+      bool setControllerValue(RendererContext& context, uint32_t virtualKeyCode);
       void close() override; ///< Force-stop edit mode (on click elsewhere)
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
@@ -112,9 +122,17 @@ namespace menu {
       void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
       static constexpr inline uint32_t emptyKeyValue() noexcept { return 0x7FFFFFFF; } ///< Empty/disabled key value
-      static constexpr inline uint32_t mouseKeyValue() noexcept { return 0x7FFFFFFE; } ///< Mouse click key value
       static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; } ///< Click coord for key/pad
+
+      static constexpr inline uint32_t leftMouseKey() noexcept { return 0x7FFFFFF0; } ///< First mouse button key code
+      static constexpr inline uint32_t toMouseKeyCode(pandora::video::MouseButton button) noexcept { ///< Mouse button to key value
+        return leftMouseKey() + (uint32_t)button;
+      }
+      static constexpr inline pandora::video::MouseButton fromMouseKeyCode(uint32_t virtualKeyCode) noexcept { ///< Key value to mouse button
+        return (pandora::video::MouseButton)(virtualKeyCode - leftMouseKey());
+      }
     private:
+
       void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
                 uint32_t fixedWidth, const float color[4], const KeyboardKeyColors& keyColors, bool isUnbindable);
 
