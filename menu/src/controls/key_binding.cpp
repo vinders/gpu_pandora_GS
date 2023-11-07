@@ -33,6 +33,8 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
   switch (virtualKeyCode) {
     case _P_VK_L_CTRL:    return U"CTRL";
     case _P_VK_R_CTRL:    return U"CTRL-R";
+    case _P_VK_L_ALT:     return U"ALT";
+    case _P_VK_R_ALT:     return U"ALT-R";
     case _P_VK_L_SHIFT:   return U"SHIFT";
     case _P_VK_R_SHIFT:   return U"SHIFT-R";
     case _P_VK_L_SYSTEM:  return U"COMMAND";
@@ -41,7 +43,7 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
     case _P_VK_BACKSPACE: return U"BACK";
     case _P_VK_CLEAR:     return U"CLEAR";
     case _P_VK_ENTER:     return U"ENTER";
-    case _P_VK_ENTER_PAD: return U"RETURN";
+    case _P_VK_ENTER_PAD: return U"ENTER-R";
     case _P_VK_EXECUTE:   return U"EXECUTE";
     case _P_VK_ESC:       return U"ESC";
     case _P_VK_PAUSE:     return U"PAUSE";
@@ -104,22 +106,36 @@ static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
 }
 
 static const char32_t* GetMouseKeyName(uint32_t virtualKeyCode) noexcept {
-  virtualKeyCode -= KeyBinding::leftMouseKey();
-  switch (virtualKeyCode) {
-    case (uint32_t)MouseButton::left: return U"MOUSE-L";
-    case (uint32_t)MouseButton::middle: return U"MOUSE-M";
-    case (uint32_t)MouseButton::right: return U"MOUSE-R";
-    case (uint32_t)MouseButton::button4: return U"MOUSE-4";
-    case (uint32_t)MouseButton::button5: return U"MOUSE-5";
+  switch (KeyBinding::fromMouseKeyCode(virtualKeyCode)) {
+    case MouseButton::left: return U"MOUSE-L";
+    case MouseButton::middle: return U"MOUSE-M";
+    case MouseButton::right: return U"MOUSE-R";
+    case MouseButton::button4: return U"MOUSE-4";
+    case MouseButton::button5: return U"MOUSE-5";
     default: return nullptr;
   }
 }
 
 static ControlIcon GetControllerKeyIcon(RendererContext& context, uint32_t virtualKeyCode) noexcept {
-  //...
   // https://learn.microsoft.com/fr-fr/windows/win32/api/xinput/ns-xinput-xinput_gamepad?redirectedfrom=MSDN
-  //...
-  return context.imageLoader().getIcon(ControlIconType::controller);
+  switch (virtualKeyCode) {
+    case /*XINPUT_GAMEPAD_DPAD_UP*/0x0001:
+    case /*XINPUT_GAMEPAD_DPAD_DOWN*/0x0002:
+    case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004:
+    case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008:
+    case /*XINPUT_GAMEPAD_START*/0x0010:
+    case /*XINPUT_GAMEPAD_BACK*/0x0020:
+    case /*XINPUT_GAMEPAD_LEFT_THUMB*/0x0040:
+    case /*XINPUT_GAMEPAD_RIGHT_THUMB*/0x0080:
+    case /*XINPUT_GAMEPAD_LEFT_SHOULDER*/0x0100:
+    case /*XINPUT_GAMEPAD_RIGHT_SHOULDER*/0x0200:
+    case /*XINPUT_GAMEPAD_A*/0x1000:
+    case /*XINPUT_GAMEPAD_B*/0x2000:
+    case /*XINPUT_GAMEPAD_X*/0x4000:
+    case /*XINPUT_GAMEPAD_Y*/0x8000:
+      return context.imageLoader().getIcon(ControlIconType::controller);
+    default: return ControlIcon{};
+  }
 }
 
 

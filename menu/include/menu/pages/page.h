@@ -142,7 +142,8 @@ namespace menu {
       /// @brief Report key down (keyboard)
       void keyDown(char32_t keyCode);
       /// @brief Report virtual key down (keyboard)
-      void vkeyDown(uint32_t virtualKeyCode);
+      /// @returns True if default key behavior should be prevented
+      bool vkeyDown(uint32_t virtualKeyCode);
       /// @brief Report controller button down (pad)
       void padButtonDown(uint32_t virtualKeyCode);
       

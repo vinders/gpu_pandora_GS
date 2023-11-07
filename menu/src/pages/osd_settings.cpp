@@ -161,7 +161,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   clockLocationX.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   clockLocationY.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
 
   // tech info group
   techInfoGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));

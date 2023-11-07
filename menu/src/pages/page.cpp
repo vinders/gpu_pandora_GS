@@ -431,7 +431,7 @@ void Page::keyDown(char32_t keyCode) {
   }
 }
 
-void Page::vkeyDown(uint32_t virtualKeyCode) {
+bool Page::vkeyDown(uint32_t virtualKeyCode) {
   if (openControl != nullptr) {
     auto controlType = openControl->control()->type();
 
@@ -474,6 +474,7 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
           resolveKeyboardBindings(target);
         openControl = nullptr;
       }
+      return true;
     }
     else openControl = nullptr;
   }
@@ -528,6 +529,7 @@ void Page::vkeyDown(uint32_t virtualKeyCode) {
       default: break;
     }
   }
+  return false;
 }
 
 void Page::padButtonDown(uint32_t virtualKeyCode) {
