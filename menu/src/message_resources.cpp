@@ -148,6 +148,40 @@ void MessageResources::fillMessagesEN() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Frames per second";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Framebuffer format";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Everything";
+  
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_stretch) = U"Fill screen (stretch)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_crop) = U"Fill screen (crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_both) = U"Fill screen (stretch/crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_half) = U"Half stretched/cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_custom) = U"Custom settings";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_tooltip) = U"Default stretching/cropping modes";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::keepRatio) = U"Keep ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretch) = U"stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretching_tooltip) = U"Stretching strength: move left keep aspect ratio / move right to fully stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::entire) = U"Uncropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropped) = U"cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropping_tooltip) = U"Cropping strength: move left to display the whole frame / move right to fully crop it";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_square) = U"Square pixel ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_crt) = U"Analog pixels (CRT screens)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_tooltip) = U"Pixel shape to compute ratio: square pixels for flat screens / analog for CRTs";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::displayAdjustmentsGroup) = U"Display adjustments";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea) = U"Show overscan area";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea_tooltip) = U"Display extra pixels outside of screen boundaries, if available (e.g. Capcom games, Pandemonium...)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX) = U"Center horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX_tooltip) = U"Fix some games that are slightly mis-centered horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY) = U"Center vertically";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY_tooltip) = U"Fix mis-centered screen positions (common in many PAL games ported from NTSC)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_none) = U"No mirroring";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_mirrorX) = U"Mirror horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_tooltip) = U"Frame mirroring (e.g. for game phases where controls are inverted)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders) = U"Add black borders";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders_tooltip) = U"Prevent border flickering, by adding black borders (values: X/Y)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable / move right for max curvature";
 }
 
 void MessageResources::fillMessagesFR() {
@@ -259,6 +293,40 @@ void MessageResources::fillMessagesFR() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Images par seconde";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Format du framebuffer";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Toutes les informations";
+  
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_stretch) = U"Fill screen (stretch)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_crop) = U"Fill screen (crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_both) = U"Fill screen (stretch/crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_half) = U"Half stretched/cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_custom) = U"Custom settings";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_tooltip) = U"Default stretching/cropping modes";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::keepRatio) = U"Keep ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretch) = U"stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretching_tooltip) = U"Stretching strength: move left keep aspect ratio, move right to fully stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::entire) = U"Uncropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropped) = U"cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropping_tooltip) = U"Cropping strength: move left to display the whole frame, move right to fully crop it";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_square) = U"Square pixel ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_crt) = U"Analog pixels (CRT screens)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_tooltip) = U"Pixel shape to compute ratio: square for flat/LCD/LED screens, stretch for CRTs";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::displayAdjustmentsGroup) = U"Display adjustments";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea) = U"Show overscan area";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea_tooltip) = U"Display extra pixels outside of screen boundaries, if available (e.g. Capcom games, Pandemonium...)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX) = U"Center horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX_tooltip) = U"Fix some games that are slightly mis-centered horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY) = U"Center vertically";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY_tooltip) = U"Fix mis-centered screen positions (common in many PAL games ported from NTSC)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_none) = U"No mirroring";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_mirrorX) = U"Mirror horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_tooltip) = U"Frame mirroring (e.g. for game phases where controls are inverted)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders) = U"Add black borders";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders_tooltip) = U"Prevent border flickering, by adding black borders (values: X/Y)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
 }
 
 void MessageResources::fillMessagesDE() {
@@ -370,6 +438,40 @@ void MessageResources::fillMessagesDE() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Bilder pro Sekunde";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Framebuffer-Format";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Alles";
+  
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_stretch) = U"Fill screen (stretch)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_crop) = U"Fill screen (crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_both) = U"Fill screen (stretch/crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_half) = U"Half stretched/cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_custom) = U"Custom settings";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_tooltip) = U"Stretching/cropping presets: keep aspect ratio (black bars) or stretch and/or crop";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::keepRatio) = U"Keep ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretch) = U"stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretching_tooltip) = U"Stretching strength: move left keep aspect ratio, move right to fully stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::entire) = U"Uncropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropped) = U"cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropping_tooltip) = U"Cropping strength: move left to display the whole frame, move right to fully crop it";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_square) = U"Square pixel ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_crt) = U"Analog pixels (CRT screens)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_tooltip) = U"Pixel shape to compute ratio: square for flat/LCD/LED screens, stretch for CRTs";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::displayAdjustmentsGroup) = U"Display adjustments";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea) = U"Show overscan area";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea_tooltip) = U"Display extra pixels outside of screen boundaries, if available (e.g. Capcom games, Pandemonium...)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX) = U"Center horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX_tooltip) = U"Fix some games that are slightly mis-centered horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY) = U"Center vertically";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY_tooltip) = U"Fix mis-centered screen positions (common in many PAL games ported from NTSC)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_none) = U"No mirroring";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_mirrorX) = U"Mirror horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_tooltip) = U"Frame mirroring (e.g. for game phases where controls are inverted)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders) = U"Add black borders";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders_tooltip) = U"Prevent border flickering, by adding black borders (values: X/Y)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
 }
 
 void MessageResources::fillMessagesES() {
@@ -481,4 +583,38 @@ void MessageResources::fillMessagesES() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Cuadros por segundo";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Formato de framebuffer";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Todo";
+  
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_stretch) = U"Fill screen (stretch)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_crop) = U"Fill screen (crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_both) = U"Fill screen (stretch/crop)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_half) = U"Half stretched/cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_custom) = U"Custom settings";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_tooltip) = U"Default stretching/cropping modes";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::keepRatio) = U"Keep ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretch) = U"stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::stretching_tooltip) = U"Stretching strength: move left keep aspect ratio, move right to fully stretch";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::entire) = U"Uncropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropped) = U"cropped";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::cropping_tooltip) = U"Cropping strength: move left to display the whole frame, move right to fully crop it";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_square) = U"Square pixel ratio";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_crt) = U"Analog pixels (CRT screens)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::pixelRatio_tooltip) = U"Pixel shape to compute ratio: square for flat/LCD/LED screens, stretch for CRTs";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::displayAdjustmentsGroup) = U"Display adjustments";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea) = U"Show overscan area";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::showOverscanArea_tooltip) = U"Display extra pixels outside of screen boundaries, if available (e.g. Capcom games, Pandemonium...)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX) = U"Center horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerX_tooltip) = U"Fix some games that are slightly mis-centered horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY) = U"Center vertically";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::centerY_tooltip) = U"Fix mis-centered screen positions (common in many PAL games ported from NTSC)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_none) = U"No mirroring";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_mirrorX) = U"Mirror horizontally";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::mirror_tooltip) = U"Frame mirroring (e.g. for game phases where controls are inverted)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders) = U"Add black borders";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::blackBorders_tooltip) = U"Prevent border flickering, by adding black borders (values: X/Y)";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
+  GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
 }

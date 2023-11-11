@@ -19,19 +19,11 @@ using namespace display;
 using namespace display::controls;
 
 
-IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
-                   const float pxSizeX, const float pxSizeY, int32_t x, int32_t y)
-  : texture(std::move(texture)),
-    x_(x),
-    y_(y) {
-  if (this->texture == nullptr)
-    return;
-  width_ = (this->texture->rowBytes() >> 1);
-  height_ = this->texture->height();
-  const float left = ToVertexPositionX(x, pxSizeX);
-  const float top = ToVertexPositionY(y, pxSizeY);
+void IconMesh::initFullImage(Renderer& renderer, const float pxSizeX, const float pxSizeY) {
+  const float left = ToVertexPositionX(x_, pxSizeX);
+  const float top = ToVertexPositionY(y_, pxSizeY);
   const float right = left + (float)width_*pxSizeX;
-  const float bottom = top + (float)height_*pxSizeY;
+  const float bottom = top - (float)height_*pxSizeY;
   
   IconVertex iconVertices[4] {
     IconVertex{ {left,top},  {0.f,0.f} },
@@ -86,13 +78,11 @@ IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
 
 // ---
 
-void IconMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x, int32_t y) {
+void IconMesh::regenerate(Renderer& renderer, const float pxSizeX, const float pxSizeY) {
   if (texture == nullptr)
     return;
-  this->x_ = x;
-  this->y_ = y;
-  const float left = ToVertexPositionX(x, pxSizeX);
-  const float top = ToVertexPositionY(y, pxSizeY);
+  const float left = ToVertexPositionX(x_, pxSizeX);
+  const float top = ToVertexPositionY(y_, pxSizeY);
   const float right = left + (float)width_*pxSizeX;
   const float bottom = top - (float)height_*pxSizeY;
   
@@ -103,6 +93,13 @@ void IconMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
   (++vertexIt)->position[0] = left; vertexIt->position[1] = bottom;
   (++vertexIt)->position[0] = right; vertexIt->position[1] = bottom;
   
+  vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
+                                                  4*sizeof(IconVertex), vertices);
+}
+
+void IconMesh::invertX(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY) {
+  for (auto& vertex : vertices)
+    vertex.coords[0] = -vertex.coords[0];
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
                                                   4*sizeof(IconVertex), vertices);
 }

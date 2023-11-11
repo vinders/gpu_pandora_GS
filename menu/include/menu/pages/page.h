@@ -155,7 +155,7 @@ namespace menu {
       bool drawBackgrounds();
       /// @brief Draw page control icons
       /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
-      virtual void drawIcons() = 0;
+      virtual void drawIcons() {}
       /// @brief Draw page control labels
       /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
       void drawLabels();

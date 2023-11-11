@@ -93,7 +93,7 @@ namespace menu {
       static constexpr inline uint32_t comboBoxPaddingY() noexcept { return 7u; }  ///< Vertical combo-box padding
       static constexpr inline uint32_t textBoxPaddingX() noexcept { return 10u; }  ///< Horizontal text-box padding
       static constexpr inline uint32_t textBoxPaddingY() noexcept { return 6u; }   ///< Vertical text-box padding
-      static constexpr inline uint32_t rulerPaddingX() noexcept { return 10u; }    ///< Horizontal sliding-ruler padding
+      static constexpr inline uint32_t rulerPaddingX() noexcept { return 4u; }     ///< Horizontal sliding-ruler padding
       static constexpr inline uint32_t rulerPaddingY() noexcept { return 4u; }     ///< Vertical sliding-ruler padding
       static constexpr inline uint32_t sliderPaddingY() noexcept { return 6u; }    ///< Vertical slider padding
       static constexpr inline uint32_t keyboardKeySideX() noexcept { return 4u; }   ///< Keyboard key side width

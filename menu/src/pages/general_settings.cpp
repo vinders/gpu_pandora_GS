@@ -572,15 +572,6 @@ bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   //Button testbtn(*context, U"Abcdef", 200, 500, ButtonStyle(color, FontType::inputText, ControlIconType::none, 180, 12, 7), 0, nullptr, colorBorder, nullptr);
   //testbtn.drawBackground(*context);
   //return hasForeground;
-
-  //float color[4]{ 0.4f,0.4f,0.4f,1.f };
-  //float colorBorder[4]{ 0.3f,0.3f,0.3f,1.f };
-  //float thumbColor[4]{ 0.7f,0.7f,0.7f,1.f };
-  //float fillColor[4]{ 0.f,83.f/255.f,166.f/255.f,1.f };
-  //uint32_t value = 2;
-  //Ruler ruler(*context, U"Abcdef", U"xyz", TextAlignment::right, 200, 500, ControlStyle(color, 0, 10, 4), 180, colorBorder, thumbColor, fillColor, 0, 4, 1, value);
-  //ruler.drawBackground(*context);
-  //return hasForeground;
 }
 
 void GeneralSettings::drawPageLabels() {

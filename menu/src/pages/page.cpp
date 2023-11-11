@@ -180,9 +180,17 @@ void Page::onHover(int32_t controlIndex) {
       int32_t controlHoverX;
       uint32_t controlHoverWidth;
       if (isLeftPadded && isRightPadded) {
-        controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
-        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
-                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+        const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
+                                                    + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
+        if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
+          controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
+          controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                            + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+        }
+        else {
+          controlHoverX = controlX + (int32_t)Control::pageLabelWidth() + 12 - (int32_t)Control::lineHoverPaddingX();
+          controlHoverWidth = Control::pageControlWidth() + (Control::lineHoverPaddingX() << 1) + Control::labelMargin() - 12u;
+        }
       }
       else {
         controlHoverX = isLeftPadded ? (control->x() - (int32_t)Control::lineHoverPaddingX()) : (control->x() - 3);
@@ -359,7 +367,7 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   }
 }
 
-void Page::mouseButton(int32_t mouseX, int32_t mouseY, MouseButton button) {
+void Page::mouseButton(int32_t, int32_t, MouseButton button) {
   if (openControl != nullptr && openControl->control()->type() == ControlType::keyBinding) {
     auto* target = reinterpret_cast<KeyBinding*>(openControl->control());
     if (!target->setKeyboardValue(*context, KeyBinding::toMouseKeyCode(button))) {

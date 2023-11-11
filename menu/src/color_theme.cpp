@@ -74,9 +74,9 @@ void ColorTheme::updateTheme(video_api::Renderer& renderer, ColorThemeType type)
       SET_THEME_COLOR(renderer,  18, 54, 79, 1.f, comboBoxLabel) // 23, 59, 88  // 19, 57, 83
       SET_THEME_COLOR(renderer,  23, 53, 76, 1.f, comboBoxDropdownLabel)
       SET_THEME_COLOR(renderer,  51, 87,112, 1.f, rulerControlColors.colors[0])
-      SET_THEME_COLOR(renderer,  69, 82, 92, 1.f, rulerControlColors.colors[1])
+      SET_THEME_COLOR(renderer,  63, 85,102, 1.f, rulerControlColors.colors[1]) // 69, 82, 92
       SET_THEME_COLOR(renderer, 200,200,200, 1.f, rulerControlColors.colors[2])
-      SET_THEME_COLOR(renderer,  83,171,196, 1.f, rulerControlColors.colors[3])
+      SET_THEME_COLOR(renderer,  71,143,179, 1.f, rulerControlColors.colors[3]) // 83,171,196 // 72,147,179
       SET_THEME_COLOR(renderer,  54,141,182, 1.f, sliderArrow) // 43,161,229
 
       SET_THEME_COLOR(renderer, 111,128,140, 1.f, keyboardKeyControlColors.colors[0])

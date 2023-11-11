@@ -97,11 +97,13 @@ namespace menu {
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
       void replaceValues(RendererContext& context, ComboBoxOption* values, size_t valueCount, int32_t selectedIndex = -1); ///< Replace selectable values
       
-      inline void setSelectedIndex(int32_t index) noexcept { ///< Force selection of a specific entry
+      inline void setSelectedIndex(RendererContext& context, int32_t index, bool notify = true) noexcept { ///< Force selection of a specific entry
         if (index >= 0 && index < (int32_t)selectableValues.size()) {
           if (selectedIndex != index) {
             selectedIndex = index;
-            if (onChange != nullptr)
+            selectableValues[selectedIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                                                                     selectedNameMesh.x(), selectedNameMesh.y(), selectedNameMesh);
+            if (notify && onChange != nullptr)
               onChange(operationId, (uint32_t)selectableValues[selectedIndex].value);
           }
         }

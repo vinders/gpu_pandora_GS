@@ -150,7 +150,7 @@ std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const char* id, con
   if (renderer != nullptr) {
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
-    return bitmapToTexture(LoadBitmapA(hInstance, id), LoadBitmapA(hInstance, alphaId), *renderer);
+    return bitmapToTexture(LoadBitmapA(hInstance, id), alphaId ? LoadBitmapA(hInstance, alphaId) : nullptr, *renderer);
   }
   return nullptr;
 }
@@ -159,7 +159,7 @@ std::shared_ptr<video_api::Texture2D> ImageLoader::loadImage(const wchar_t* id, 
     auto& appInstance = WindowsApp::instance();
     HINSTANCE hInstance = appInstance.isInitialized() ? (HINSTANCE)appInstance.handle() : GetModuleHandle(NULL);
     //return bitmapToTexture(hInstance, FindResourceW(hInstance, id, (LPCWSTR)RT_BITMAP), *renderer);
-    return bitmapToTexture(LoadBitmapW(hInstance, id), LoadBitmapW(hInstance, alphaId), *renderer);
+    return bitmapToTexture(LoadBitmapW(hInstance, id), alphaId ? LoadBitmapW(hInstance, alphaId) : nullptr, *renderer);
   }
   return nullptr;
 }

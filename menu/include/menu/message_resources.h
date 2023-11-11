@@ -119,6 +119,42 @@ namespace menu {
     techInfoType_all,
     COUNT
   };
+  enum class ScreenStretchingMessages : size_t { ///< Message types for screen stretching page
+    title = 0,
+    aspectRatioGroup,
+    aspectRatio_keep,
+    aspectRatio_stretch,
+    aspectRatio_crop,
+    aspectRatio_both,
+    aspectRatio_half,
+    aspectRatio_custom,
+    aspectRatio_tooltip,
+    keepRatio,
+    stretch,
+    stretching_tooltip,
+    entire,
+    cropped,
+    cropping_tooltip,
+    pixelRatio_square,
+    pixelRatio_crt,
+    pixelRatio_tooltip,
+    displayAdjustmentsGroup,
+    showOverscanArea,
+    showOverscanArea_tooltip,
+    centerX,
+    centerX_tooltip,
+    centerY,
+    centerY_tooltip,
+    mirror_none,
+    mirror_mirrorX,
+    mirror_tooltip,
+    blackBorders,
+    blackBorders_tooltip,
+    screenCurvature,
+    maxCurved,
+    screenCurvature_tooltip,
+    COUNT
+  };
 
   // ---
   
@@ -157,6 +193,10 @@ namespace menu {
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, OsdSettingsMessages::<...>)
     inline const MessageResource* osdSettingsMessageArray() const noexcept { return osdSettings; }
 
+    /// @brief Message resources for screen stretching UI page
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ScreenStretchingMessages::<...>)
+    inline const MessageResource* screenStretchingMessageArray() const noexcept { return screenStretching; }
+
   private:
     void fillMessagesEN();
     void fillMessagesFR();
@@ -169,6 +209,7 @@ namespace menu {
     MessageResource hotkeyActions[(size_t)HotkeyActions::COUNT];
     MessageResource hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
     MessageResource osdSettings[(size_t)OsdSettingsMessages::COUNT];
+    MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }

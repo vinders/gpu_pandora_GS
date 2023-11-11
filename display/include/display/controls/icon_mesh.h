@@ -35,13 +35,37 @@ namespace display {
     /// @brief UI icon triangles
     class IconMesh final {
     public:
-      /// @brief Create control mesh
-      /// @param texture  Icon to display entirely
+      /// @brief Create image mesh
+      /// @param texture  Image to display entirely
       /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
-      IconMesh(video_api::Renderer& renderer, std::shared_ptr<video_api::Texture2D> texture,
-               const float pxSizeX, const float pxSizeY, int32_t x, int32_t y);
-      /// @brief Create control mesh
+      inline IconMesh(video_api::Renderer& renderer, std::shared_ptr<video_api::Texture2D> texture,
+                      const float pxSizeX, const float pxSizeY, int32_t x, int32_t y)
+        : texture(std::move(texture)),
+          x_(x),
+          y_(y) {
+        if (this->texture == nullptr)
+          return;
+        width_ = (this->texture->rowBytes() >> 2);
+        height_ = this->texture->height();
+        initFullImage(renderer, pxSizeX, pxSizeY);
+      }
+      /// @brief Create scaled image mesh
+      /// @param texture  Image to display entirely
+      /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
+      /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
+      inline IconMesh(video_api::Renderer& renderer, std::shared_ptr<video_api::Texture2D> texture,
+                      const float pxSizeX, const float pxSizeY, int32_t x, int32_t y, uint32_t width, uint32_t height)
+        : texture(std::move(texture)),
+          x_(x),
+          y_(y),
+          width_(width),
+          height_(height) {
+        if (this->texture == nullptr)
+          return;
+        initFullImage(renderer, pxSizeX, pxSizeY);
+      }
+      /// @brief Create icon mesh
       /// @param texture  Spritesheet containing the icon
       /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
@@ -69,10 +93,31 @@ namespace display {
       // -- operations --
       
       /// @brief Change mesh position
-      void move(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY, int32_t x_, int32_t y_);
+      inline void move(video_api::Renderer& renderer, const float pxSizeX,
+                       const float pxSizeY, int32_t x, int32_t y) {
+        this->x_ = x;
+        this->y_ = y;
+        regenerate(renderer, pxSizeX, pxSizeY);
+      }
+      /// @brief Scale image mesh
+      inline void resize(video_api::Renderer& renderer, const float pxSizeX,
+                         const float pxSizeY, int32_t x, int32_t y, uint32_t width, uint32_t height) {
+        this->x_ = x;
+        this->y_ = y;
+        this->width_ = width;
+        this->height_ = height;
+        regenerate(renderer, pxSizeX, pxSizeY);
+      }
+      /// @brief Mirror image horizontally
+      void invertX(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY);
+
       /// @brief Render mesh
-      /// @warning A rendering pipeline for control rendering should be bound before call
+      /// @warning A rendering pipeline for image rendering should be bound before call
       void draw(video_api::Renderer& renderer);
+    
+    private:
+      void initFullImage(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY);
+      void regenerate(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY);
     
     private:
       video_api::Buffer<video_api::ResourceUsage::staticGpu> vertexBuffer;
