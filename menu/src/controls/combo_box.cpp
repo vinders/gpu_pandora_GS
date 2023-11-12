@@ -51,11 +51,11 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
   if (style == ComboBoxStyle::cutCorner) { // rectangle with cut corner
     outVertices.resize(static_cast<size_t>(10 + 20 + 3));
     vertexIt = outVertices.data();
-    GeometryGenerator::fillTopRightCutRectangleVertices(vertexIt, gradientColors, 0.f, width, // background (cut corner)
-                                                        0.f, -(float)height, (float)Control::comboBoxPaddingY());
+    GeometryGenerator::fillTRCutDoubleGradientRectangleVertices(vertexIt, gradientColors, 0.f, width, // background (cut corner)
+                                                                0.f, -(float)height, (float)Control::comboBoxPaddingY());
     vertexIt += 10;
-    GeometryGenerator::fillTopRightCutBorderVertices(vertexIt, colorBorder, 0.f, width, // borders (cut corner)
-                                                     0.f, -(float)height, (float)Control::comboBoxPaddingY());
+    GeometryGenerator::fillTRCutBorderVertices(vertexIt, colorBorder, 0.f, width, // borders (cut corner)
+                                               0.f, -(float)height, (float)Control::comboBoxPaddingY());
     vertexIt += 20;
     if (outIndices)
       *outIndices = { 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9,  10,11,12,12,11,13,  14,15,16,16,15,17,
@@ -167,7 +167,7 @@ void ComboBox::move(RendererContext& context, int32_t x, int32_t labelY) {
     labelWidthWithMargin += labelMargin();
 
   const int32_t optionNameX = x + labelWidthWithMargin + (int32_t)comboBoxPaddingX();
-  int32_t optionNameY = y + (int32_t)controlMesh.height() + (int32_t)comboBoxPaddingY();
+  int32_t optionNameY = y + (int32_t)controlMesh.height() + (int32_t)comboBoxPaddingY() + 1;
   for (auto& value : selectableValues) {
     value.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), optionNameX, optionNameY);
     optionNameY += (int32_t)controlMesh.height();

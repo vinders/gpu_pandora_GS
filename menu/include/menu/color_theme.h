@@ -14,7 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
-#include <display/video_api.h>
+#include "menu/tile_colors.h"
 #include "menu/controls/control.h"
 
 namespace menu {
@@ -30,8 +30,8 @@ namespace menu {
   /// @brief UI color theme -- used to customize controls
   class ColorTheme final {
   public:
-    inline ColorTheme(video_api::Renderer& renderer, ColorThemeType type) {
-      updateTheme(renderer, type);
+    inline ColorTheme(ColorThemeType type) {
+      updateTheme(type);
     }
     ColorTheme(const ColorTheme&) = default;
     ColorTheme& operator=(const ColorTheme&) = default;
@@ -40,7 +40,7 @@ namespace menu {
     // -- theme selection --
 
     ColorThemeType themeType() const noexcept { return themeType_; } ///< Current theme type
-    void updateTheme(video_api::Renderer& renderer, ColorThemeType type) noexcept; ///< Change theme type
+    void updateTheme(ColorThemeType type) noexcept; ///< Change theme type
 
     // -- color accessors --
 
@@ -78,6 +78,7 @@ namespace menu {
     inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; }///< Vertical active/hover tab text color
 
     inline const float* buttonControlColor() const noexcept { return buttonControl; }    ///< Regular button background color
+    inline const float* buttonBorderColor() const noexcept { return buttonBorder; }    ///< Regular button border color
     inline const float* buttonLabelColor() const noexcept { return buttonLabel; }        ///< Regular button text color
     inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
     inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
@@ -93,7 +94,9 @@ namespace menu {
     inline const float* rulerThumbColor() const noexcept { return rulerControlColors.colors[2]; }  ///< Sliding-ruler thumb color
     inline const float* rulerFillerColor() const noexcept { return rulerControlColors.colors[3]; } ///< Sliding-ruler filler color
     inline const float* sliderArrowColor() const noexcept { return sliderArrow; }        ///< Slider-box arrow color
-    inline const controls::KeyboardKeyColors& keyboardKeyColorParams() const noexcept { return keyboardKeyControlColors;  }
+    inline const controls::KeyboardKeyColors& keyboardKeyColorParams() const noexcept { return keyboardKeyControlColors; }
+
+    inline const float* tileColor(TileColors color) const noexcept { return tileColors.colors[(uint32_t)color]; } ///< Background control color for profile tiles
 
   private:
     float disabledControl[4];
@@ -127,6 +130,7 @@ namespace menu {
     float verticalTabActiveLabel[4];
 
     float buttonControl[4];
+    float buttonBorder[4];
     float buttonLabel[4];
     float textBoxControl[4];
     float textBoxLabel[4];
@@ -136,6 +140,8 @@ namespace menu {
     controls::RulerColors rulerControlColors;
     float sliderArrow[4];
     controls::KeyboardKeyColors keyboardKeyControlColors;
+
+    controls::ControlColors<(size_t)TileColors::COUNT> tileColors;
     
     ColorThemeType themeType_ = (ColorThemeType)-1;
   };

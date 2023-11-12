@@ -358,7 +358,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
                             controlX, currentLineY, Control::pageLabelWidth(),
                             Control::pageControlWidth(), theme->sliderArrowColor(), 0,
                             [this](uint32_t, uint32_t theme){
-                              this->theme->updateTheme(this->context->renderer(), (ColorThemeType)theme);
+                              this->theme->updateTheme((ColorThemeType)theme);
                               this->buffers->updateColorBuffers(this->context->renderer(), *(this->theme));
                               Page::updateColors(*(this->theme));
                               init(this->x(), this->y(), this->width());
@@ -566,12 +566,6 @@ bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   windowHeight.drawBackground(*context, *buffers);
   fixedFramerate.drawBackground(*context, *buffers);
   return false;
-
-  //float color[4]{ 0.4f,0.4f,0.4f,1.f };
-  //float colorBorder[4]{ 0.3f,0.3f,0.3f,1.f };
-  //Button testbtn(*context, U"Abcdef", 200, 500, ButtonStyle(color, FontType::inputText, ControlIconType::none, 180, 12, 7), 0, nullptr, colorBorder, nullptr);
-  //testbtn.drawBackground(*context);
-  //return hasForeground;
 }
 
 void GeneralSettings::drawPageLabels() {

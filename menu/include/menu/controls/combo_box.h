@@ -72,6 +72,7 @@ namespace menu {
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x()); }
       inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
+      inline int32_t controlHeight() const noexcept { return controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isOpen() const noexcept { return isListOpen; }   ///< Verify if the dropdown list is open
@@ -82,6 +83,9 @@ namespace menu {
       inline int32_t getSelectedIndex() const noexcept { return selectedIndex; } ///< Currently selected index (or -1)
       inline const ComboValue* getSelectedValue() const noexcept { ///< Get value at selected index (if any)
         return (selectedIndex != -1) ? &(selectableValues[selectedIndex].value) : nullptr;
+      }
+      inline int32_t getHoverLineY() const noexcept { ///< Vertical position of selected index in dropdown
+        return isListOpen ? (controlMesh.y() + (int32_t)controlMesh.height()*(hoverIndex+1)) : controlMesh.y();
       }
 
       // -- operations --

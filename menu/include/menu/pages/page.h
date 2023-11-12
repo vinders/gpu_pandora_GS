@@ -16,8 +16,10 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstdint>
 #include <vector>
+#include <type_traits>
 #include <video/window_events.h>
 #include <display/controls/control_mesh.h>
+#include "menu/controls/button.h"
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
 #include "menu/controls/control.h"
@@ -34,7 +36,8 @@ namespace menu {
         : target(&control),
           top(control.y()),
           bottom(control.y() + (int32_t)control.height()),
-          left(control.x()),
+          left((std::is_same<CtrlT,controls::Button>::value) ? (control.x() - (int32_t)Control::controlButtonMargin())
+                                                             : control.x()),
           right(control.x() + (int32_t)control.width()),
           isScrollable(isInScrollableArea),
           tooltip(tooltip) {}
@@ -174,6 +177,18 @@ namespace menu {
       void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
       inline void moveScrollbarThumb(int32_t bottomY) {
         scrollbar.moveThumb(*context, static_cast<uint32_t>(bottomY - scrollbar.y()) + tooltip.height()); // will call onScroll if needed
+        pageHeight = scrollbar.pageHeight();
+      }
+      inline void expandScrollArea(int32_t bottomY) {
+        if (scrollbar.y() + (int32_t)scrollbar.pageHeight() < bottomY)
+          scrollbar.moveThumb(*context, static_cast<uint32_t>(bottomY - scrollbar.y())); // will call onScroll if needed
+      }
+      inline bool shrinkScrollArea() {
+        if (pageHeight != scrollbar.pageHeight()) {
+          scrollbar.moveThumb(*context, pageHeight); // will call onScroll if needed
+          return true;
+        }
+        return false;
       }
       void updateColors(const ColorTheme& theme);
 
@@ -213,6 +228,7 @@ namespace menu {
       controls::ScrollBar scrollbar;
       controls::Tooltip tooltip;
       int32_t scrollY = 0;
+      uint32_t pageHeight = 0;
 
       display::controls::ControlMesh backgroundMesh;
       display::controls::ControlMesh controlHoverMesh;

@@ -123,13 +123,19 @@ namespace menu {
       /// @param outVertexIt  Must point to an array of at least 10 control vertices
       /// @param rgba         [0]: primary color / [1]: top lighter color / [2]: middle darker color
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillTopRightCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[3][4],
-                                                   float x1, float x2, float y1, float y2, float cornerSize) noexcept;
-      /// @brief Generate rectangle with two cut corners (in 6 menu control vertices)
+      static void fillTRCutDoubleGradientRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[3][4],
+                                                           float x1, float x2, float y1, float y2, float cornerSize) noexcept;
+      /// @brief Generate rectangle with top-left/bottom-right cut corners (in 6 menu control vertices)
       ///        (expected indices: 0,1,2, 2,1,3, 2,3,4, 4,3,5)
       /// @param outVertexIt  Must point to an array of at least 6 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillDoubleCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+      static void fillTLBRCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                                 float x1, float x2, float y1, float y2, float cornerSize) noexcept;
+      /// @brief Generate rectangle with bottom-left/top-right cut corners (in 6 menu control vertices)
+      ///        (expected indices: 0,1,2, 2,1,3, 2,3,4, 4,3,5)
+      /// @param outVertexIt  Must point to an array of at least 6 control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillBLTRCutRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                                  float x1, float x2, float y1, float y2, float cornerSize) noexcept;
       /// @brief Generate rectangle with all corners cut (in 8 menu control vertices)
       ///        (expected indices: 0,1,2, 2,1,3,  2,3,4, 4,3,5,  4,5,6, 6,5,7)
@@ -146,13 +152,8 @@ namespace menu {
       /// @brief Generate rectangle borders with top-right corner cut (in 20 menu control vertices)
       /// @param outVertexIt  Must point to an array of at least 20 control vertices
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillTopRightCutBorderVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
-                                                float x1, float x2, float y1, float y2, float cornerSize) noexcept;
-      /// @brief Generate rectangle borders with two cut corners (in 24 menu control vertices)
-      /// @param outVertexIt  Must point to an array of at least 24 control vertices
-      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillDoubleCutBorderVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
-                                              float x1, float x2, float y1, float y2, float cornerSize) noexcept;
+      static void fillTRCutBorderVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                          float x1, float x2, float y1, float y2, float cornerSize) noexcept;
 
       // -- rectangle resize --
 

@@ -30,7 +30,7 @@ namespace menu {
       /// @param operationId Unique button operation identifier (should be cast from an enum or constant)
       /// @param onClick     Event handler to call (with 'operationId') when the button is clicked
       /// @param enabler     Optional data/config value to which the button state should be bound
-      Button(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style,
+      Button(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyleProperties& style,
              uint32_t operationId, std::function<void(uint32_t)> onClick, const bool* enabler = nullptr)
         : enabler(enabler),
           onClick(std::move(onClick)),
@@ -63,7 +63,8 @@ namespace menu {
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
+        return (mouseY >= y() && mouseX >= x() - (int32_t)controlButtonMargin()
+             && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
@@ -96,7 +97,7 @@ namespace menu {
       void drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style);
+      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyleProperties& style);
       static constexpr inline uint32_t iconMarginRight() noexcept { return 4u; }
 
     private:

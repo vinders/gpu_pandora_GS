@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstddef>
 #include <cstdint>
 #include "menu/hotkey_actions.h"
+#include "menu/tile_colors.h"
 
 namespace menu {
   enum class LocalizationType : uint32_t { ///< Message localization type (language)
@@ -119,6 +120,18 @@ namespace menu {
     techInfoType_all,
     COUNT
   };
+
+  enum class ProfileSettingsMessages : size_t { ///< Message types for profile settings page
+    title = 0,
+    profileIdGroup,
+    profileName,
+    tileColor,
+    presetGroup,
+    predefinedPreset,
+    existingProfile,
+    apply,
+    COUNT
+  };
   enum class ScreenStretchingMessages : size_t { ///< Message types for screen stretching page
     title = 0,
     aspectRatioGroup,
@@ -193,6 +206,12 @@ namespace menu {
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, OsdSettingsMessages::<...>)
     inline const MessageResource* osdSettingsMessageArray() const noexcept { return osdSettings; }
 
+    /// @brief Message resources for base profile settings UI page
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ProfileSettingsMessages::<...>)
+    inline const MessageResource* profileSettingsMessageArray() const noexcept { return profileSettings; }
+    /// @brief Message resources for UI tile color picker
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, TileColors::<...>)
+    inline const MessageResource* tileColorsMessageArray() const noexcept { return tileColors; }
     /// @brief Message resources for screen stretching UI page
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ScreenStretchingMessages::<...>)
     inline const MessageResource* screenStretchingMessageArray() const noexcept { return screenStretching; }
@@ -209,7 +228,9 @@ namespace menu {
     MessageResource hotkeyActions[(size_t)HotkeyActions::COUNT];
     MessageResource hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
     MessageResource osdSettings[(size_t)OsdSettingsMessages::COUNT];
+    MessageResource profileSettings[(size_t)ProfileSettingsMessages::COUNT];
     MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
+    MessageResource tileColors[(size_t)TileColors::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }

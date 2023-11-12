@@ -26,7 +26,7 @@ ControlType Button::type() const noexcept { return ControlType::button; }
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyle& style) {
+void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyleProperties& style) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
@@ -43,7 +43,7 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
   // create label
   const int32_t labelX = x + (int32_t)style.paddingX + (int32_t)iconWidthWithMargin;
   labelMesh = TextMesh(context.renderer(), context.getFont(style.fontType), label,
-                       context.pixelSizeX(), context.pixelSizeY(), labelX, labelY, TextAlignment::left);
+                       context.pixelSizeX(), context.pixelSizeY(), labelX, labelY + 1, TextAlignment::left);
 
   // compute control size (based on label)
   uint32_t width = (style.paddingX << 1) + labelMesh.width() + iconWidthWithMargin;
@@ -53,21 +53,38 @@ void Button::init(RendererContext& context, const char32_t* label, int32_t x, in
 
   // create background
   const float cornerSize = (float)style.paddingY;
-  std::vector<ControlVertex> vertices(style.borderSize ? static_cast<size_t>(6 + 6*4) : (size_t)6);
-  GeometryGenerator::fillDoubleCutRectangleVertices(vertices.data(), style.backgroundColor, // button background
-                                                    0.f, (float)width, 0.f, -(float)height, cornerSize);
+  std::vector<ControlVertex> vertices;
   std::vector<uint32_t> indices;
   if (style.borderSize) {
-    GeometryGenerator::fillDoubleCutBorderVertices(vertices.data() + 6, style.borderColor, // button borders
-                                                    0.f, (float)width, 0.f, -(float)height, cornerSize);
-    indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5,
-                6,7,8,8,7,9,        10,11,12,12,11,13,  14,15,16,16,15,17,
-                18,19,20,20,19,21,  22,23,24,24,23,25,  26,27,28,28,27,29 };
+    vertices.resize(static_cast<size_t>(6 + 6));
+    if (style.style == ButtonStyle::fromBottomLeft) {
+      GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data(), style.borderColor, // button borders
+                                                      0.f, (float)width, 0.f, -(float)height, cornerSize);
+      GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data() + 6, style.borderColor, // button background
+                                                      (float)style.borderSize, (float)(width - style.borderSize),
+                                                      -(float)style.borderSize, -(float)(height - style.borderSize), cornerSize);
+    }
+    else if (style.style == ButtonStyle::fromTopLeft) {
+      GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data(), style.borderColor, // button borders
+                                                      0.f, (float)width, 0.f, -(float)height, cornerSize);
+      GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data() + 6, style.borderColor, // button background
+                                                      (float)style.borderSize, (float)(width - style.borderSize),
+                                                      -(float)style.borderSize, -(float)(height - style.borderSize), cornerSize);
+    }
+    indices = { 0,1,2,2,1,3,  2,3,4,4,3,5,  6,7,8,8,7,9,  8,9,10,10,9,11 };
   }
-  else // no borders
-    indices = { 0,1,2, 2,1,3, 2,3,4, 4,3,5 };
+  else {
+    vertices.resize(static_cast<size_t>(6));
+    if (style.style == ButtonStyle::fromBottomLeft)
+      GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data(), style.backgroundColor, // button background
+                                                      0.f, (float)width, 0.f, -(float)height, cornerSize);
+    else if (style.style == ButtonStyle::fromTopLeft)
+      GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data(), style.backgroundColor, // button background
+                                                      0.f, (float)width, 0.f, -(float)height, cornerSize);
+    indices = { 0,1,2,2,1,3,  2,3,4,4,3,5 };
+  }
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(),
-                            context.pixelSizeY(), x, labelY - (int32_t)style.paddingY - 1, width, height);
+                            context.pixelSizeY(), x, labelY - (int32_t)style.paddingY, width, height);
 
   // create icon (optional)
   if (iconData.texture() != nullptr) {
@@ -86,10 +103,10 @@ void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
     iconWidthWithMargin = labelMesh.width() ? iconMesh.width() + iconMarginRight() : iconMesh.width();
 
   const int32_t labelX = x + (int32_t)paddingX + (int32_t)iconWidthWithMargin;
-  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), labelX, labelY);
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), labelX, labelY + 1);
 
   controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                   labelMesh.x() - paddingX - iconWidthWithMargin, labelY - (int32_t)paddingY - 1);
+                   labelMesh.x() - paddingX - iconWidthWithMargin, labelY - (int32_t)paddingY);
 
   if (iconMesh.width()) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;

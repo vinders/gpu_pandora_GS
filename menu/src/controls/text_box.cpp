@@ -241,7 +241,8 @@ bool TextBox::click(RendererContext& context, int32_t mouseX) {
 // ---
 
 void TextBox::addChar(RendererContext& context, char32_t code) {
-  if (inputValue.size() >= (size_t)maxValueLength + 1u) // max possible length + ending zero
+  if (inputValue.size() >= (size_t)maxValueLength + 1u // max possible length + ending zero
+   || inputMesh.width() + (inputMesh.height() >> 1) > controlMesh.width() - Control::textBoxPaddingX()) // or too long to display
     return;
 
   // verify character constraints

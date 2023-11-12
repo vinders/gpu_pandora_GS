@@ -60,6 +60,7 @@ namespace menu {
       inline uint32_t height() const noexcept { return backMesh.height(); }
       inline uint32_t visibleTop() const noexcept { return topPosition; }
       inline uint32_t visibleBottom() const noexcept { return (topPosition + visibleScrollArea); }
+      inline uint32_t pageHeight() const noexcept { return totalScrollArea; }
 
       inline bool isEnabled() const noexcept { return (visibleScrollArea < totalScrollArea); } ///< Verify if control is enabled
       inline bool isDragged() const noexcept { return (dragThumbOffsetY >= 0); } ///< Verify if thumb is currently being dragged

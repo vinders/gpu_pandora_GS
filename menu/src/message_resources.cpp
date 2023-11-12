@@ -149,6 +149,28 @@ void MessageResources::fillMessagesEN() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Framebuffer format";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Everything";
   
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::title) = U"Profile settings";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileIdGroup) = U"Profile identification";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileName) = U"Profile name";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::tileColor) = U"Tile color";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::presetGroup) = U"Profile configuration presets";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::predefinedPreset) = U"Predefined preset";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::existingProfile) = U"Existing profile";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::apply) = U"Apply";
+  GET_UI_MESSAGE(tileColors, TileColors::themeColor) = U"Theme color";
+  GET_UI_MESSAGE(tileColors, TileColors::red) = U"Red";
+  GET_UI_MESSAGE(tileColors, TileColors::orange) = U"Orange";
+  GET_UI_MESSAGE(tileColors, TileColors::yellow) = U"Yellow";
+  GET_UI_MESSAGE(tileColors, TileColors::apple) = U"Apple green";
+  GET_UI_MESSAGE(tileColors, TileColors::green) = U"Green";
+  GET_UI_MESSAGE(tileColors, TileColors::teal) = U"Teal";
+  GET_UI_MESSAGE(tileColors, TileColors::cyan) = U"Cyan";
+  GET_UI_MESSAGE(tileColors, TileColors::blue) = U"Blue";
+  GET_UI_MESSAGE(tileColors, TileColors::purple) = U"Purple";
+  GET_UI_MESSAGE(tileColors, TileColors::violet) = U"Violet";
+  GET_UI_MESSAGE(tileColors, TileColors::pink) = U"Pink";
+  GET_UI_MESSAGE(tileColors, TileColors::gray) = U"Gray";
+  
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
@@ -293,6 +315,28 @@ void MessageResources::fillMessagesFR() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Images par seconde";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Format du framebuffer";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Toutes les informations";
+  
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::title) = U"Profile settings";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileIdGroup) = U"Profile identification";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileName) = U"Profile name";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::tileColor) = U"Tile color";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::presetGroup) = U"Profile config presets";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::predefinedPreset) = U"Predefined preset";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::existingProfile) = U"Existing profile";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::apply) = U"Apply";
+  GET_UI_MESSAGE(profileSettings, TileColors::themeColor) = U"Theme color";
+  GET_UI_MESSAGE(profileSettings, TileColors::red) = U"Red";
+  GET_UI_MESSAGE(profileSettings, TileColors::orange) = U"Orange";
+  GET_UI_MESSAGE(profileSettings, TileColors::yellow) = U"Yellow";
+  GET_UI_MESSAGE(profileSettings, TileColors::apple) = U"Apple";
+  GET_UI_MESSAGE(profileSettings, TileColors::green) = U"Green";
+  GET_UI_MESSAGE(profileSettings, TileColors::teal) = U"Teal";
+  GET_UI_MESSAGE(profileSettings, TileColors::cyan) = U"Cyan";
+  GET_UI_MESSAGE(profileSettings, TileColors::blue) = U"Blue";
+  GET_UI_MESSAGE(profileSettings, TileColors::purple) = U"Purple";
+  GET_UI_MESSAGE(profileSettings, TileColors::violet) = U"Violet";
+  GET_UI_MESSAGE(profileSettings, TileColors::pink) = U"Pink";
+  GET_UI_MESSAGE(profileSettings, TileColors::gray) = U"Gray";
   
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
@@ -439,6 +483,28 @@ void MessageResources::fillMessagesDE() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Framebuffer-Format";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Alles";
   
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::title) = U"Profile settings";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileIdGroup) = U"Profile identification";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileName) = U"Profile name";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::tileColor) = U"Tile color";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::presetGroup) = U"Profile config presets";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::predefinedPreset) = U"Predefined preset";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::existingProfile) = U"Existing profile";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::apply) = U"Apply";
+  GET_UI_MESSAGE(profileSettings, TileColors::themeColor) = U"Theme color";
+  GET_UI_MESSAGE(profileSettings, TileColors::red) = U"Red";
+  GET_UI_MESSAGE(profileSettings, TileColors::orange) = U"Orange";
+  GET_UI_MESSAGE(profileSettings, TileColors::yellow) = U"Yellow";
+  GET_UI_MESSAGE(profileSettings, TileColors::apple) = U"Apple";
+  GET_UI_MESSAGE(profileSettings, TileColors::green) = U"Green";
+  GET_UI_MESSAGE(profileSettings, TileColors::teal) = U"Teal";
+  GET_UI_MESSAGE(profileSettings, TileColors::cyan) = U"Cyan";
+  GET_UI_MESSAGE(profileSettings, TileColors::blue) = U"Blue";
+  GET_UI_MESSAGE(profileSettings, TileColors::purple) = U"Purple";
+  GET_UI_MESSAGE(profileSettings, TileColors::violet) = U"Violet";
+  GET_UI_MESSAGE(profileSettings, TileColors::pink) = U"Pink";
+  GET_UI_MESSAGE(profileSettings, TileColors::gray) = U"Gray";
+  
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatio_keep) = U"Keep aspect ratio";
@@ -583,6 +649,28 @@ void MessageResources::fillMessagesES() {
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_fps) = U"Cuadros por segundo";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_format) = U"Formato de framebuffer";
   GET_UI_MESSAGE(osdSettings, OsdSettingsMessages::techInfoType_all) = U"Todo";
+  
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::title) = U"Profile settings";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileIdGroup) = U"Profile identification";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::profileName) = U"Profile name";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::tileColor) = U"Tile color";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::presetGroup) = U"Profile config presets";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::predefinedPreset) = U"Predefined preset";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::existingProfile) = U"Existing profile";
+  GET_UI_MESSAGE(profileSettings, ProfileSettingsMessages::apply) = U"Apply";
+  GET_UI_MESSAGE(profileSettings, TileColors::themeColor) = U"Theme color";
+  GET_UI_MESSAGE(profileSettings, TileColors::red) = U"Red";
+  GET_UI_MESSAGE(profileSettings, TileColors::orange) = U"Orange";
+  GET_UI_MESSAGE(profileSettings, TileColors::yellow) = U"Yellow";
+  GET_UI_MESSAGE(profileSettings, TileColors::apple) = U"Apple";
+  GET_UI_MESSAGE(profileSettings, TileColors::green) = U"Green";
+  GET_UI_MESSAGE(profileSettings, TileColors::teal) = U"Teal";
+  GET_UI_MESSAGE(profileSettings, TileColors::cyan) = U"Cyan";
+  GET_UI_MESSAGE(profileSettings, TileColors::blue) = U"Blue";
+  GET_UI_MESSAGE(profileSettings, TileColors::purple) = U"Purple";
+  GET_UI_MESSAGE(profileSettings, TileColors::violet) = U"Violet";
+  GET_UI_MESSAGE(profileSettings, TileColors::pink) = U"Pink";
+  GET_UI_MESSAGE(profileSettings, TileColors::gray) = U"Gray";
   
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::title) = U"Screen stretching";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::aspectRatioGroup) = U"Aspect ratio";

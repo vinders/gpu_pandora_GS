@@ -126,17 +126,16 @@ bool TextMesh::push(video_api::Renderer& renderer, Font& font, const float pxSiz
   if (glyph.advance == 0 && glyph.texture.isEmpty())
     return false;
 
-  int32_t advancePrevX = 0;
   if (!glyphs.empty()) {
     const auto& lastGlyph = glyphs.back();
-    advancePrevX = (int32_t)(lastGlyph->advance >> 6) - (int32_t)lastGlyph->width;
+    int32_t newWidth = (int32_t)width_ + (int32_t)(lastGlyph->advance >> 6) - (int32_t)lastGlyph->width;
+    width_ = (newWidth >= 0) ? (uint32_t)newWidth : 0;
   }
-  width_ += advancePrevX;
   
   if (!glyph.texture.isEmpty()) {
     const float left = ToVertexPositionX(this->x_ + (int32_t)width_ + glyph.offsetLeft, pxSizeX);
     const float right = left + glyph.width*pxSizeX;
-    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph.height - glyph.bearingTop), pxSizeY);
+    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ + (glyph.height - glyph.bearingTop), pxSizeY);
     const float top = bottom + glyph.height*pxSizeY;
     uint32_t vertexCount = (uint32_t)vertices.size();
 
@@ -189,7 +188,7 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
   if (!glyph.texture.isEmpty()) {
     const float left = ToVertexPositionX(insertedCharX + glyph.offsetLeft, pxSizeX);
     const float right = left + glyph.width*pxSizeX;
-    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ - (glyph.height - glyph.bearingTop), pxSizeY);
+    const float bottom = ToVertexPositionY(this->y_ + (int32_t)height_ + (glyph.height - glyph.bearingTop), pxSizeY);
     const float top = bottom + glyph.height*pxSizeY;
     uint32_t vertexCount = (uint32_t)vertices.size();
 
@@ -206,11 +205,11 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
     indices.emplace_back(vertexCount + 1);
     indices.emplace_back(vertexCount + 3);
 
-    vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                    vertices.size()*sizeof(TextVertex), vertices.data());
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
                                                    indices.size()*sizeof(uint32_t), indices.data());
   }
+  vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
+                                                  vertices.size()*sizeof(TextVertex), vertices.data());
   glyphs.insert(glyphAfter, &glyph);
   return true;
 }
@@ -223,12 +222,13 @@ void TextMesh::pop(video_api::Renderer& renderer) {
     return;
 
   const auto& lastGlyph = glyphs.back();
-  int32_t retreatX = lastGlyph->offsetLeft + (int32_t)lastGlyph->width;
   if (glyphs.size() >= (size_t)2) {
     const auto& previousGlyph = glyphs[glyphs.size() - (size_t)2];
-    retreatX += (int32_t)(previousGlyph->advance >> 6) - (int32_t)previousGlyph->width;
+    int32_t retreatX = lastGlyph->offsetLeft + (int32_t)lastGlyph->width
+                     + (int32_t)(previousGlyph->advance >> 6) - (int32_t)previousGlyph->width;
+    width_ = (width_ >= retreatX) ? static_cast<uint32_t>((int32_t)width_ - retreatX) : 0;
   }
-  width_ -= retreatX;
+  else width_ = 0;
 
   if (!lastGlyph->texture.isEmpty()) {
     vertices.resize(vertices.size() - (size_t)4);
@@ -251,8 +251,10 @@ void TextMesh::pop(video_api::Renderer& renderer) {
 // ---
 
 void TextMesh::removeAt(video_api::Renderer& renderer, const float pxSizeX, uint32_t index) {
-  if (index >= (uint32_t)glyphs.size() - 1u)
-    return pop(renderer); // last char -> different advance/width management -> use pop()
+  if (glyphs.size() < (size_t)2 || index >= (uint32_t)glyphs.size() - 1u) {
+    pop(renderer); // last char -> different advance/width management -> use pop()
+    return;
+  }
 
   const auto glyph = glyphs.begin() + index;
   uint32_t vertexIndex = 0;

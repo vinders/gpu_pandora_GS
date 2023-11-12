@@ -174,27 +174,34 @@ void Page::onHover(int32_t controlIndex) {
     // move hover rectangle (if a control is selected)
     if (controlIndex != noControlSelection()) {
       const auto* control = &controlRegistry[controlIndex];
-      bool isLeftPadded = (controlIndex == 0 || control->y() != (control - 1)->y());
-      bool isRightPadded = (controlIndex == (int32_t)controlRegistry.size() - 1 || control->y() != (control+1)->y());
+      bool isLeftEnd = (controlIndex == 0 || control->y() != (control - 1)->y());
+      bool isRightEnd = (controlIndex == (int32_t)controlRegistry.size() - 1 || control->y() != (control+1)->y());
 
       int32_t controlHoverX;
       uint32_t controlHoverWidth;
-      if (isLeftPadded && isRightPadded) {
-        const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
-                                                    + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
-        if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
-          controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
-          controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
-                            + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
-        }
-        else {
-          controlHoverX = controlX + (int32_t)Control::pageLabelWidth() + 12 - (int32_t)Control::lineHoverPaddingX();
-          controlHoverWidth = Control::pageControlWidth() + (Control::lineHoverPaddingX() << 1) + Control::labelMargin() - 12u;
+      const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
+                                                  + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
+      if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
+        controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
+        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+        if (!isRightEnd) {
+          int32_t nextControlRightHoverX = (control + 1)->x() + (int32_t)(control+1)->width() + (int32_t)Control::lineHoverPaddingX();
+          if (controlHoverX + (int32_t)controlHoverWidth < nextControlRightHoverX)
+            controlHoverWidth = static_cast<uint32_t>(nextControlRightHoverX - controlHoverX);
         }
       }
+      else if (!isLeftEnd) {
+        controlHoverX = (control-1)->x() - (int32_t)Control::lineHoverPaddingX();
+        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+        int32_t controlRightHoverX = control->x() + (int32_t)control->width() + (int32_t)Control::lineHoverPaddingX();
+        if (controlHoverX + (int32_t)controlHoverWidth < controlRightHoverX)
+          controlHoverWidth = static_cast<uint32_t>(controlRightHoverX - controlHoverX);
+      }
       else {
-        controlHoverX = isLeftPadded ? (control->x() - (int32_t)Control::lineHoverPaddingX()) : (control->x() - 3);
-        controlHoverWidth = control->width() + Control::lineHoverPaddingX() + 3;
+        controlHoverX = controlX + (int32_t)Control::pageLabelWidth() + 12 - (int32_t)Control::lineHoverPaddingX();
+        controlHoverWidth = Control::pageControlWidth() + (Control::lineHoverPaddingX() << 1) + Control::labelMargin() - 12u;
       }
       
       const int32_t controlHoverY = control->y() - static_cast<int32_t>((Control::pageLineHeight() - control->height()) >> 1) - 1;
@@ -331,38 +338,52 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
 // ---
 
 void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
+  // click on scrollbar
+  if (scrollbar.isEnabled() && mouseX >= scrollbar.x()) {
+    if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
+      scrollbar.click(*context, mouseY, true);
+  }
   // click with an open control -> verify and click/close it
-  if (openControl != nullptr) {
+  else if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover) {
-      auto controlType = openControl->control()->type();
-      if (!openControl->control()->click(*context, mouseX)) { // on lang/theme change, the control will no longer exist after this call
-        if (controlType == ControlType::keyBinding) {         // -> store control type before call
-          const auto* target = reinterpret_cast<const KeyBinding*>(openControl->control());
-          if (target->keyboardValue() != KeyBinding::emptyKeyValue())
-            resolveKeyboardBindings(target);
+      if (!openControl->control()->click(*context, mouseX)) {
+        if (openControl != nullptr) {                        // check if not NULL: on lang/theme change, the control will
+          auto controlType = openControl->control()->type(); // no longer exist after 'click' (-> openControl reset to NULL)
+          if (controlType == ControlType::comboBox)
+            shrinkScrollArea();
+          else if (controlType == ControlType::keyBinding) {
+            const auto* target = reinterpret_cast<const KeyBinding*>(openControl->control());
+            if (target->keyboardValue() != KeyBinding::emptyKeyValue())
+              resolveKeyboardBindings(target);
+          }
         }
         openControl = nullptr;
       }
     }
     else { // clicked elsewhere -> close open control (and don't click on any other control)
       openControl->control()->close();
-      openControl = nullptr;
-      mouseMove(mouseX, mouseY);
+      auto controlType = openControl->control()->type();
+      openControl = nullptr; // reset open control BEFORE calling mouseMove
+
+      if (controlType != ControlType::comboBox || !shrinkScrollArea())
+        mouseMove(mouseX, mouseY);
     }
   }
-  // click on scrollbar
-  else if (mouseX >= scrollbar.x()) {
-    if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
-      scrollbar.click(*context, mouseY, true);
-  }
-  // click on key binding -> open to redirect key/pad inputs
+  // click on page control
   else {
     int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
     if (controlIndex != noControlSelection()) {
       auto* activeControl = &controlRegistry[controlIndex];
-      if (activeControl->control()->click(*context, mouseX))
+      if (activeControl->control()->click(*context, mouseX)) {
         openControl = activeControl;
+
+        // adjust visibility if combo-box longer than page size
+        if (openControl->control()->type() == ControlType::comboBox) {
+          const auto* target = reinterpret_cast<const ComboBox*>(openControl->control());
+          expandScrollArea(target->y() + (int32_t)target->height());
+        }
+      }
     }
   }
 }
@@ -382,16 +403,16 @@ void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
   this->mouseX_ = mouseX;
   this->mouseY_ = mouseY;
 
+  // moving while dragging scrollbar
+  if (scrollbar.isDragged()) {
+    scrollbar.mouseMove(*context, mouseY);
+    onHover(noControlSelection());
+  }
   // moving with an open control -> update it
-  if (openControl != nullptr) {
+  else if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover)
       openControl->control()->mouseMove(*context, mouseX, openControl->isFixed() ? mouseY : (mouseY + scrollY));
-  }
-  // moving while dragging scrollbar
-  else if (scrollbar.isDragged()) {
-    scrollbar.mouseMove(*context, mouseY);
-    onHover(noControlSelection());
   }
   // page control index detection
   else {
@@ -466,10 +487,27 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
       if (target->isOpen()) {
         switch (virtualKeyCode) {
           case _P_VK_ENTER:
-          case _P_VK_ENTER_PAD:  if (!target->click(*context, target->controlX())) { openControl = nullptr; } break; // confirm
-          case _P_VK_TAB:        target->close(); openControl = nullptr; break; // close
-          case _P_VK_ARROW_UP:   target->selectPrevious(*context); break;       // previous option
-          case _P_VK_ARROW_DOWN: target->selectNext(*context); break;           // next option
+          case _P_VK_ENTER_PAD: // confirm
+            if (!target->click(*context, target->controlX())) {
+              openControl = nullptr;
+              shrinkScrollArea();
+            }
+            break;
+          case _P_VK_TAB: // close
+            target->close();
+            openControl = nullptr;
+            shrinkScrollArea();
+            break; 
+          case _P_VK_ARROW_UP: // previous option
+            target->selectPrevious(*context);
+            if (scrollbar.isEnabled() && target->getHoverLineY() < y() + scrollY)
+              scrollbar.setTopPosition(*context, target->getHoverLineY());
+            break;
+          case _P_VK_ARROW_DOWN: // next option
+            target->selectNext(*context);
+            if (scrollbar.isEnabled() && target->getHoverLineY() + (int32_t)target->controlHeight() > y() + (int32_t)height() + scrollY)
+              scrollbar.setBottomPosition(*context, target->getHoverLineY() + (int32_t)target->controlHeight());
+            break;
           default: break;
         }
       }
@@ -496,8 +534,13 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
           auto controlType = control->control()->type();
           if (controlType == ControlType::button || controlType == ControlType::checkBox
            || controlType == ControlType::comboBox || controlType == ControlType::keyBinding) {
-            if (control->control()->click(*context, control->rightX() - control->height() - 10))
+            if (control->control()->click(*context, control->rightX() - control->height() - 10)) {
+              if (control->control()->type() == ControlType::comboBox) {
+                const auto* target = reinterpret_cast<const ComboBox*>(control->control());
+                expandScrollArea(target->y() + (int32_t)target->height());
+              }
               openControl = control;
+            }
           }
         }
         break;

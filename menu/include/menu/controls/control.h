@@ -89,6 +89,8 @@ namespace menu {
 
       static constexpr inline uint32_t labelMargin() noexcept { return 6u; }       ///< Horizontal margin between label and control mesh
       static constexpr inline uint32_t buttonIconLabelMargin() noexcept { return 4u; } ///< Margin between button icon and label
+      static constexpr inline uint32_t controlButtonMargin() noexcept { return 3u; } ///< Margin between button and control
+      static constexpr inline uint32_t buttonPaddingX() noexcept { return 12u; }   ///< Horizontal button padding
       static constexpr inline uint32_t comboBoxPaddingX() noexcept { return 10u; } ///< Horizontal combo-box padding
       static constexpr inline uint32_t comboBoxPaddingY() noexcept { return 7u; }  ///< Vertical combo-box padding
       static constexpr inline uint32_t textBoxPaddingX() noexcept { return 10u; }  ///< Horizontal text-box padding
@@ -117,6 +119,10 @@ namespace menu {
       classic = 0, ///< Rectangle
       cutCorner    ///< Rectangle with top-right corner cut
     };
+    enum class ButtonStyle : uint32_t { ///< Button visual style
+      fromBottomLeft = 0, ///< Top-left/bottom-right corners cut
+      fromTopLeft         ///< Bottom-left/top-right corners cut
+    };
 
     template <size_t ColorCount>
     struct ControlColors { ///< Multi-color control style
@@ -130,30 +136,31 @@ namespace menu {
     // ---
 
     /// @brief Visual style properties for a button control
-    struct ButtonStyle final {
-      ButtonStyle(FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
-                  uint32_t minButtonWidth = 0, uint32_t paddingX = 0, uint32_t paddingY = 0)
-        : fontType(fontType), icon(icon), minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
+    struct ButtonStyleProperties final {
+      ButtonStyleProperties(ButtonStyle style, FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
+                            uint32_t minButtonWidth = 0, uint32_t paddingX = 0, uint32_t paddingY = 0)
+        : style(style), fontType(fontType), icon(icon), minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
         memcpy(this->backgroundColor, backgroundColor_, sizeof(float)*4u);
       }
-      ButtonStyle(FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
-                  const float borderColor_[4], size_t borderSize_, uint32_t minButtonWidth = 0,
-                  uint32_t paddingX = 0, uint32_t paddingY = 0)
-        : borderSize(borderSize_), fontType(fontType), icon(icon),
+      ButtonStyleProperties(ButtonStyle style, FontType fontType, display::ControlIconType icon, const float backgroundColor_[4],
+                            const float borderColor_[4], size_t borderSize_, uint32_t minButtonWidth,
+                            uint32_t paddingX, uint32_t paddingY)
+        : borderSize(borderSize_), style(style), fontType(fontType), icon(icon),
           minButtonWidth(minButtonWidth), paddingX(paddingX), paddingY(paddingY) {
         memcpy(this->backgroundColor, backgroundColor_, sizeof(float)*4u);
         memcpy(this->borderColor, borderColor_, sizeof(float)*4u);
       }
-      ButtonStyle() = default;
-      ButtonStyle(const ButtonStyle&) = default;
-      ButtonStyle(ButtonStyle&&) noexcept = default;
-      ButtonStyle& operator=(const ButtonStyle&) = default;
-      ButtonStyle& operator=(ButtonStyle&&) noexcept = default;
-      ~ButtonStyle() noexcept = default;
+      ButtonStyleProperties() = default;
+      ButtonStyleProperties(const ButtonStyleProperties&) = default;
+      ButtonStyleProperties(ButtonStyleProperties&&) noexcept = default;
+      ButtonStyleProperties& operator=(const ButtonStyleProperties&) = default;
+      ButtonStyleProperties& operator=(ButtonStyleProperties&&) noexcept = default;
+      ~ButtonStyleProperties() noexcept = default;
 
       float backgroundColor[4]{ 0.f,0.f,0.f,1.f }; ///< Background color type
       float borderColor[4]{ 0.f,0.f,0.f,1.f };     ///< Border color type
       size_t borderSize = 0;                       ///< Border pixel size
+      ButtonStyle style = ButtonStyle::fromBottomLeft; ///< Button visual style
       FontType fontType = FontType::titles;        ///< Font type to use
       display::ControlIconType icon = display::ControlIconType::none; ///< Icon to display (if available)
       uint32_t minButtonWidth = 0; ///< Minimum button width (if text + paddingX doesn't reach it)
