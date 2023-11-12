@@ -450,13 +450,13 @@ bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t) {
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
-  auto* hoverControl = getActiveControl();
   aspectRatioGroup.drawBackground(*context, *buffers);
   displayAdjustGroup.drawBackground(*context, *buffers);
 
   buffers->bindControlBuffer(context->renderer(), ControlBufferType::regular);
   ratioPreviewScreen.draw(context->renderer());
 
+  auto* hoverControl = getActiveControl();
   aspectRatioPreset.drawBackground(*context, *buffers, (hoverControl == &aspectRatioPreset));
   stretching.drawBackground(*context, *buffers);
   cropping.drawBackground(*context, *buffers);
@@ -478,10 +478,10 @@ void ScreenStretching::drawPageLabels() {
   buffers->bindLabelBuffer(renderer, LabelBufferType::title);
   title.draw(renderer);
 
-  auto* hoverControl = getActiveControl();
   aspectRatioGroup.drawLabel(*context, *buffers);
   displayAdjustGroup.drawLabel(*context, *buffers);
 
+  auto* hoverControl = getActiveControl();
   aspectRatioPreset.drawLabels(*context, *buffers, (hoverControl == &aspectRatioPreset));
   stretching.drawLabels(*context, *buffers, (hoverControl == &stretching));
   cropping.drawLabels(*context, *buffers, (hoverControl == &cropping));

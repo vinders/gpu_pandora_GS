@@ -121,7 +121,7 @@ namespace menu {
     COUNT
   };
 
-  enum class ProfileSettingsMessages : size_t { ///< Message types for profile settings page
+  enum class ProfileSettingsMessages : size_t { ///< Message types for base profile settings page
     title = 0,
     profileIdGroup,
     profileName,
@@ -166,6 +166,17 @@ namespace menu {
     screenCurvature,
     maxCurved,
     screenCurvature_tooltip,
+    COUNT
+  };
+  enum class CompatibilitySettingsMessages : size_t { ///< Message types for compatibility settings page
+    title = 0,
+    specialGameFixesGroup,
+    lowCompatibilityFrameRead,
+    lowCompatibilityFrameRead_tooltip,
+    ignoreSmallFrameBufferMoves,
+    ignoreSmallFrameBufferMoves_tooltip,
+    fakeGpuBusyStates,
+    fakeGpuBusyStates_tooltip,
     COUNT
   };
 
@@ -215,6 +226,9 @@ namespace menu {
     /// @brief Message resources for screen stretching UI page
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ScreenStretchingMessages::<...>)
     inline const MessageResource* screenStretchingMessageArray() const noexcept { return screenStretching; }
+    /// @brief Message resources for compatibility UI page
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, CompatibilitySettingsMessages::<...>)
+    inline const MessageResource* compatibilityMessageArray() const noexcept { return compatibility; }
 
   private:
     void fillMessagesEN();
@@ -229,8 +243,9 @@ namespace menu {
     MessageResource hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
     MessageResource osdSettings[(size_t)OsdSettingsMessages::COUNT];
     MessageResource profileSettings[(size_t)ProfileSettingsMessages::COUNT];
-    MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
     MessageResource tileColors[(size_t)TileColors::COUNT];
+    MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
+    MessageResource compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }

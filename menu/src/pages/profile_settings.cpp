@@ -102,7 +102,7 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
                    context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
 
   std::vector<ControlRegistration> registry;
-  registry.reserve(11);
+  registry.reserve(6);
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   auto changeHandler = std::bind(&ProfileSettings::onChange,this,std::placeholders::_1);
 

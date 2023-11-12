@@ -204,6 +204,15 @@ void MessageResources::fillMessagesEN() {
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable / move right for max curvature";
+  
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::title) = U"Compatibility settings";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::specialGameFixesGroup) = U"Special game fixes";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead) = U"Low-compatibility frameread";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip) = U"Fake low-compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves) = U"Ignore small frame moves";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves_tooltip) = U"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates) = U"Fake 'GPU busy' states";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip) = U"Toggle 'GPU busy' flags after drawing";
 }
 
 void MessageResources::fillMessagesFR() {
@@ -371,6 +380,15 @@ void MessageResources::fillMessagesFR() {
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
+  
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::title) = U"Compatibility settings";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::specialGameFixesGroup) = U"Special game fixes";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead) = U"Low-comp frame read";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip) = U"Fake low-compatibility frame read: fixes transitions in some games (Legend of Dragoon, RPGMaker)";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves) = U"Ignore small moves";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves_tooltip) = U"Ignore small framebuffer moves: improvement for Final Fantasy VII & VIII";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates) = U"Fake busy states";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip) = U"Fake 'GPU busy' states: toggle busy flags after drawing";
 }
 
 void MessageResources::fillMessagesDE() {
@@ -538,6 +556,15 @@ void MessageResources::fillMessagesDE() {
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
+  
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::title) = U"Compatibility settings";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::specialGameFixesGroup) = U"Special game fixes";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead) = U"Low-comp frame read";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip) = U"Fake low-compatibility frame read: fixes transitions in some games (Legend of Dragoon, RPGMaker)";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves) = U"Ignore small moves";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves_tooltip) = U"Ignore small framebuffer moves: improvement for Final Fantasy VII & VIII";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates) = U"Fake busy states";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip) = U"Fake 'GPU busy' states: toggle busy flags after drawing";
 }
 
 void MessageResources::fillMessagesES() {
@@ -705,4 +732,13 @@ void MessageResources::fillMessagesES() {
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature) = U"Screen curvature";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::maxCurved) = U"max";
   GET_UI_MESSAGE(screenStretching, ScreenStretchingMessages::screenCurvature_tooltip) = U"TV screen curvature effect: move left to disable, move right for max curvature";
+  
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::title) = U"Compatibility settings";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::specialGameFixesGroup) = U"Special game fixes";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead) = U"Low-comp frame read";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip) = U"Fake low-compatibility frame read: fixes transitions in some games (Legend of Dragoon, RPGMaker)";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves) = U"Ignore small moves";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::ignoreSmallFrameBufferMoves_tooltip) = U"Ignore small framebuffer moves: improvement for Final Fantasy VII & VIII";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates) = U"Fake busy states";
+  GET_UI_MESSAGE(compatibility, CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip) = U"Fake 'GPU busy' states: toggle busy flags after drawing";
 }
