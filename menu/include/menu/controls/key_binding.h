@@ -94,7 +94,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (virtual key listening mode)
-      bool click(RendererContext& context, int32_t mouseX = noMouseCoord()) override;
+      bool click(RendererContext& context, int32_t mouseX = noMouseCoord(), int32_t = noMouseCoord()) override;
       /// @brief Set keyboard virtual key (or emptyKeyValue() to disable)
       /// @param Keyboard  keyboard virtual key code -or- mouse key code if not left click (converted with 'toMouseKeyCode')
       /// @returns True if the control is still open (virtual key listening mode)

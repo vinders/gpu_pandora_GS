@@ -47,7 +47,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (open combo-box, edited text-box, dragged ruler...)
-      virtual bool click(RendererContext& context, int32_t mouseX) = 0;
+      virtual bool click(RendererContext& context, int32_t mouseX, int32_t mouseY) = 0;
       /// @brief Report mouse move to control (on mouse move when control is open: dropdown, dragging...)
       virtual void mouseMove(RendererContext& /*context*/, int32_t /*mouseX*/, int32_t /*mouseY*/) {}
       /// @brief Report end of mouse click (after drag)
@@ -78,12 +78,13 @@ namespace menu {
       static constexpr inline uint32_t fieldsetContentMarginX(uint32_t pageWidth) noexcept { ///< Margin to the left of fieldset inner controls
         return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 20 : 8;
       }
-      static constexpr inline uint32_t fieldsetContentPaddingY() noexcept { return 5; }  ///< Padding above first and below last fieldset inner control
-      static constexpr inline uint32_t fieldsetContentBottomMargin() noexcept{ return 12; }///< Margin after last fieldset inner control (before next fieldset)
+      static constexpr inline uint32_t fieldsetContentPaddingTop() noexcept { return 6; }   ///< Padding above first fieldset inner control
+      static constexpr inline uint32_t fieldsetContentPaddingBottom() noexcept { return 5; }///< Padding below last fieldset inner control
+      static constexpr inline uint32_t fieldsetContentMarginBottom() noexcept{ return 12; } ///< Margin after last fieldset inner control (before next fieldset)
       static constexpr inline uint32_t fieldsetContentHeight(uint32_t lineCount) { ///< Fieldset content height (based on the number of content lines)
-        return (pageLineHeight()*lineCount + (fieldsetContentPaddingY() << 1));
+        return (pageLineHeight()*lineCount + fieldsetContentPaddingTop() + fieldsetContentPaddingBottom());
       }
-      static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 720; }       ///< Fieldset maximum width
+      static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 580; } ///< Fieldset maximum width
 
       // -- control sizes --
 

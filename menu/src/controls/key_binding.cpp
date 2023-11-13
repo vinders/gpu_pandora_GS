@@ -342,7 +342,7 @@ ControlStatus KeyBinding::getStatus(int32_t mouseX, int32_t mouseY) const noexce
 
 // -- operations -- ------------------------------------------------------------
 
-bool KeyBinding::click(RendererContext& context, int32_t mouseX) {
+bool KeyBinding::click(RendererContext& context, int32_t mouseX, int32_t) {
   if (isEnabled()) {
     if (!isEditing) {
       if (unbindMesh.width() && mouseX >= unbindMesh.x() && mouseX < unbindMesh.x() + (int32_t)unbindMesh.width()

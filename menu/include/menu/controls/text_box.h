@@ -121,6 +121,7 @@ namespace menu {
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
 
       inline bool isEditMode() const noexcept { return isEditing; } ///< Verify if control is currently in edit mode
+      inline TextBoxType valueDataType() const noexcept { return valueType; } ///< Verify value data type
       inline const char32_t* valueText() const noexcept { return inputValue.data(); } ///< Get text value stored in text-box
       uint32_t valueInteger() const noexcept; ///< Get integer value stored in text-box (only with TextBoxType::integer)
       double valueNumber() const noexcept; ///< Get number value stored in text-box (only with TextBoxType::number or integer)
@@ -129,7 +130,8 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (text editing mode)
-      bool click(RendererContext& context, int32_t mouseX = noMouseCoord()) override;
+      bool click(RendererContext& context, int32_t mouseX = noMouseCoord(), int32_t mouseY = noMouseCoord()) override;
+
       void addChar(RendererContext& context, char32_t code); ///< Report character input to control (if edit mode is active)
       void removeChar(RendererContext& context);             ///< Report character removal to control (if edit mode is active)
       inline void previousChar(RendererContext& context) {   ///< Move caret at previous character if available (on keyboard/pad action, if edit mode is active)
@@ -158,13 +160,16 @@ namespace menu {
       /// @brief Draw text-box background/caret
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      void drawBackground(RendererContext& context, RendererStateBuffers& buffers);
+      void drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers, bool isActive);
       /// @brief Draw text-box label + input value
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
       void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
       static constexpr inline int32_t noMouseCoord() noexcept { return 0x7FFFFFFF; } ///< Click coord for key/pad
+      static constexpr inline int32_t plusMinusCoordX() noexcept { return 0x7FFF; }  ///< Click coord to press +/-
+      static constexpr inline int32_t plusCoordY() noexcept { return 0; }  ///< Click coord to press +/-
+      static constexpr inline int32_t minusCoordY() noexcept { return 0x7FFF; }  ///< Click coord to press +/-
     private:
       void init(RendererContext& context, const char32_t* label, const char32_t* suffix,
                 int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue);
@@ -175,6 +180,8 @@ namespace menu {
 
     private:
       display::controls::ControlMesh controlMesh;
+      display::controls::ControlMesh hoverPlusMesh;
+      display::controls::ControlMesh hoverMinusMesh;
       display::controls::ControlMesh caretMesh;
       display::controls::TextMesh labelMesh;
       display::controls::TextMesh suffixMesh;

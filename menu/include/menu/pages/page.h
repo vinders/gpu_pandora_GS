@@ -32,12 +32,12 @@ namespace menu {
     class ControlRegistration final { ///< Interactive control registration (to allow hover/click/drag/select)
     public:
       template <typename CtrlT>
-      ControlRegistration(CtrlT& control, bool isInScrollableArea, const char32_t* tooltip = nullptr) noexcept
+      ControlRegistration(CtrlT& control, bool isInScrollableArea,
+                          const char32_t* tooltip = nullptr, uint32_t leftHoverMargin = 0) noexcept
         : target(&control),
           top(control.y()),
           bottom(control.y() + (int32_t)control.height()),
-          left((std::is_same<CtrlT,controls::Button>::value) ? (control.x() - (int32_t)Control::controlButtonMargin())
-                                                             : control.x()),
+          left(control.x() - (int32_t)leftHoverMargin),
           right(control.x() + (int32_t)control.width()),
           isScrollable(isInScrollableArea),
           tooltip(tooltip) {}

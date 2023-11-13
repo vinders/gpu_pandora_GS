@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <cmath>
 #include "menu/controls/geometry_generator.h"
 #include "menu/controls/text_box.h"
 #ifdef _WINDOWS
@@ -104,6 +105,40 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
                           boxX + (int32_t)fixedWidth + (int32_t)labelMargin(), inputY);
   }
 
+  // create hover buttons (+/-)
+  if (valueType == TextBoxType::integer) {
+    const uint32_t buttonWidth = ((height - (height >> 3)) | 0x1u);
+    const uint32_t buttonHeight = ((height + 1u) >> 1);
+    const uint32_t signSize = ((buttonHeight >> 1) | 0x1u);
+    const uint32_t signOffsetX = (buttonWidth - signSize) >> 1;
+    const uint32_t signOffsetY = ((buttonHeight + 3u) >> 2);
+    const float colorSign[4]{ colorBorder[0]*1.35f+0.025f, colorBorder[1]*1.35f+0.025f, colorBorder[2]*1.35f+0.025f, colorBorder[3] };
+
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(3 * 4));
+    vertexIt = vertices.data();
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)(buttonWidth - 1u), -1.f, -(float)buttonHeight); // plus background
+    vertexIt += 4;
+
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorSign, (float)signOffsetX, (float)(signOffsetX + signSize), // plus sign
+                                             -(float)(buttonHeight >> 1), -(float)((buttonHeight >> 1) + 1u));
+    vertexIt += 4;
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorSign, (float)(buttonWidth >> 1), (float)((buttonWidth >> 1) + 1u),
+                                             -(float)signOffsetY, -(float)(signOffsetY + signSize));
+    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11 };
+    hoverPlusMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                                boxX + (int32_t)fixedWidth - (int32_t)buttonWidth, boxY, buttonWidth, buttonHeight);
+    
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(2 * 4));
+    vertexIt = vertices.data();
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 0.f, (float)(buttonWidth - 1u), 0.f, -(float)(buttonHeight -1u)); // minus background
+    vertexIt += 4;
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorSign, (float)signOffsetX, (float)(signOffsetX + signSize), // minus sign
+                                             -(float)((buttonHeight >> 1) - 1u), -(float)(buttonHeight >> 1));
+    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7 };
+    hoverMinusMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                                 hoverPlusMesh.x(), boxY + (int32_t)buttonHeight, buttonWidth, buttonHeight);
+  }
+
   // create caret
   float caretColor[4];
   fillCaretColor(color, caretColor);
@@ -143,6 +178,13 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
   if (suffixMesh.width()) {
     suffixMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                     boxX + (int32_t)controlMesh.width() + (int32_t)labelMargin(), inputY);
+  }
+
+  if (hoverPlusMesh.width()) {
+    hoverPlusMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                       boxX + (int32_t)controlMesh.width() - (int32_t)hoverPlusMesh.width(), boxY);
+    hoverMinusMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                       hoverPlusMesh.x(), boxY + hoverPlusMesh.height());
   }
 
   const int32_t caretY = inputMesh.y() - inputMesh.height() + (inputMesh.height() >> 2) + 1;
@@ -208,27 +250,47 @@ void TextBox::replaceValueNumber(RendererContext& context, double numberValue) {
 
 // ---
 
-bool TextBox::click(RendererContext& context, int32_t mouseX) {
+bool TextBox::click(RendererContext& context, int32_t mouseX, int32_t mouseY) {
   if (isEnabled()) {
-    isEditing = true;
-    caretDrawCount = 0;
-
-    // detect caret location + move caret
-    bool isCaretMoved = false;
-    caretLocation = 0;
-    int32_t currentX = inputMesh.x();
-    for (const auto& glyph : inputMesh.meshGlyphs()) {
-      uint32_t charWidth = (glyph->advance >> 6);
-      if (mouseX <= currentX + (int32_t)(charWidth >> 1)) {
-        caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
-        isCaretMoved = true;
-        break;
+    if (hoverPlusMesh.width() && mouseX != noMouseCoord() && mouseX >= hoverPlusMesh.x()) {
+      isEditing = false;
+      uint32_t value = valueInteger();
+      if (mouseY < hoverMinusMesh.y()) { // plus
+        if ((uint32_t)fabs(log10f(static_cast<float>(value+1u))) + 1u <= maxValueLength) {
+          replaceValueInteger(context, value + 1u);
+          if (onChange != nullptr)
+            onChange(operationId);
+        }
       }
-      currentX += (int32_t)charWidth;
-      ++caretLocation;
+      else { // minus
+        if (value > 0u) {
+          replaceValueInteger(context, value - 1u);
+          if (onChange != nullptr)
+            onChange(operationId);
+        }
+      }
     }
-    if (!isCaretMoved) // caret at the end
-      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+    else {
+      isEditing = true;
+      caretDrawCount = 0;
+
+      // detect caret location + move caret
+      bool isCaretMoved = false;
+      caretLocation = 0;
+      int32_t currentX = inputMesh.x();
+      for (const auto& glyph : inputMesh.meshGlyphs()) {
+        uint32_t charWidth = (glyph->advance >> 6);
+        if (mouseX <= currentX + (int32_t)(charWidth >> 1)) {
+          caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+          isCaretMoved = true;
+          break;
+        }
+        currentX += (int32_t)charWidth;
+        ++caretLocation;
+      }
+      if (!isCaretMoved) // caret at the end
+        caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+    }
   }
   else { // close
     isEditing = false;
@@ -301,7 +363,7 @@ void TextBox::close() {
 
 // -- rendering -- -------------------------------------------------------------
 
-void TextBox::drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
+void TextBox::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers, bool isActive) {
   if (isEnabled()) {
     buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
     controlMesh.draw(context.renderer());
@@ -311,6 +373,25 @@ void TextBox::drawBackground(RendererContext& context, RendererStateBuffers& buf
         caretMesh.draw(context.renderer());
       else if (caretDrawCount >= 60u) // hide during 30 frames, then reset counter
         caretDrawCount = 0;
+    }
+
+    if (isActive && hoverPlusMesh.width()) {
+      if (mouseX >= hoverPlusMesh.x() && mouseX != noMouseCoord()) {
+        if (mouseY < hoverMinusMesh.y()) {
+          hoverMinusMesh.draw(context.renderer());
+          buffers.bindControlBuffer(context.renderer(), ControlBufferType::active);
+          hoverPlusMesh.draw(context.renderer());
+        }
+        else {
+          hoverPlusMesh.draw(context.renderer());
+          buffers.bindControlBuffer(context.renderer(), ControlBufferType::active);
+          hoverMinusMesh.draw(context.renderer());
+        }
+      }
+      else {
+        hoverPlusMesh.draw(context.renderer());
+        hoverMinusMesh.draw(context.renderer());
+      }
     }
   }
   else {

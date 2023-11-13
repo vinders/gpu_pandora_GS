@@ -92,7 +92,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (dropdown)
-      bool click(RendererContext& context, int32_t mouseX) override;
+      bool click(RendererContext& context, int32_t mouseX, int32_t) override;
       void mouseMove(RendererContext& context, int32_t mouseX, int32_t mouseY) override; ///< Report mouse move to control (on mouse move with hover)
       void selectPrevious(RendererContext& context);       ///< Select previous entry if available (on keyboard/pad action)
       void selectNext(RendererContext& context);           ///< Select next entry if available (on keyboard/pad action)

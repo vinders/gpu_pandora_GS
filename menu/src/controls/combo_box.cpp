@@ -247,7 +247,7 @@ ControlStatus ComboBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept
 
 // -- operations -- ------------------------------------------------------------
 
-bool ComboBox::click(RendererContext& context, int32_t mouseX) {
+bool ComboBox::click(RendererContext& context, int32_t mouseX, int32_t) {
   if (isEnabled()) {
     if (isListOpen) {
       if (mouseX >= controlX() && hoverIndex > -1 && selectedIndex != hoverIndex && hoverIndex < (int32_t)selectableValues.size()) {

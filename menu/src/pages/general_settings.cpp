@@ -224,7 +224,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   windowGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowGroup), theme->fieldsetStyle(),
                          theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                          Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // display mode
   {
@@ -271,14 +271,14 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   registry.emplace_back(windowHeight, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowSize_tooltip));
 
   onChange(WINDOW_SIZE_ID, windowHeightValue); // fill 'windowSize' text indicator
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- compatibility group ---
   compatibilityGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::emulatorGroup),
                                 theme->fieldsetStyle(), theme->fieldsetControlColor(),
                                 x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                                Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+                                Control::fieldsetContentHeight(4));
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // subprecision modes
   {
@@ -296,17 +296,22 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   registry.emplace_back(widescreenMode, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::widescreen_tooltip));
   currentLineY += Control::pageLineHeight();
 
-  isAutosaved = false;
+  isAutosaved = isAutoloaded = false;
   autosaveOnExit = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autosaveOnExit), controlX, currentLineY,
                             Control::pageLabelWidth(), 0, nullptr, isAutosaved);
   registry.emplace_back(autosaveOnExit, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autosaveOnExit_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();
+
+  autoloadOnStart = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autoloadOnStart), controlX, currentLineY,
+                             Control::pageLabelWidth(), 0, nullptr, isAutoloaded, &isAutosaved);
+  registry.emplace_back(autoloadOnStart, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autoloadOnStart_tooltip));
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- framerate group ---
   framerateGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateGroup), theme->fieldsetStyle(),
                             theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                             Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // frame rate limit mode
   {
@@ -336,13 +341,13 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   frameSkipping = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::frameSkip), controlX,
                            currentLineY, Control::pageLabelWidth(), 0, nullptr, isFrameSkipping, &isFramerateLimit);
   registry.emplace_back(frameSkipping, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::frameSkip_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- user interface group ---
   userInterfaceGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::uiGroup), theme->fieldsetStyle(),
                                 theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                                 Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // interface color
   {
@@ -382,7 +387,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
                                  languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), (uint32_t)localizedText->language());
     registry.emplace_back(interfaceLanguage, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::language_tooltip));
   }
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   // --- control registry ---
   if (currentLineY > y + (int32_t)contentHeight())
@@ -405,6 +410,7 @@ GeneralSettings::~GeneralSettings() noexcept {
   subprecisionMode.release();
   widescreenMode.release();
   autosaveOnExit.release();
+  autoloadOnStart.release();
 
   framerateGroup.release();
   framerateLimit.release();
@@ -432,7 +438,7 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   // display group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   windowGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   displayMode.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
@@ -444,38 +450,40 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   windowHeight.move(*context, controlX, currentLineY);
   windowSize.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
                   windowHeight.controlX() + windowSizeOffsetX, currentLineY + windowSizeOffsetY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // compatibility group
-  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   subprecisionMode.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   widescreenMode.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   autosaveOnExit.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();
+  autoloadOnStart.move(*context, controlX, currentLineY);
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // framerate group
-  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   framerateLimit.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   fixedFramerate.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   frameSkipping.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // user interface group
   userInterfaceGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   interfaceColor.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   interfaceLanguage.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
@@ -541,20 +549,21 @@ void GeneralSettings::drawIcons() {
   auto* hoverControl = getActiveControl();
   widescreenMode.drawIcon(*context, *buffers, (hoverControl == &widescreenMode));
   autosaveOnExit.drawIcon(*context, *buffers, (hoverControl == &autosaveOnExit));
+  autoloadOnStart.drawIcon(*context, *buffers, (hoverControl == &autoloadOnStart));
   frameSkipping.drawIcon(*context, *buffers, (hoverControl == &frameSkipping));
 }
 
-bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
-  auto* hoverControl = getActiveControl();
   windowGroup.drawBackground(*context, *buffers);
   compatibilityGroup.drawBackground(*context, *buffers);
   framerateGroup.drawBackground(*context, *buffers);
   userInterfaceGroup.drawBackground(*context, *buffers);
 
+  auto* hoverControl = getActiveControl();
   displayMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &displayMode));
   subprecisionMode.drawBackground(*context, mouseX, *buffers, (hoverControl == &subprecisionMode));
   framerateLimit.drawBackground(*context, mouseX, *buffers, (hoverControl == &framerateLimit));
@@ -563,8 +572,8 @@ bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
   fullscreenSize.drawBackground(*context, *buffers, (hoverControl == &fullscreenSize));
   fullscreenRate.drawBackground(*context, *buffers, (hoverControl == &fullscreenRate));
   interfaceLanguage.drawBackground(*context, *buffers, (hoverControl == &interfaceLanguage));
-  windowHeight.drawBackground(*context, *buffers);
-  fixedFramerate.drawBackground(*context, *buffers);
+  windowHeight.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &windowHeight));
+  fixedFramerate.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &fixedFramerate));
   return false;
 }
 
@@ -577,12 +586,12 @@ void GeneralSettings::drawPageLabels() {
   buffers->bindLabelBuffer(renderer, LabelBufferType::title);
   title.draw(renderer);
 
-  auto* hoverControl = getActiveControl();
   windowGroup.drawLabel(*context, *buffers);
   compatibilityGroup.drawLabel(*context, *buffers);
   framerateGroup.drawLabel(*context, *buffers);
   userInterfaceGroup.drawLabel(*context, *buffers);
 
+  auto* hoverControl = getActiveControl();
   displayMode.drawLabels(*context, *buffers, (hoverControl == &displayMode));
   subprecisionMode.drawLabels(*context, *buffers, (hoverControl == &subprecisionMode));
   framerateLimit.drawLabels(*context, *buffers, (hoverControl == &framerateLimit));
@@ -598,6 +607,7 @@ void GeneralSettings::drawPageLabels() {
 
   widescreenMode.drawLabel(*context, *buffers, (hoverControl == &widescreenMode));
   autosaveOnExit.drawLabel(*context, *buffers, (hoverControl == &autosaveOnExit));
+  autoloadOnStart.drawLabel(*context, *buffers, (hoverControl == &autoloadOnStart));
   frameSkipping.drawLabel(*context, *buffers, (hoverControl == &frameSkipping));
 }
 

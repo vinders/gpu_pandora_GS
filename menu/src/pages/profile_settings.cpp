@@ -36,26 +36,24 @@ static void setDefaultProfileName(uint32_t profileId, char32_t buffer[DEFAULT_NA
 
   // append profile ID
   char32_t* it = buffer + (static_cast<intptr_t>(sizeof(defaultPrefix)/sizeof(char32_t)) - 1u);
-  if (profileId != 0) {
-    it += (profileId < 10000)
-        ? ((profileId < 100)
-           ? ((profileId < 10) ? 1 : 2)
-           : ((profileId < 1000) ? 3 : 4) )
-        : ((profileId < 1000000)
-           ? ((profileId < 100000) ? 5 : 6)
-           : ((profileId < 100000000)
-              ? ((profileId < 10000000) ? 7 : 8)
-              : ((profileId < 1000000000) ? 9 : 10)));
+  if (profileId >= 10u) {
+    it += (profileId < 10000u)
+        ? ((profileId < 100u) ? 1 : ((profileId < 1000u) ? 3 : 4) )
+        : ((profileId < 1000000u)
+           ? ((profileId < 100000u) ? 5 : 6)
+           : ((profileId < 100000000u)
+              ? ((profileId < 10000000u) ? 7 : 8)
+              : ((profileId < 1000000000u) ? 9 : 10)));
     *it = U'\0';
     --it;
     while (profileId) {
-      *it = U'0' + static_cast<char32_t>(profileId % 10);
-      profileId /= 10;
+      *it = U'0' + static_cast<char32_t>(profileId % 10u);
+      profileId /= 10u;
       --it;
     }
   }
   else {
-    *it = U'0';
+    *it = U'0' + static_cast<char32_t>(profileId);
     *(++it) = U'\0';
   }
 }
@@ -119,7 +117,7 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
   profileIdGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::profileIdGroup),
                             theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                             currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // profile name
   if (currentProfile == nullptr || currentProfile->name == nullptr || currentProfile->name[0] == U'\0') {
@@ -166,14 +164,14 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     std::vector<uint32_t> indices{ 0,1,2,2,1,3,  4,5,6,6,5,7 };
     colorPreview = ControlMesh(context->renderer(), std::move(vertices), indices, context->pixelSizeX(), context->pixelSizeY(),
                                tileColor.x() + (int32_t)tileColor.width() + 1, tileColor.y(), previewBoxSize, previewBoxSize);
-    currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+    currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
   }
 
   // --- preset group ---
   presetGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::presetGroup),
                          theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                          currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none, theme->buttonControlColor(),
                                     theme->buttonBorderColor(), 1, 0, Control::buttonPaddingX(), Control::comboBoxPaddingY());
@@ -190,7 +188,7 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     applyPreset = Button(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::apply),
                          presetToApply.x() + (int32_t)presetToApply.width() + Control::controlButtonMargin(),
                          currentLineY, buttonStyle, APPLY_PRESET_ID, changeHandler);
-    registry.emplace_back(applyPreset, true);
+    registry.emplace_back(applyPreset, true, nullptr, Control::controlButtonMargin());
     currentLineY += Control::pageLineHeight();
   }
   {
@@ -213,8 +211,8 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     copyProfile = Button(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::apply),
                          profileToCopy.x() + (int32_t)profileToCopy.width() + Control::controlButtonMargin(),
                          currentLineY, buttonStyle, COPY_PROFILE_ID, changeHandler, &hasOtherProfiles);
-    registry.emplace_back(copyProfile, true);
-    currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentBottomMargin();
+    registry.emplace_back(copyProfile, true, nullptr, Control::controlButtonMargin());
+    currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
   }
 
   // --- control registry ---
@@ -256,25 +254,25 @@ void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   // profile ID group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   profileIdGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   profileName.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   tileColor.move(*context, controlX, currentLineY);
   colorPreview.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
                     tileColor.x() + (int32_t)tileColor.width() + 1, tileColor.y());
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // preset group
   presetGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   presetToApply.move(*context, controlX, currentLineY);
   applyPreset.move(*context, presetToApply.x() + (int32_t)presetToApply.width() + Control::controlButtonMargin(), currentLineY);
   currentLineY += Control::pageLineHeight();
   profileToCopy.move(*context, controlX, currentLineY);
   copyProfile.move(*context, profileToCopy.x() + (int32_t)profileToCopy.width() + Control::controlButtonMargin(), currentLineY);
-  currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
@@ -323,7 +321,7 @@ void ProfileSettings::onColorChange(uint32_t id, uint32_t value) {
 
 // -- rendering -- -------------------------------------------------------------
 
-bool ProfileSettings::drawPageBackgrounds(int32_t, int32_t) {
+bool ProfileSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -331,11 +329,11 @@ bool ProfileSettings::drawPageBackgrounds(int32_t, int32_t) {
   profileIdGroup.drawBackground(*context, *buffers);
   presetGroup.drawBackground(*context, *buffers);
 
-  profileName.drawBackground(*context, *buffers);
+  auto* hoverControl = getActiveControl();
+  profileName.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &profileName));
   buffers->bindControlBuffer(context->renderer(), ControlBufferType::regular);
   colorPreview.draw(context->renderer());
 
-  auto* hoverControl = getActiveControl();
   tileColor.drawBackground(*context, *buffers, (hoverControl == &tileColor));
   presetToApply.drawBackground(*context, *buffers, (hoverControl == &presetToApply));
   profileToCopy.drawBackground(*context, *buffers, (hoverControl == &profileToCopy));

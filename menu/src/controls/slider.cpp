@@ -39,7 +39,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
     labelWidthWithMargin += labelMargin();
   
   // create options
-  const uint32_t optionCenterX = x + (int32_t)labelWidthWithMargin + (int32_t)(fixedSliderWidth >> 1) - 2;
+  const uint32_t optionCenterX = x + (int32_t)labelWidthWithMargin + (int32_t)((fixedSliderWidth - 2) >> 1);
   selectableValues.reserve(valueCount);
   for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
     selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelY, values->value);
@@ -111,7 +111,7 @@ void Slider::replaceValues(RendererContext& context, ComboBoxOption* values, siz
   selectableValues.clear();
   {
     auto& font = context.getFont(FontType::labels);
-    const uint32_t optionCenterX = arrowLeftMesh.x() + (int32_t)(fixedSliderWidth >> 1) - 2;
+    const uint32_t optionCenterX = arrowLeftMesh.x() + (int32_t)((fixedSliderWidth - 2) >> 1);
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
       selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelMesh.y(), values->value);
@@ -128,7 +128,7 @@ ControlStatus Slider::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
 
 // ---
 
-bool Slider::click(RendererContext&, int32_t mouseX) {
+bool Slider::click(RendererContext&, int32_t mouseX, int32_t) {
   int32_t extraMargin = (int32_t)(arrowLeftMesh.width() >> 2);
   if (mouseX >= arrowLeftMesh.x() - extraMargin && mouseX < arrowLeftMesh.x() + (int32_t)arrowLeftMesh.width() + extraMargin)
     selectPrevious();

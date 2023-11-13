@@ -43,7 +43,7 @@ void CompatibilitySettings::init(const ColorTheme& theme, const MessageResources
   specialGameFixesGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,CompatibilitySettingsMessages::specialGameFixesGroup),
                                    theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                                    currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   lowCompatibilityFrameRead = CheckBox(*context, GET_UI_MESSAGE(textResources,CompatibilitySettingsMessages::lowCompatibilityFrameRead),
                                        controlX, currentLineY, Control::pageLabelWidth(), 0, nullptr, lowCompatibilityFrameReadValue);
@@ -63,7 +63,7 @@ void CompatibilitySettings::init(const ColorTheme& theme, const MessageResources
                                controlX, currentLineY, Control::pageLabelWidth(), 0, nullptr, fakeGpuBusyStatesValue);
   fakeGpuBusyStatesValue = false;
   registry.emplace_back(fakeGpuBusyStates, true, GET_UI_MESSAGE(textResources,CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip));
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   // --- control registry ---
   if (currentLineY > y + (int32_t)contentHeight())
@@ -96,14 +96,14 @@ void CompatibilitySettings::move(int32_t x, int32_t y, uint32_t width, uint32_t 
   // aspect ratio group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   specialGameFixesGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   lowCompatibilityFrameRead.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   ignoreSmallFrameBufferMoves.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   fakeGpuBusyStates.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
@@ -121,7 +121,7 @@ void CompatibilitySettings::drawIcons() {
   fakeGpuBusyStates.drawIcon(*context, *buffers, (hoverControl == &fakeGpuBusyStates));
 }
 
-bool CompatibilitySettings::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool CompatibilitySettings::drawPageBackgrounds(int32_t, int32_t) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));

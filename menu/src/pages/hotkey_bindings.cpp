@@ -46,7 +46,7 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
   behaviorGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::behaviorGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight(5));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   menuHintMouseMove = CheckBox(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::menuHintMouseMove), controlX,
                                currentLineY, Control::pageLabelWidth(), 0, nullptr, showMenuHint);
@@ -79,7 +79,7 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                             nullptr, speedCommandOptions, sizeof(speedCommandOptions)/sizeof(*speedCommandOptions), 0, &isBindingEnabled);
   registry.emplace_back(fastForwardMode, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::fastForwardMode_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- bindings group ---
   const MessageResource* actionTextResources = localizedText.hotkeyActionsMessageArray();
@@ -87,7 +87,7 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
   bindingsGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::bindingsGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight((uint32_t)HotkeyActions::COUNT) + (Control::pageLineHeight() >> 1)*3u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
 
   for (size_t i = 0; i < (size_t)HotkeyActions::COUNT; ++i) {
@@ -101,7 +101,7 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
     registry.emplace_back(bindings[i], true, GET_UI_MESSAGE(actionTooltipResources,i));
     currentLineY += Control::pageLineHeight();
   }
-  //currentLineY += Control::fieldsetContentBottomMargin();
+  //currentLineY += Control::fieldsetContentMarginBottom();
 
   // --- control registry ---
   if (currentLineY > y + (int32_t)contentHeight())
@@ -141,7 +141,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   behaviorGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                      Control::fieldsetContentHeight(5));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   menuHintMouseMove.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
@@ -152,12 +152,12 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
   slowMotionMode.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   fastForwardMode.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // bindings group
   bindingsGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                      Control::fieldsetContentHeight((uint32_t)HotkeyActions::COUNT) + (Control::pageLineHeight() >> 1)*3u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   for (size_t i = 0; i < (size_t)HotkeyActions::COUNT; ++i) {
     if (i == (size_t)HotkeyActions::nextSaveSlot || i == (size_t)HotkeyActions::pauseResume || i == (size_t)HotkeyActions::screenshot)
@@ -166,7 +166,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
     bindings[i].move(*context, controlX, currentLineY);
     currentLineY += Control::pageLineHeight();
   }
-  //currentLineY += Control::fieldsetContentBottomMargin();
+  //currentLineY += Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }

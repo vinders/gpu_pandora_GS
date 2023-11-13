@@ -181,12 +181,12 @@ void ScreenStretching::init(const ColorTheme& theme, const MessageResources& loc
   aspectRatioGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ScreenStretchingMessages::aspectRatioGroup),
                               theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                               currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + (Control::pageLineHeight() >> 1)
-                                                         + Control::pageLineHeight() - (Control::pageLineHeight() >> 3));
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 1) - (Control::pageLineHeight() >> 3);
+                                                         + Control::pageLineHeight() - (Control::pageLineHeight() >> 3) - 1);
+  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 1) - (Control::pageLineHeight() >> 3) - 1;
 
   // ratio preview
-  generatePreview(theme.fieldsetControlColor(), controlX, currentLineY + 1);
-  currentLineY += Control::fieldsetContentPaddingY();
+  generatePreview(theme.fieldsetControlColor(), controlX, currentLineY + 2);
+  currentLineY += Control::fieldsetContentPaddingTop();
 
   // aspect ratio presets
   const int32_t ratioControlX = controlX + RATIO_PARAMS_OFFSET;
@@ -237,14 +237,14 @@ void ScreenStretching::init(const ColorTheme& theme, const MessageResources& loc
     mirror = Slider(*context, nullptr, ratioControlX, currentLineY, 0, RATIO_PARAMS_MAX_WIDTH, theme.sliderArrowColor(),
                     MIRROR_ID, changeHandler, mirrorOptions, sizeof(mirrorOptions)/sizeof(*mirrorOptions), 0);
     registry.emplace_back(mirror, true, GET_UI_MESSAGE(textResources,ScreenStretchingMessages::mirror_tooltip));
-    currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin() + (Control::pageLineHeight() >> 1);
+    currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom() + (Control::pageLineHeight() >> 1) + 1;
   }
 
   // --- display adjustments group ---
   displayAdjustGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ScreenStretchingMessages::displayAdjustmentsGroup),
                                 theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                                 currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + 1u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY() + 1;
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // black borders
   blackBordersX = TextBox(*context, GET_UI_MESSAGE(textResources,ScreenStretchingMessages::blackBorders), nullptr, controlX,
@@ -281,7 +281,7 @@ void ScreenStretching::init(const ColorTheme& theme, const MessageResources& loc
                      currentLineY, Control::pageLabelWidth(), 0, nullptr, isCenteredY);
   isCenteredY = false;
   registry.emplace_back(centerY, true, GET_UI_MESSAGE(textResources,ScreenStretchingMessages::centerY_tooltip));
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   // --- control registry ---
   if (currentLineY > y + (int32_t)contentHeight())
@@ -335,7 +335,7 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
                          controlX + ratioPreviewImage.x() - ratioPreviewScreen.x(),
                          currentLineY + 1 + RATIO_PREVIEW_OFFSET_Y + ratioPreviewImage.y() - ratioPreviewScreen.y());
   ratioPreviewScreen.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlX, currentLineY + 1 + RATIO_PREVIEW_OFFSET_Y);
-  currentLineY += Control::fieldsetContentPaddingY();
+  currentLineY += Control::fieldsetContentPaddingTop() - 1;
 
   const int32_t ratioControlX = controlX + RATIO_PARAMS_OFFSET;
   aspectRatioPreset.move(*context, ratioControlX, currentLineY);
@@ -347,11 +347,11 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
   pixelRatio.move(*context, ratioControlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   mirror.move(*context, ratioControlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin() + (Control::pageLineHeight() >> 1);
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom() + (Control::pageLineHeight() >> 1);
 
   // display adjustements group
   displayAdjustGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + 1u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY() + 1;
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   blackBordersX.move(*context, controlX, currentLineY);
   blackBordersY.move(*context, blackBordersX.rightX() + 2, currentLineY);
@@ -363,7 +363,7 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
   centerX.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   centerY.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }
@@ -445,7 +445,7 @@ void ScreenStretching::drawIcons() {
   ratioPreviewImage.draw(context->renderer());
 }
 
-bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t) {
+bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -464,8 +464,8 @@ bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t) {
   pixelRatio.drawBackground(*context, mouseX, *buffers, (hoverControl == &pixelRatio));
   mirror.drawBackground(*context, mouseX, *buffers, (hoverControl == &mirror));
 
-  blackBordersX.drawBackground(*context, *buffers);
-  blackBordersY.drawBackground(*context, *buffers);
+  blackBordersX.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &blackBordersX));
+  blackBordersY.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &blackBordersY));
   return false;
 }
 

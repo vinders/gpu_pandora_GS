@@ -20,6 +20,7 @@ GNU General Public License for more details (LICENSE file).
 # ifdef USE_SHADERS
 # include <video/d3d11/shader.h>
 # endif
+# define MAX_TEXTURE_SIZE  D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION
 namespace video_api = pandora::video::d3d11;
 #else
 # include <video/vulkan/renderer.h>
@@ -28,5 +29,6 @@ namespace video_api = pandora::video::d3d11;
 # ifdef USE_SHADERS
 # include <video/vulkan/shader.h>
 # endif
+# define MAX_TEXTURE_SIZE  8192
 namespace video_api = pandora::video::vulkan;
 #endif

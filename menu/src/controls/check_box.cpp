@@ -70,7 +70,7 @@ ControlStatus CheckBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept
   return isEnabled() ? (isHover(mouseX, mouseY) ? ControlStatus::hover : ControlStatus::regular) : ControlStatus::disabled;
 }
 
-bool CheckBox::click(RendererContext&, int32_t) {
+bool CheckBox::click(RendererContext&, int32_t, int32_t) {
   click();
   return false;
 }

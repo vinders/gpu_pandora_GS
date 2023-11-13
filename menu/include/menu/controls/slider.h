@@ -86,7 +86,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover)
       /// @returns True if the control is now open (always false)
-      bool click(RendererContext& context, int32_t mouseX) override;
+      bool click(RendererContext& context, int32_t mouseX, int32_t) override;
       void selectPrevious();      ///< Select previous entry if available (on keyboard/pad action)
       void selectNext();          ///< Select next entry if available (on keyboard/pad action)
 

@@ -329,7 +329,7 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
       }
     }
     if (control->control()->type() == ControlType::textBox) { // automatic focus if text-box
-      if (control->control()->click(*context, TextBox::noMouseCoord()))
+      if (control->control()->click(*context, TextBox::noMouseCoord(), TextBox::noMouseCoord()))
         openControl = control;
     }
   }
@@ -347,7 +347,7 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   else if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
     if (status == ControlStatus::hover) {
-      if (!openControl->control()->click(*context, mouseX)) {
+      if (!openControl->control()->click(*context, mouseX, mouseY)) {
         if (openControl != nullptr) {                        // check if not NULL: on lang/theme change, the control will
           auto controlType = openControl->control()->type(); // no longer exist after 'click' (-> openControl reset to NULL)
           if (controlType == ControlType::comboBox)
@@ -375,7 +375,7 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
     int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
     if (controlIndex != noControlSelection()) {
       auto* activeControl = &controlRegistry[controlIndex];
-      if (activeControl->control()->click(*context, mouseX)) {
+      if (activeControl->control()->click(*context, mouseX, mouseY)) {
         openControl = activeControl;
 
         // adjust visibility if combo-box longer than page size
@@ -473,6 +473,16 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
           case _P_VK_BACKSPACE:   target->removeChar(*context); break;   // erase previous char
           case _P_VK_ARROW_LEFT:  target->previousChar(*context); break; // move caret left
           case _P_VK_ARROW_RIGHT: target->nextChar(*context); break;     // move caret right
+          case _P_VK_ADD:
+          case _P_VK_PUNCT_PLUS: // increment
+            if (target->valueDataType() == TextBoxType::integer && !target->click(*context, TextBox::plusMinusCoordX(), TextBox::plusCoordY()))
+              target->click(*context, TextBox::noMouseCoord(), TextBox::noMouseCoord()); // keep focus
+            break;
+          case _P_VK_SUBTRACT:
+          case _P_VK_PUNCT_MINUS: // decrement
+            if (target->valueDataType() == TextBoxType::integer && !target->click(*context, TextBox::plusMinusCoordX(), TextBox::minusCoordY()))
+              target->click(*context, TextBox::noMouseCoord(), TextBox::noMouseCoord()); // keep focus
+            break;
           case _P_VK_TAB:
           case _P_VK_ARROW_DOWN: selectNextControlIndex(); break;        // move to next control
           case _P_VK_ARROW_UP: selectPreviousControlIndex(); break;      // move to previous control
@@ -488,7 +498,7 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
         switch (virtualKeyCode) {
           case _P_VK_ENTER:
           case _P_VK_ENTER_PAD: // confirm
-            if (!target->click(*context, target->controlX())) {
+            if (!target->click(*context, target->controlX(), target->y())) {
               openControl = nullptr;
               shrinkScrollArea();
             }
@@ -534,7 +544,7 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
           auto controlType = control->control()->type();
           if (controlType == ControlType::button || controlType == ControlType::checkBox
            || controlType == ControlType::comboBox || controlType == ControlType::keyBinding) {
-            if (control->control()->click(*context, control->rightX() - control->height() - 10)) {
+            if (control->control()->click(*context, control->rightX() - control->height() - 10, control->y())) {
               if (control->control()->type() == ControlType::comboBox) {
                 const auto* target = reinterpret_cast<const ComboBox*>(control->control());
                 expandScrollArea(target->y() + (int32_t)target->height());
@@ -584,9 +594,38 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
 }
 
 void Page::padButtonDown(uint32_t virtualKeyCode) {
-  //...
-  //...
-  //...
+  if (openControl != nullptr) {
+    auto controlType = openControl->control()->type();
+    if (controlType == ControlType::textBox) {
+      switch (virtualKeyCode) {
+        case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004: vkeyDown(_P_VK_SUBTRACT); return;
+        case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008: vkeyDown(_P_VK_ADD); return;
+        default: break;
+      }
+    }
+    else if (controlType == ControlType::keyBinding) {
+      auto* target = reinterpret_cast<KeyBinding*>(openControl->control());
+      if (!target->setControllerValue(*context, virtualKeyCode)) {
+        if (target->keyboardValue() != KeyBinding::emptyKeyValue())
+          resolveKeyboardBindings(target);
+        openControl = nullptr;
+      }
+      return;
+    }
+  }
+  switch (virtualKeyCode) {
+    case /*XINPUT_GAMEPAD_DPAD_UP*/0x0001: vkeyDown(_P_VK_ARROW_UP); break;
+    case /*XINPUT_GAMEPAD_DPAD_DOWN*/0x0002: vkeyDown(_P_VK_ARROW_DOWN); break;
+    case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004: vkeyDown(_P_VK_ARROW_LEFT); break;
+    case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008: vkeyDown(_P_VK_ARROW_RIGHT); break;
+    case /*XINPUT_GAMEPAD_BACK*/0x0020: vkeyDown(_P_VK_BACKSPACE); break;
+    case /*XINPUT_GAMEPAD_START*/0x0010:
+    case /*XINPUT_GAMEPAD_A*/0x1000:
+    case /*XINPUT_GAMEPAD_X*/0x4000: vkeyDown(_P_VK_ENTER); break;
+    case /*XINPUT_GAMEPAD_B*/0x2000:
+    case /*XINPUT_GAMEPAD_Y*/0x8000: vkeyDown(_P_VK_DELETE); break;
+    default: break;
+  }
 }
 
 

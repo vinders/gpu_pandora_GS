@@ -78,7 +78,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover -or- on keyboard/pad action)
       /// @returns True if the control is now open (always false)
-      bool click(RendererContext& context, int32_t mouseX) override;
+      bool click(RendererContext& context, int32_t mouseX, int32_t) override;
       inline void click() const {
         if (isEnabled()) {
           *boundValue ^= true;

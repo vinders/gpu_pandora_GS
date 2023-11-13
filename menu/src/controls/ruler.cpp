@@ -183,7 +183,7 @@ ControlStatus Ruler::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
 
 // ---
 
-bool Ruler::click(RendererContext& context, int32_t mouseX) {
+bool Ruler::click(RendererContext& context, int32_t mouseX, int32_t) {
   click(context, mouseX, true);
   return isDragging;
 }

@@ -96,8 +96,10 @@ namespace menu {
       controls::Slider subprecisionMode;
       controls::CheckBox widescreenMode;
       controls::CheckBox autosaveOnExit;
+      controls::CheckBox autoloadOnStart;
       bool enableWidescreenMode = false;
       bool isAutosaved = false;
+      bool isAutoloaded = false;
 
       // framerate
       controls::Fieldset framerateGroup;

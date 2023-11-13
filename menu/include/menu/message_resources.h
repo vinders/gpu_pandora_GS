@@ -55,6 +55,8 @@ namespace menu {
     widescreen_tooltip,
     autosaveOnExit,
     autosaveOnExit_tooltip,
+    autoloadOnStart,
+    autoloadOnStart_tooltip,
     rateGroup, // frame rate group
     rateLimit_tooltip,
     rateLimit,
@@ -168,6 +170,51 @@ namespace menu {
     screenCurvature_tooltip,
     COUNT
   };
+  enum class SmoothingUpscalingMessages : size_t { ///< Message types for smoothing/upscaling page
+    title = 0,
+    frameBufferGroup, // frame-buffer group
+    internalResolution,
+    internalResolution_tooltip,
+    internalResolution_prefix,
+    internalResolution_to,
+    internalResolution_suffix,
+    mdecMovieFilter,
+    mdecMovieFilter_tooltip,
+    disabled, // common
+    grain_photo,
+    grain_gauss,
+    screenGroup, // screen group
+    screenUpscaling,
+    screenUpscaling_tooltip,
+    displaySize_prefix,
+    screenBlur,
+    screenBlur_tooltip,
+    screenGrain,
+    screenGrain_tooltip,
+    smoothing_nearest,
+    smoothing_bilinear,
+    smoothing_bicubic,
+    smoothing_lanczos,
+    textureGroup, // texture group
+    textureUpscaling,
+    textureUpscaling_tooltip,
+    textureSmoothing,
+    textureSmoothing_tooltip,
+    textureGrain,
+    textureGrain_tooltip,
+    textureSplatting,
+    textureSplatting_tooltip,
+    spriteGroup, // sprite group
+    spriteTextureSettings,
+    spriteTextureSettings_tooltip,
+    spriteUpscaling,
+    spriteUpscaling_tooltip,
+    spriteSmoothing,
+    spriteSmoothing_tooltip,
+    spriteGrain,
+    spriteGrain_tooltip,
+    COUNT
+  };
   enum class CompatibilitySettingsMessages : size_t { ///< Message types for compatibility settings page
     title = 0,
     specialGameFixesGroup,
@@ -226,6 +273,9 @@ namespace menu {
     /// @brief Message resources for screen stretching UI page
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ScreenStretchingMessages::<...>)
     inline const MessageResource* screenStretchingMessageArray() const noexcept { return screenStretching; }
+    /// @brief Message resources for smoothing/upscaling UI page
+    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, SmoothingUpscalingMessages::<...>)
+    inline const MessageResource* smoothingUpscalingMessageArray() const noexcept { return smoothingUpscaling; }
     /// @brief Message resources for compatibility UI page
     /// @remarks Access messages using GET_UI_MESSAGE(messageArray, CompatibilitySettingsMessages::<...>)
     inline const MessageResource* compatibilityMessageArray() const noexcept { return compatibility; }
@@ -245,6 +295,7 @@ namespace menu {
     MessageResource profileSettings[(size_t)ProfileSettingsMessages::COUNT];
     MessageResource tileColors[(size_t)TileColors::COUNT];
     MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
+    MessageResource smoothingUpscaling[(size_t)SmoothingUpscalingMessages::COUNT];
     MessageResource compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };

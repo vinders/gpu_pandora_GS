@@ -46,7 +46,7 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
   clockGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockGroup), theme.fieldsetStyle(),
                         theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                         Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // clock visibility
   {
@@ -88,14 +88,14 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                             nullptr, locationOptionsY, sizeof(locationOptionsY)/sizeof(*locationOptionsY), 0, &isClockEnabled);
     registry.emplace_back(clockLocationY, true);
-    currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+    currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
   }
 
   // --- tech info group ---
   techInfoGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // tech info visibility
   techInfoVisibility = CheckBox(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoVisibility), controlX,
@@ -113,7 +113,7 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
                           Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0, nullptr,
                           formatOptions, sizeof(formatOptions)/sizeof(*formatOptions), 0, &isTechInfoEnabled);
     registry.emplace_back(techInfoType, true);
-    currentLineY += Control::pageLineHeight();// +Control::fieldsetContentBottomMargin();
+    currentLineY += Control::pageLineHeight();// +Control::fieldsetContentMarginBottom();
   }
 
   // --- control registry ---
@@ -152,7 +152,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   // clock group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
   clockGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   clockVisibility.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
@@ -161,16 +161,16 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   clockLocationX.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   clockLocationY.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // tech info group
   techInfoGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingY();
+  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   techInfoVisibility.move(*context, controlX, currentLineY);
   currentLineY += Control::pageLineHeight();
   techInfoType.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentBottomMargin();
+  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
 }

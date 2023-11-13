@@ -87,7 +87,7 @@ namespace menu {
 
       /// @brief Report click to the control (on mouse click with hover)
       /// @returns True if the control is dragged (always true if control is enabled)
-      bool click(RendererContext& context, int32_t mouseX) override;
+      bool click(RendererContext& context, int32_t mouseX, int32_t) override;
       inline void click(RendererContext& context, int32_t mouseX, bool isMouseDown) { ///< Report click to control (on mouse click with hover)
         if (isEnabled()) {
           isDragging = isMouseDown;
