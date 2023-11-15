@@ -76,7 +76,7 @@ Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, 
     FT_Set_Pixel_Sizes(systemFace, customWidthPixels, heightPixels);
   }
 
-  // load ASCII character glyphs
+  // preload ASCII character glyphs
   for (char32_t code = U' '; code <= U'~'; ++code) {
     readGlyphFromFont(renderer, code);
   }

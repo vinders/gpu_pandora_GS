@@ -30,7 +30,7 @@ namespace menu {
       /// @param operationId Unique ruler operation identifier (should be cast from an enum or constant)
       /// @param onChange    Event handler to call (with 'operationId') when the ruler value changes
       /// @param enabler     Optional data/config value to which the ruler state should be bound
-      Ruler(RendererContext& context, const char32_t* label, const char32_t* suffix, menu::FontType labelFontType,
+      Ruler(RendererContext& context, const char16_t* label, const char16_t* suffix, menu::FontType labelFontType,
             display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, uint32_t minLabelWidth,
             uint32_t fixedRulerWidth, const RulerColors& colors, uint32_t operationId,
             std::function<void(uint32_t,uint32_t)> onChange, uint32_t minValue, uint32_t maxValue, uint32_t step,
@@ -118,7 +118,7 @@ namespace menu {
       void drawLabels(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
-      void init(RendererContext& context, const char32_t* label, const char32_t* suffix, menu::FontType labelFontType,
+      void init(RendererContext& context, const char16_t* label, const char16_t* suffix, menu::FontType labelFontType,
                 display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY,
                 uint32_t fixedRulerWidth, const RulerColors& colors);
       void updateThumbPosition(RendererContext& context, uint32_t value, bool notify = true);

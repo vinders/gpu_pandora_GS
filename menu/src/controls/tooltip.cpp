@@ -46,7 +46,7 @@ static std::vector<ControlVertex> generateBackgroundVertices(float width, float 
 
 // ---
 
-void Tooltip::init(RendererContext& context, const char32_t* label, int32_t x, int32_t y,
+void Tooltip::init(RendererContext& context, const char16_t* label, int32_t x, int32_t y,
                    uint32_t width, uint32_t height_, const float backgroundColor[4], display::ControlIconType icon) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
@@ -54,7 +54,7 @@ void Tooltip::init(RendererContext& context, const char32_t* label, int32_t x, i
   if (icon != display::ControlIconType::none) {
     iconData = context.imageLoader().getIcon(icon);
 
-    const bool isLabelEmpty = (label == nullptr || *label == (char32_t)0);
+    const bool isLabelEmpty = (label == nullptr || *label == (char16_t)0);
     if (iconData.texture() != nullptr)
       iconWidthWithMargin = !isLabelEmpty ? iconData.width() + iconMarginRight() : iconData.width();
   }
@@ -139,7 +139,7 @@ void Tooltip::updateIcon(RendererContext& context, display::ControlIconType icon
   }
 }
 
-void Tooltip::updateLabel(RendererContext& context, const char32_t* label, LabelBufferType textColor_) {
+void Tooltip::updateLabel(RendererContext& context, const char16_t* label, LabelBufferType textColor_) {
   this->textColor = textColor_;
   labelMesh = TextMesh(context.renderer(), context.getFont(fontType), label, context.pixelSizeX(), context.pixelSizeY(),
                        labelMesh.x(), labelMesh.y(), TextAlignment::left);

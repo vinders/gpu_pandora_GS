@@ -29,7 +29,7 @@ namespace menu {
       /// @param onChange    Event handler to call (with 'operationId' and value) when the check-box value changes
       /// @param boundValue  Data/config value to bind to the check-box value (get/set)
       /// @param enabler     Optional data/config value to which the button state should be bound
-      CheckBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+      CheckBox(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                uint32_t minLabelWidth, uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange,
                bool& boundValue, const bool* enabler = nullptr)
         : boundValue(&boundValue),
@@ -100,7 +100,7 @@ namespace menu {
       void drawLabel(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY);
+      void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY);
       
     private:
       display::controls::IconMesh checkedMesh;

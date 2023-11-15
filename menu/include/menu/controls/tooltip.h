@@ -28,7 +28,7 @@ namespace menu {
     class Tooltip final {
     public:
       /// @brief Create tooltip control
-      Tooltip(RendererContext& context, const char32_t* label, FontType fontType, LabelBufferType textColor,
+      Tooltip(RendererContext& context, const char16_t* label, FontType fontType, LabelBufferType textColor,
               int32_t x, int32_t y, uint32_t width, uint32_t height, const float backgroundColor[4],
               display::ControlIconType icon = display::ControlIconType::none)
         : fontType(fontType),
@@ -61,7 +61,7 @@ namespace menu {
       void move(RendererContext& context, int32_t x, int32_t y, uint32_t width); ///< Change control location (on window resize)
       
       void updateIcon(RendererContext& context, display::ControlIconType icon); ///< Replace tooltip icon
-      void updateLabel(RendererContext& context, const char32_t* label, LabelBufferType textColor); ///< Replace tooltip text
+      void updateLabel(RendererContext& context, const char16_t* label, LabelBufferType textColor); ///< Replace tooltip text
       void updateColors(RendererContext& context, const float backgroundColor[4]); ///< Change control color (on theme change)
 
       // -- rendering --
@@ -80,7 +80,7 @@ namespace menu {
       void drawLabel(RendererContext& context, RendererStateBuffers& buffers);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t y, uint32_t width, uint32_t height,
+      void init(RendererContext& context, const char16_t* label, int32_t x, int32_t y, uint32_t width, uint32_t height,
                 const float backgroundColor[4], display::ControlIconType icon);
       static constexpr inline uint32_t iconMarginRight() noexcept { return 4u; }
 

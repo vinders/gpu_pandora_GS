@@ -26,7 +26,7 @@ using namespace menu;
 
 void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
                               uint32_t paddingY, uint32_t paddingTop, const float barColor[4], const float borderColor[4],
-                              const TabOption* tabs, size_t tabCount) {
+                              const VerticalTabOption* tabs, size_t tabCount) {
   // vertical bar
   std::vector<ControlVertex> vertices(static_cast<size_t>(paddingTop ? 12 : 8));
   ControlVertex* vertexIt = vertices.data();
@@ -55,8 +55,8 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
     IconMesh icon;
     TextMesh label;
     uint32_t height = paddingY;
-    if (tabIt->icon != ControlIconType::none) {
-      auto iconData = context.imageLoader().getIcon(tabIt->icon);
+    if (tabIt->icon() != ControlIconType::none) {
+      auto iconData = context.imageLoader().getIcon(tabIt->icon());
       if (iconData.texture() != nullptr) {
         const int32_t iconX = x + ((int32_t)tabWidth - (int32_t)iconData.width())/2;
         icon = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
@@ -64,11 +64,11 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
         height += iconData.height();
       }
     }
-    if (tabIt->name && *(tabIt->name.get()) != (char32_t)0) {
+    if (tabIt->name() && *(tabIt->name()) != (char16_t)0) {
       int32_t labelY = y + (int32_t)height;
       if (icon.width())
         labelY += (int32_t)iconLabelMargin();
-      label = TextMesh(context.renderer(), font, tabIt->name.get(), context.pixelSizeX(), context.pixelSizeY(), tabCenterX, labelY, TextAlignment::center);
+      label = TextMesh(context.renderer(), font, tabIt->name(), context.pixelSizeX(), context.pixelSizeY(), tabCenterX, labelY, TextAlignment::center);
       height += font.XHeight();
     }
     height += paddingY;

@@ -33,7 +33,7 @@ namespace menu {
     public:
       template <typename CtrlT>
       ControlRegistration(CtrlT& control, bool isInScrollableArea,
-                          const char32_t* tooltip = nullptr, uint32_t leftHoverMargin = 0) noexcept
+                          const char16_t* tooltip = nullptr, uint32_t leftHoverMargin = 0) noexcept
         : target(&control),
           top(control.y()),
           bottom(control.y() + (int32_t)control.height()),
@@ -64,7 +64,7 @@ namespace menu {
         return target->getStatus(mouseX, isScrollable ? mouseY + scrollY : mouseY);
       }
       /// @brief Get tooltip message associated with the control (or NULL if no message exists)
-      inline const char32_t* tooltipMessage() const noexcept { return tooltip; }
+      inline const char16_t* tooltipMessage() const noexcept { return tooltip; }
 
       /// @brief Compare mouse location with control location
       /// @return * -1 if control is located before mouse location (higher or to the left);
@@ -97,7 +97,7 @@ namespace menu {
       int32_t left = 0;
       int32_t right = 0;
       bool isScrollable = false;
-      const char32_t* tooltip = nullptr;
+      const char16_t* tooltip = nullptr;
     };
 
     // ---

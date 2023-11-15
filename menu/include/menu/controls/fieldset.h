@@ -26,7 +26,7 @@ namespace menu {
     class Fieldset final {
     public:
       /// @brief Create fieldset control
-      Fieldset(RendererContext& context, const char32_t* label, FieldsetStyle style,
+      Fieldset(RendererContext& context, const char16_t* label, FieldsetStyle style,
                const float color[4], int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight);
 
       Fieldset() = default;

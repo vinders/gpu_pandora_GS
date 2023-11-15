@@ -35,7 +35,7 @@ namespace display {
     keyboard,
     controller
   };
-  const char32_t* toDefaultLabel(ControlIconType type) noexcept;
+  const char16_t* toDefaultLabel(ControlIconType type) noexcept;
 
   /// @brief Icon to display in a control
   class ControlIcon final {

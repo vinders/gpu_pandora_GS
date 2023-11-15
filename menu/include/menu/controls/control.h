@@ -86,12 +86,12 @@ namespace menu {
       }
       static constexpr inline uint32_t fieldsetMaxWidth() noexcept { return 580; } ///< Fieldset maximum width
 
-      // -- control sizes --
+      static constexpr inline uint32_t titleMarginTop() noexcept { return 24; }       ///< Top margin above main page title
+      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }          ///< Horizontal margin between label and control mesh
+      static constexpr inline uint32_t buttonIconLabelMargin() noexcept { return 4u; }///< Margin between button icon and label
+      static constexpr inline uint32_t controlButtonMargin() noexcept { return 3u; }  ///< Margin between button and control
+      static constexpr inline uint32_t buttonPaddingX() noexcept { return 12u; }      ///< Horizontal button padding
 
-      static constexpr inline uint32_t labelMargin() noexcept { return 6u; }       ///< Horizontal margin between label and control mesh
-      static constexpr inline uint32_t buttonIconLabelMargin() noexcept { return 4u; } ///< Margin between button icon and label
-      static constexpr inline uint32_t controlButtonMargin() noexcept { return 3u; } ///< Margin between button and control
-      static constexpr inline uint32_t buttonPaddingX() noexcept { return 12u; }   ///< Horizontal button padding
       static constexpr inline uint32_t comboBoxPaddingX() noexcept { return 10u; } ///< Horizontal combo-box padding
       static constexpr inline uint32_t comboBoxPaddingY() noexcept { return 7u; }  ///< Vertical combo-box padding
       static constexpr inline uint32_t textBoxPaddingX() noexcept { return 10u; }  ///< Horizontal text-box padding

@@ -76,7 +76,7 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
 
   // create tooltip bar
   if (enableTooltip) {
-    tooltip = Tooltip(*context, U" ", FontType::inputText, LabelBufferType::regular,
+    tooltip = Tooltip(*context, u" ", FontType::inputText, LabelBufferType::regular,
                       x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(),
                       width, Control::tooltipBarHeight(), theme.tooltipControlColor(), display::ControlIconType::none);
   }
@@ -121,7 +121,7 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
   if (tooltip.width()) {
     tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(), width);
     if (activeControlIndex != noControlSelection())
-      tooltip.updateLabel(*context, U" ", LabelBufferType::regular);
+      tooltip.updateLabel(*context, u" ", LabelBufferType::regular);
   }
 
   auto backgroundVertices = backgroundMesh.relativeVertices();
@@ -216,11 +216,11 @@ void Page::onHover(int32_t controlIndex) {
 
       // replace tooltip content
       if (tooltip.width())
-        tooltip.updateLabel(*context, control->tooltipMessage() ? control->tooltipMessage() : U" ", LabelBufferType::regular);
+        tooltip.updateLabel(*context, control->tooltipMessage() ? control->tooltipMessage() : u" ", LabelBufferType::regular);
     }
     // clear tooltip content
     else if (tooltip.width())
-      tooltip.updateLabel(*context, U" ", LabelBufferType::regular);
+      tooltip.updateLabel(*context, u" ", LabelBufferType::regular);
   }
 }
 

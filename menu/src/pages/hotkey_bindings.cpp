@@ -28,63 +28,60 @@ using namespace menu;
 
 void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& localizedText,
                           int32_t x, int32_t y, uint32_t width) {
-  const MessageResource* textResources = localizedText.hotkeyBindingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
   uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
+  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(HotkeyBindingsMessages::title),
+                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
 
   std::vector<ControlRegistration> registry;
   registry.reserve(10);
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
 
   // --- hotkey/hint settings group ---
-  behaviorGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::behaviorGroup), theme.fieldsetStyle(),
+  behaviorGroup = Fieldset(*context, localizedText.getMessage(HotkeyBindingsMessages::behaviorGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight(5));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
-  menuHintMouseMove = CheckBox(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::menuHintMouseMove), controlX,
+  menuHintMouseMove = CheckBox(*context, localizedText.getMessage(HotkeyBindingsMessages::menuHintMouseMove), controlX,
                                currentLineY, Control::pageLabelWidth(), 0, nullptr, showMenuHint);
   showMenuHint = true;
-  registry.emplace_back(menuHintMouseMove, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::menuHintMouseMove_tooltip));
+  registry.emplace_back(menuHintMouseMove, true, localizedText.getMessage(HotkeyBindingsMessages::menuHintMouseMove_tooltip));
   currentLineY += Control::pageLineHeight();
 
-  enableKeyBindings = CheckBox(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::enableKeyBindings), controlX,
+  enableKeyBindings = CheckBox(*context, localizedText.getMessage(HotkeyBindingsMessages::enableKeyBindings), controlX,
                                currentLineY, Control::pageLabelWidth(), 0, nullptr, isBindingEnabled);
   isBindingEnabled = true;
-  registry.emplace_back(enableKeyBindings, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::enableKeyBindings_tooltip));
+  registry.emplace_back(enableKeyBindings, true, localizedText.getMessage(HotkeyBindingsMessages::enableKeyBindings_tooltip));
   currentLineY += Control::pageLineHeight();
   
-  hotkeyBinding = KeyBinding(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::hotkey), controlX, currentLineY,
+  hotkeyBinding = KeyBinding(*context, localizedText.getMessage(HotkeyBindingsMessages::hotkey), controlX, currentLineY,
                              Control::pageLabelWidth(), (Control::pageControlWidth() >> 1) + 1, theme.textBoxControlColor(),
                              theme.keyboardKeyColorParams(), KeyBindingType::controller, KeyBinding::emptyKeyValue(),
                              0x20u/*XINPUT_GAMEPAD_BACK*/, false, &isBindingEnabled);
-  registry.emplace_back(hotkeyBinding, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::hotkey_tooltip));
+  registry.emplace_back(hotkeyBinding, true, localizedText.getMessage(HotkeyBindingsMessages::hotkey_tooltip));
   currentLineY += Control::pageLineHeight();
 
-  ComboBoxOption speedCommandOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::hold),  0/*TMP*/),
-                                        ComboBoxOption(GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::toggle), 1/*TMP*/) };
-  slowMotionMode = Slider(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::slowMotionMode), controlX, currentLineY,
+  ComboBoxOption speedCommandOptions[]{ ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::hold),  0/*TMP*/),
+                                        ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::toggle), 1/*TMP*/) };
+  slowMotionMode = Slider(*context, localizedText.getMessage(HotkeyBindingsMessages::slowMotionMode), controlX, currentLineY,
                           Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                           nullptr, speedCommandOptions, sizeof(speedCommandOptions)/sizeof(*speedCommandOptions), 0, &isBindingEnabled);
-  registry.emplace_back(slowMotionMode, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::slowMotionMode_tooltip));
+  registry.emplace_back(slowMotionMode, true, localizedText.getMessage(HotkeyBindingsMessages::slowMotionMode_tooltip));
   currentLineY += Control::pageLineHeight();
 
-  fastForwardMode = Slider(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::fastForwardMode), controlX, currentLineY,
+  fastForwardMode = Slider(*context, localizedText.getMessage(HotkeyBindingsMessages::fastForwardMode), controlX, currentLineY,
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                             nullptr, speedCommandOptions, sizeof(speedCommandOptions)/sizeof(*speedCommandOptions), 0, &isBindingEnabled);
-  registry.emplace_back(fastForwardMode, true, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::fastForwardMode_tooltip));
+  registry.emplace_back(fastForwardMode, true, localizedText.getMessage(HotkeyBindingsMessages::fastForwardMode_tooltip));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- bindings group ---
-  const MessageResource* actionTextResources = localizedText.hotkeyActionsMessageArray();
-  const MessageResource* actionTooltipResources = localizedText.hotkeyActionsTooltipsMessageArray();
-  bindingsGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,HotkeyBindingsMessages::bindingsGroup), theme.fieldsetStyle(),
+  bindingsGroup = Fieldset(*context, localizedText.getMessage(HotkeyBindingsMessages::bindingsGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight((uint32_t)HotkeyActions::COUNT) + (Control::pageLineHeight() >> 1)*3u);
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
@@ -94,11 +91,11 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
     if (i == (size_t)HotkeyActions::nextSaveSlot || i == (size_t)HotkeyActions::pauseResume || i == (size_t)HotkeyActions::screenshot)
       currentLineY += (int32_t)(Control::pageLineHeight() >> 1); // category separation space
 
-    bindings[i] = KeyBinding(*context, GET_UI_MESSAGE(actionTextResources,i), controlX, currentLineY,
+    bindings[i] = KeyBinding(*context, localizedText.getMessage((HotkeyActions)i), controlX, currentLineY,
                              Control::pageLabelWidth(), Control::pageControlWidth(), theme.textBoxControlColor(),
                              theme.keyboardKeyColorParams(), KeyBindingType::both, KeyBinding::emptyKeyValue(),
                              KeyBinding::emptyKeyValue(), true, &isBindingEnabled);
-    registry.emplace_back(bindings[i], true, GET_UI_MESSAGE(actionTooltipResources,i));
+    registry.emplace_back(bindings[i], true, localizedText.getMessageTooltip((HotkeyActions)i));
     currentLineY += Control::pageLineHeight();
   }
   //currentLineY += Control::fieldsetContentMarginBottom();
@@ -135,7 +132,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
+  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
 
   // hotkey/hint group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();

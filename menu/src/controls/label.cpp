@@ -22,7 +22,7 @@ using namespace menu;
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void Label::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+void Label::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                  TextAlignment align, ControlIconType icon) {
   // load icons
   ControlIcon iconData;

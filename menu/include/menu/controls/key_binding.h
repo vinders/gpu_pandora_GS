@@ -36,7 +36,7 @@ namespace menu {
       /// @brief Create key-binding control
       /// @param keyboardValue  Keyboard virtual key code -or- mouse key code (button type converted to code with 'toMouseKeyCode')
       /// @param enabler     Optional data/config value to which the key-binding box state should be bound
-      KeyBinding(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, uint32_t minLabelWidth,
+      KeyBinding(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY, uint32_t minLabelWidth,
                  uint32_t fixedWidth, const float backgroundColor[4], const KeyboardKeyColors& keyColors,
                  KeyBindingType bindingType, uint32_t keyboardValue, uint32_t controllerValue,
                  bool isUnbindable, const bool* enabler = nullptr)
@@ -131,9 +131,9 @@ namespace menu {
       static constexpr inline pandora::video::MouseButton fromMouseKeyCode(uint32_t virtualKeyCode) noexcept { ///< Key value to mouse button
         return (pandora::video::MouseButton)(virtualKeyCode - leftMouseKey());
       }
-    private:
 
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+    private:
+      void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                 uint32_t fixedWidth, const float color[4], const KeyboardKeyColors& keyColors, bool isUnbindable);
 
     private:

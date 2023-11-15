@@ -19,19 +19,19 @@ using namespace display;
 using namespace display::controls;
 
 
-TextMesh::TextMesh(Renderer& renderer, Font& font, const char32_t* text,
+TextMesh::TextMesh(Renderer& renderer, Font& font, const char16_t* text,
                    const float pxSizeX, const float pxSizeY, int32_t x, int32_t y, TextAlignment align)
   : x_(x),
     y_(y),
     height_(font.XHeight()) {
-  if (text == nullptr || *text == (char32_t)0)
+  if (text == nullptr || *text == (char16_t)0)
     return;
   int32_t currentX = x;
   const float baseVertexY = ToVertexPositionY(y + height_, pxSizeY);
   uint32_t glyphFirstIndex = 0;
   
   for (; *text; ++text) {
-    const auto& glyph = font.getGlyph(renderer, *text);
+    const auto& glyph = font.getGlyph(renderer, (char32_t)*text);
     if (!glyph.texture.isEmpty()) {
       const float left = ToVertexPositionX(currentX + glyph.offsetLeft, pxSizeX);
       const float right = left + glyph.width*pxSizeX;
@@ -312,17 +312,11 @@ void TextMesh::draw(Renderer& renderer) {
 
 // -- utils -- -----------------------------------------------------------------
 
-std::unique_ptr<char32_t[]> TextMesh::toString(const char32_t* text) {
-  size_t length = 0;
-  if (text != nullptr) {
-    for (const char32_t* it = text; *it; ++it)
-      ++length;
-  }
-  if (length > 0) {
-    ++length; // include ending zero
-    std::unique_ptr<char32_t[]> storage(new char32_t[length]);
-    memcpy(storage.get(), text, length*sizeof(char32_t));
-    return storage;
-  }
-  return nullptr;
+size_t TextMesh::getStringLength(const char16_t* value) {
+  if (value == nullptr)
+    return 0;
+  const char16_t* it = value;
+  while (*it)
+  ++it;
+  return static_cast<size_t>(it - value);
 }

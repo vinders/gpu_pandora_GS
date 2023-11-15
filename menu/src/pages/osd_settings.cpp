@@ -27,15 +27,14 @@ using namespace menu;
 #define CLOCK_VISIBILITY_ID     1
 
 void OsdSettings::init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
-  const MessageResource* textResources = localizedText.osdSettingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
   uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), GET_UI_MESSAGE(textResources,OsdSettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
+  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(OsdSettingsMessages::title),
+                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
 
   std::vector<ControlRegistration> registry;
   registry.reserve(6);
@@ -43,17 +42,17 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
   auto changeHandler = std::bind(&OsdSettings::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- clock group ---
-  clockGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockGroup), theme.fieldsetStyle(),
+  clockGroup = Fieldset(*context, localizedText.getMessage(OsdSettingsMessages::clockGroup), theme.fieldsetStyle(),
                         theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                         Control::fieldsetContentHeight(4));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // clock visibility
   {
-    ComboBoxOption visibilityOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockVisibility_disabled), 0/*TMP*/),
-                                        ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockVisibility_mouseMove), 1/*TMP*/),
-                                        ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockVisibility_always), 2/*TMP*/) };
-    clockVisibility = Slider(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockVisibility), controlX, currentLineY,
+    ComboBoxOption visibilityOptions[]{ ComboBoxOption(localizedText.getMessage(CommonMessages::disabled), 0/*TMP*/),
+                                        ComboBoxOption(localizedText.getMessage(OsdSettingsMessages::clockVisibility_mouseMove), 1/*TMP*/),
+                                        ComboBoxOption(localizedText.getMessage(OsdSettingsMessages::clockVisibility_always), 2/*TMP*/) };
+    clockVisibility = Slider(*context, localizedText.getMessage(OsdSettingsMessages::clockVisibility), controlX, currentLineY,
                              Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), CLOCK_VISIBILITY_ID,
                              changeHandler, visibilityOptions, sizeof(visibilityOptions)/sizeof(*visibilityOptions), 1);
     isClockEnabled = true;
@@ -62,29 +61,29 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
   }
   // clock format
   {
-    ComboBoxOption formatOptions[]{ ComboBoxOption(U"HH:MM (00-24)", 0/*TMP*/),
-                                    ComboBoxOption(U"H:MM (0-24)", 1/*TMP*/),
-                                    ComboBoxOption(U"H:MM (0-12 AM/PM)", 2/*TMP*/) };
-    clockFormat = Slider(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockFormat), controlX, currentLineY,
+    ComboBoxOption formatOptions[]{ ComboBoxOption(u"HH:MM (00-24)", 0/*TMP*/),
+                                    ComboBoxOption(u"H:MM (0-24)", 1/*TMP*/),
+                                    ComboBoxOption(u"H:MM (0-12 AM/PM)", 2/*TMP*/) };
+    clockFormat = Slider(*context, localizedText.getMessage(OsdSettingsMessages::clockFormat), controlX, currentLineY,
                          Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
-                         nullptr, formatOptions, sizeof(formatOptions)/sizeof(*formatOptions), 0, &isClockEnabled);
+                         nullptr, formatOptions, sizeof(formatOptions)/sizeof(*formatOptions), 1, &isClockEnabled);
     registry.emplace_back(clockFormat, true);
     currentLineY += Control::pageLineHeight();
   }
   // clock location
   {
-    ComboBoxOption locationOptionsX[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationX_left), 0/*TMP*/),
-                                       ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationX_center), 1/*TMP*/),
-                                       ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationX_right), 2/*TMP*/) };
-    clockLocationX = Slider(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationX), controlX, currentLineY,
+    ComboBoxOption locationOptionsX[]{ ComboBoxOption(localizedText.getMessage(CommonMessages::left), 0/*TMP*/),
+                                       ComboBoxOption(localizedText.getMessage(CommonMessages::center), 1/*TMP*/),
+                                       ComboBoxOption(localizedText.getMessage(CommonMessages::right), 2/*TMP*/) };
+    clockLocationX = Slider(*context, localizedText.getMessage(OsdSettingsMessages::clockLocationX), controlX, currentLineY,
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                             nullptr, locationOptionsX, sizeof(locationOptionsX)/sizeof(*locationOptionsX), 2, &isClockEnabled);
     registry.emplace_back(clockLocationX, true);
     currentLineY += Control::pageLineHeight();
 
-    ComboBoxOption locationOptionsY[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationY_top), 0/*TMP*/),
-                                       ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationY_bottom), 1/*TMP*/) };
-    clockLocationY = Slider(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::clockLocationY), controlX, currentLineY,
+    ComboBoxOption locationOptionsY[]{ ComboBoxOption(localizedText.getMessage(CommonMessages::top), 0/*TMP*/),
+                                       ComboBoxOption(localizedText.getMessage(CommonMessages::bottom), 1/*TMP*/) };
+    clockLocationY = Slider(*context, localizedText.getMessage(OsdSettingsMessages::clockLocationY), controlX, currentLineY,
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0,
                             nullptr, locationOptionsY, sizeof(locationOptionsY)/sizeof(*locationOptionsY), 0, &isClockEnabled);
     registry.emplace_back(clockLocationY, true);
@@ -92,13 +91,13 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
   }
 
   // --- tech info group ---
-  techInfoGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoGroup), theme.fieldsetStyle(),
+  techInfoGroup = Fieldset(*context, localizedText.getMessage(OsdSettingsMessages::techInfoGroup), theme.fieldsetStyle(),
                            theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                            Control::fieldsetContentHeight(2));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // tech info visibility
-  techInfoVisibility = CheckBox(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoVisibility), controlX,
+  techInfoVisibility = CheckBox(*context, localizedText.getMessage(OsdSettingsMessages::techInfoVisibility), controlX,
                                 currentLineY, Control::pageLabelWidth(), 0, nullptr, isTechInfoEnabled);
   isTechInfoEnabled = false;
   registry.emplace_back(techInfoVisibility, true);
@@ -106,10 +105,10 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
 
   // tech info format
   {
-    ComboBoxOption formatOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoType_fps), 0/*TMP*/),
-                                    ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoType_format), 1/*TMP*/),
-                                    ComboBoxOption(GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoType_all), 2/*TMP*/) };
-    techInfoType = Slider(*context, GET_UI_MESSAGE(textResources,OsdSettingsMessages::techInfoType), controlX, currentLineY,
+    ComboBoxOption formatOptions[]{ ComboBoxOption(localizedText.getMessage(OsdSettingsMessages::techInfoType_fps), 0/*TMP*/),
+                                    ComboBoxOption(localizedText.getMessage(OsdSettingsMessages::techInfoType_format), 1/*TMP*/),
+                                    ComboBoxOption(localizedText.getMessage(OsdSettingsMessages::techInfoType_all), 2/*TMP*/) };
+    techInfoType = Slider(*context, localizedText.getMessage(OsdSettingsMessages::techInfoType), controlX, currentLineY,
                           Control::pageLabelWidth(), Control::pageControlWidth(), theme.sliderArrowColor(), 0, nullptr,
                           formatOptions, sizeof(formatOptions)/sizeof(*formatOptions), 0, &isTechInfoEnabled);
     registry.emplace_back(techInfoType, true);
@@ -147,7 +146,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
+  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
 
   // clock group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();

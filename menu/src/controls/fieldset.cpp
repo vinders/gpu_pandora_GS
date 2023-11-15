@@ -23,7 +23,7 @@ using namespace menu;
 
 // -- init/resize geometry -- --------------------------------------------------
 
-Fieldset::Fieldset(RendererContext& context, const char32_t* label, FieldsetStyle style_,
+Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyle style_,
                    const float color[4], int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight)
   : style(style_) {
   // create fieldset decoration

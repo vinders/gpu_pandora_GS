@@ -27,7 +27,7 @@ ControlType Ruler::type() const noexcept { return ControlType::ruler; }
 
 #define THUMB_CIRCLE_VERTICES 24
 
-void Ruler::init(RendererContext& context, const char32_t* label, const char32_t* suffix, FontType labelFontType,
+void Ruler::init(RendererContext& context, const char16_t* label, const char16_t* suffix, FontType labelFontType,
                  TextAlignment labelAlign, int32_t x, int32_t labelY, uint32_t fixedRulerWidth, const RulerColors& colors) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
@@ -46,7 +46,7 @@ void Ruler::init(RendererContext& context, const char32_t* label, const char32_t
   }
 
   // create suffix (if any)
-  if (suffix != nullptr && *suffix != (char32_t)0) {
+  if (suffix != nullptr && *suffix != (char16_t)0) {
     auto& suffixFont = context.getFont(FontType::inputText);
     int32_t offsetY = (labelFontType != FontType::inputText) ? (labelFont.XHeight() - suffixFont.XHeight())/2 : 0;
     suffixMesh = TextMesh(context.renderer(), suffixFont, suffix, context.pixelSizeX(), context.pixelSizeY(),

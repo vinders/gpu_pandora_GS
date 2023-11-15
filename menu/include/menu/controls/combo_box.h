@@ -34,7 +34,7 @@ namespace menu {
       /// @param operationId  Unique combo-box identifier (should be cast from an enum or constant)
       /// @param onChange     Event handler to call (with 'operationId' and value) when the combo-box value changes
       /// @param enabler      Optional data/config value to which the combo-box state should be bound
-      ComboBox(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+      ComboBox(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                uint32_t minLabelWidth, uint32_t minBoxWidth, ComboBoxStyle style, const ComboBoxColors& colors,
                uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values,
                size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
@@ -138,12 +138,12 @@ namespace menu {
       void drawOptions(RendererContext& context, RendererStateBuffers& buffers);
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, ComboBoxStyle style,
+      void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY, ComboBoxStyle style,
                 const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
 
       struct OptionMesh final { // selectable value stored
-        OptionMesh(RendererContext& context, display::Font& font, const char32_t* text, int32_t x, int32_t y, ComboValue value)
+        OptionMesh(RendererContext& context, display::Font& font, const char16_t* text, int32_t x, int32_t y, ComboValue value)
           : nameMesh(context.renderer(), font, text, context.pixelSizeX(), context.pixelSizeY(), x, y), value(value) {}
         OptionMesh() = default;
         OptionMesh(const OptionMesh&) = default;

@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <vector>
 #include "menu/color_theme.h"
@@ -28,14 +29,20 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   namespace pages {
     struct ConfigProfile final {
-      ConfigProfile(uint32_t id, std::unique_ptr<char32_t[]>&& name)
+      ConfigProfile(uint32_t id, const char16_t* nameValue)
+        : id(id) {
+        size_t length = display::controls::TextMesh::getStringLength(nameValue);
+        name.reset(new char16_t[length + 1]);
+        memcpy(name.get(), nameValue, (length+1)*sizeof(char16_t));
+      }
+      ConfigProfile(uint32_t id, std::unique_ptr<char16_t[]>&& name)
         : id(id), name(std::move(name)) {}
       ConfigProfile(ConfigProfile&&) noexcept = default;
       ConfigProfile& operator=(ConfigProfile&&) noexcept = default;
       ~ConfigProfile() noexcept = default;
 
       uint32_t id;
-      std::unique_ptr<char32_t[]> name;
+      std::unique_ptr<char16_t[]> name;
     };
 
     // ---

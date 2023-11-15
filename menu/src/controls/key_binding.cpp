@@ -29,89 +29,89 @@ ControlType KeyBinding::type() const noexcept { return ControlType::keyBinding; 
 
 // -- helpers -- ---------------------------------------------------------------
 
-static const char32_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexcept {
+static const char16_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexcept {
   switch (virtualKeyCode) {
-    case _P_VK_L_CTRL:    return U"CTRL";
-    case _P_VK_R_CTRL:    return U"CTRL-R";
-    case _P_VK_L_ALT:     return U"ALT";
-    case _P_VK_R_ALT:     return U"ALT-R";
-    case _P_VK_L_SHIFT:   return U"SHIFT";
-    case _P_VK_R_SHIFT:   return U"SHIFT-R";
-    case _P_VK_L_SYSTEM:  return U"COMMAND";
-    case _P_VK_R_SYSTEM:  return U"COMMAND-R";
-    case _P_VK_APP_MENU:  return U"APPMENU";
-    case _P_VK_BACKSPACE: return U"BACK";
-    case _P_VK_CLEAR:     return U"CLEAR";
-    case _P_VK_ENTER:     return U"ENTER";
-    case _P_VK_ENTER_PAD: return U"ENTER-R";
-    case _P_VK_EXECUTE:   return U"EXECUTE";
-    case _P_VK_ESC:       return U"ESC";
-    case _P_VK_PAUSE:     return U"PAUSE";
-    case _P_VK_PRINT_SCR: return U"PRINTSCR";
-    case _P_VK_SPACE:     return U"SPACE";
-    case _P_VK_TAB:       return U"TAB";
-    case _P_VK_DELETE:    return U"DEL";
-    case _P_VK_END:       return U"END";
-    case _P_VK_HOME:      return U"HOME";
-    case _P_VK_INSERT:    return U"INS";
-    case _P_VK_PG_DOWN:   return U"PAGE DOWN";
-    case _P_VK_PG_UP:     return U"PAGE UP";
-    case _P_VK_ARROW_DOWN:  return U"DOWN";
-    case _P_VK_ARROW_LEFT:  return U"LEFT";
-    case _P_VK_ARROW_RIGHT: return U"RIGHT";
-    case _P_VK_ARROW_UP:    return U"UP";
-    case _P_VK_F1:        return U"F1";
-    case _P_VK_F2:        return U"F2";
-    case _P_VK_F3:        return U"F3";
-    case _P_VK_F4:        return U"F4";
-    case _P_VK_F5:        return U"F5";
-    case _P_VK_F6:        return U"F6";
-    case _P_VK_F7:        return U"F7";
-    case _P_VK_F8:        return U"F8";
-    case _P_VK_F9:        return U"F9";
-    case _P_VK_F10:       return U"F10";
-    case _P_VK_F11:       return U"F11";
-    case _P_VK_F12:       return U"F12";
-    case _P_VK_F13:       return U"F13";
-    case _P_VK_F14:       return U"F14";
-    case _P_VK_NUMPAD_0:  return U"NUMPAD 0";
-    case _P_VK_NUMPAD_1:  return U"NUMPAD 1";
-    case _P_VK_NUMPAD_2:  return U"NUMPAD 2";
-    case _P_VK_NUMPAD_3:  return U"NUMPAD 3";
-    case _P_VK_NUMPAD_4:  return U"NUMPAD 4";
-    case _P_VK_NUMPAD_5:  return U"NUMPAD 5";
-    case _P_VK_NUMPAD_6:  return U"NUMPAD 6";
-    case _P_VK_NUMPAD_7:  return U"NUMPAD 7";
-    case _P_VK_NUMPAD_8:  return U"NUMPAD 8";
-    case _P_VK_NUMPAD_9:  return U"NUMPAD 9";
-    case _P_VK_DECIMAL:   return U"NUMPAD ,";
-    case _P_VK_SEPARATOR: return U"NUMPAD .";
-    case _P_VK_ADD:       return U"NUMPAD +";
-    case _P_VK_MULTIPLY:  return U"NUMPAD *";
-    case _P_VK_SUBTRACT:  return U"NUMPAD -";
-    case _P_VK_DIVIDE:    return U"NUMPAD /";
-    case _P_VK_PUNCT_BRACK1: return U"[";
-    case _P_VK_PUNCT_BRACK2: return U"]";
-    case _P_VK_PUNCT_COMMA:  return U",";
-    case _P_VK_PUNCT_PERIOD: return U".";
-    case _P_VK_PUNCT_MINUS:  return U"-";
-    case _P_VK_PUNCT_PLUS:   return U"+";
-    case _P_VK_BACKSLASH:    return U"\\";
-    case _P_VK_MEDIA_NEXT: return U"NEXT";
-    case _P_VK_MEDIA_PREV: return U"PREV";
-    case _P_VK_MEDIA_PLAY: return U"PLAY";
-    case _P_VK_MEDIA_STOP: return U"STOP";
+    case _P_VK_L_CTRL:    return u"CTRL";
+    case _P_VK_R_CTRL:    return u"CTRL-R";
+    case _P_VK_L_ALT:     return u"ALT";
+    case _P_VK_R_ALT:     return u"ALT-R";
+    case _P_VK_L_SHIFT:   return u"SHIFT";
+    case _P_VK_R_SHIFT:   return u"SHIFT-R";
+    case _P_VK_L_SYSTEM:  return u"COMMAND";
+    case _P_VK_R_SYSTEM:  return u"COMMAND-R";
+    case _P_VK_APP_MENU:  return u"APPMENU";
+    case _P_VK_BACKSPACE: return u"BACK";
+    case _P_VK_CLEAR:     return u"CLEAR";
+    case _P_VK_ENTER:     return u"ENTER";
+    case _P_VK_ENTER_PAD: return u"ENTER-R";
+    case _P_VK_EXECUTE:   return u"EXECUTE";
+    case _P_VK_ESC:       return u"ESC";
+    case _P_VK_PAUSE:     return u"PAUSE";
+    case _P_VK_PRINT_SCR: return u"PRINTSCR";
+    case _P_VK_SPACE:     return u"SPACE";
+    case _P_VK_TAB:       return u"TAB";
+    case _P_VK_DELETE:    return u"DEL";
+    case _P_VK_END:       return u"END";
+    case _P_VK_HOME:      return u"HOME";
+    case _P_VK_INSERT:    return u"INS";
+    case _P_VK_PG_DOWN:   return u"PAGE DOWN";
+    case _P_VK_PG_UP:     return u"PAGE UP";
+    case _P_VK_ARROW_DOWN:  return u"DOWN";
+    case _P_VK_ARROW_LEFT:  return u"LEFT";
+    case _P_VK_ARROW_RIGHT: return u"RIGHT";
+    case _P_VK_ARROW_UP:    return u"UP";
+    case _P_VK_F1:        return u"F1";
+    case _P_VK_F2:        return u"F2";
+    case _P_VK_F3:        return u"F3";
+    case _P_VK_F4:        return u"F4";
+    case _P_VK_F5:        return u"F5";
+    case _P_VK_F6:        return u"F6";
+    case _P_VK_F7:        return u"F7";
+    case _P_VK_F8:        return u"F8";
+    case _P_VK_F9:        return u"F9";
+    case _P_VK_F10:       return u"F10";
+    case _P_VK_F11:       return u"F11";
+    case _P_VK_F12:       return u"F12";
+    case _P_VK_F13:       return u"F13";
+    case _P_VK_F14:       return u"F14";
+    case _P_VK_NUMPAD_0:  return u"NUMPAD 0";
+    case _P_VK_NUMPAD_1:  return u"NUMPAD 1";
+    case _P_VK_NUMPAD_2:  return u"NUMPAD 2";
+    case _P_VK_NUMPAD_3:  return u"NUMPAD 3";
+    case _P_VK_NUMPAD_4:  return u"NUMPAD 4";
+    case _P_VK_NUMPAD_5:  return u"NUMPAD 5";
+    case _P_VK_NUMPAD_6:  return u"NUMPAD 6";
+    case _P_VK_NUMPAD_7:  return u"NUMPAD 7";
+    case _P_VK_NUMPAD_8:  return u"NUMPAD 8";
+    case _P_VK_NUMPAD_9:  return u"NUMPAD 9";
+    case _P_VK_DECIMAL:   return u"NUMPAD ,";
+    case _P_VK_SEPARATOR: return u"NUMPAD .";
+    case _P_VK_ADD:       return u"NUMPAD +";
+    case _P_VK_MULTIPLY:  return u"NUMPAD *";
+    case _P_VK_SUBTRACT:  return u"NUMPAD -";
+    case _P_VK_DIVIDE:    return u"NUMPAD /";
+    case _P_VK_PUNCT_BRACK1: return u"[";
+    case _P_VK_PUNCT_BRACK2: return u"]";
+    case _P_VK_PUNCT_COMMA:  return u",";
+    case _P_VK_PUNCT_PERIOD: return u".";
+    case _P_VK_PUNCT_MINUS:  return u"-";
+    case _P_VK_PUNCT_PLUS:   return u"+";
+    case _P_VK_BACKSLASH:    return u"\\";
+    case _P_VK_MEDIA_NEXT: return u"NEXT";
+    case _P_VK_MEDIA_PREV: return u"PREV";
+    case _P_VK_MEDIA_PLAY: return u"PLAY";
+    case _P_VK_MEDIA_STOP: return u"STOP";
     default: return nullptr;
   }
 }
 
-static const char32_t* GetMouseKeyName(uint32_t virtualKeyCode) noexcept {
+static const char16_t* GetMouseKeyName(uint32_t virtualKeyCode) noexcept {
   switch (KeyBinding::fromMouseKeyCode(virtualKeyCode)) {
-    case MouseButton::left: return U"MOUSE-L";
-    case MouseButton::middle: return U"MOUSE-M";
-    case MouseButton::right: return U"MOUSE-R";
-    case MouseButton::button4: return U"MOUSE-4";
-    case MouseButton::button5: return U"MOUSE-5";
+    case MouseButton::left: return u"MOUSE-L";
+    case MouseButton::middle: return u"MOUSE-M";
+    case MouseButton::right: return u"MOUSE-R";
+    case MouseButton::button4: return u"MOUSE-4";
+    case MouseButton::button5: return u"MOUSE-5";
     default: return nullptr;
   }
 }
@@ -189,7 +189,7 @@ static void resizeKeyboardKeyMesh(RendererContext& context, const TextMesh& keyL
 
 // ---
 
-void KeyBinding::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+void KeyBinding::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                       uint32_t fixedWidth, const float color[4], const KeyboardKeyColors& keyColors, bool isUnbindable) {
   auto& inputFont = context.getFont(FontType::inputText);
   auto& labelFont = context.getFont(FontType::labels);
@@ -263,15 +263,15 @@ void KeyBinding::init(RendererContext& context, const char32_t* label, int32_t x
   // create binding value(s)
   int32_t inputX = (bindingType == KeyBindingType::both) ? boxX + (int32_t)(fixedWidth >> 2) : boxX + (int32_t)(fixedWidth >> 1);
   if ((uint32_t)bindingType & (uint32_t)KeyBindingType::keyboard) {
-    char32_t buffer[2]{ U'\0' };
-    const char32_t* value = nullptr;
+    char16_t buffer[2]{ u'\0' };
+    const char16_t* value = nullptr;
     if (keyboardValue_ != emptyKeyValue()) {
       value = (keyboardValue_ < leftMouseKey()) ? GetVirtualKeyboardKeyName(keyboardValue_) : GetMouseKeyName(keyboardValue_);
       if (value == nullptr) {
-        *buffer = (char32_t)pandora::video::virtualKeyToChar(keyboardValue_);
-        if (*buffer != (char32_t)0) {
-          if (*buffer >= U'a' && *buffer <= U'z')
-            *buffer -= (char32_t)0x20;
+        *buffer = (char16_t)pandora::video::virtualKeyToChar(keyboardValue_);
+        if (*buffer != (char16_t)0) {
+          if (*buffer >= u'a' && *buffer <= u'z')
+            *buffer -= (char16_t)0x20;
           value = buffer;
         }
         else
@@ -375,16 +375,16 @@ bool KeyBinding::click(RendererContext& context, int32_t mouseX, int32_t) {
 
 bool KeyBinding::setKeyboardValue(RendererContext& context, uint32_t virtualKeyCode) {
   if ((uint32_t)bindingType & (uint32_t)KeyBindingType::keyboard) {
-    char32_t buffer[2]{ U'\0' };
-    const char32_t* value = nullptr;
+    char16_t buffer[2]{ u'\0' };
+    const char16_t* value = nullptr;
     if (virtualKeyCode != emptyKeyValue()) {
       value = (virtualKeyCode < leftMouseKey()) ? GetVirtualKeyboardKeyName(virtualKeyCode) : GetMouseKeyName(virtualKeyCode);
       if (value == nullptr) {
-        *buffer = (char32_t)pandora::video::virtualKeyToChar(virtualKeyCode);
-        if (*buffer == (char32_t)0)
+        *buffer = (char16_t)pandora::video::virtualKeyToChar(virtualKeyCode);
+        if (*buffer == (char16_t)0)
           return isEditing; // unknown code -> ignore it (don't change value, don't exit edit mode)
-        if (*buffer >= U'a' && *buffer <= U'z')
-          *buffer -= (char32_t)0x20;
+        if (*buffer >= u'a' && *buffer <= u'z')
+          *buffer -= (char16_t)0x20;
         value = buffer;
       }
       if (keyboardValue_ != virtualKeyCode) {

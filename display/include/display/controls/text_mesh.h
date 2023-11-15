@@ -45,7 +45,7 @@ namespace display {
       /// @param pxSizeX  Expected: ToPixelSize(frameWidth)
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
       /// @warning The Font object ('font') MUST be kept alive as long as the TextMesh object exists!!!
-      TextMesh(video_api::Renderer& renderer, Font& font, const char32_t* text,
+      TextMesh(video_api::Renderer& renderer, Font& font, const char16_t* text,
                const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
                TextAlignment align = TextAlignment::left);
       TextMesh() = default;
@@ -97,8 +97,8 @@ namespace display {
 
       // -- helpers --
 
-      /// @brief Store unicode string
-      static std::unique_ptr<char32_t[]> toString(const char32_t* text);
+      /// @brief Get length of unicode string
+      static size_t getStringLength(const char16_t* value);
       
     private:
       video_api::Buffer<video_api::ResourceUsage::staticGpu> vertexBuffer;

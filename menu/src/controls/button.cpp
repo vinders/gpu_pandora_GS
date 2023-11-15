@@ -26,14 +26,14 @@ ControlType Button::type() const noexcept { return ControlType::button; }
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void Button::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY, const ButtonStyleProperties& style) {
+void Button::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY, const ButtonStyleProperties& style) {
   // try to load icon (if available)
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
   if (style.icon != display::ControlIconType::none) {
     iconData = context.imageLoader().getIcon(style.icon);
 
-    const bool isLabelEmpty = (label == nullptr || *label == (char32_t)0);
+    const bool isLabelEmpty = (label == nullptr || *label == (char16_t)0);
     if (iconData.texture() != nullptr)
       iconWidthWithMargin = !isLabelEmpty ? iconData.width() + iconMarginRight() : iconData.width();
     else if (isLabelEmpty) // icon not available + empty label -> set placeholder

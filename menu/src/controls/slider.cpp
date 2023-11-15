@@ -26,7 +26,7 @@ ControlType Slider::type() const noexcept { return ControlType::slider; }
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void Slider::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+void Slider::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                   const float arrowColor[4], ComboBoxOption* values, size_t valueCount) {
   auto& font = context.getFont(FontType::labels);
   const uint32_t sliderHeight = font.XHeight() + (Control::sliderPaddingY() << 1); // width==height
@@ -42,7 +42,7 @@ void Slider::init(RendererContext& context, const char32_t* label, int32_t x, in
   const uint32_t optionCenterX = x + (int32_t)labelWidthWithMargin + (int32_t)((fixedSliderWidth - 2) >> 1);
   selectableValues.reserve(valueCount);
   for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
-    selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelY, values->value);
+    selectableValues.emplace_back(context, font, values->name(), optionCenterX, labelY, values->value());
   }
 
   // create arrows
@@ -114,7 +114,7 @@ void Slider::replaceValues(RendererContext& context, ComboBoxOption* values, siz
     const uint32_t optionCenterX = arrowLeftMesh.x() + (int32_t)((fixedSliderWidth - 2) >> 1);
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values) {
-      selectableValues.emplace_back(context, font, values->name.get(), optionCenterX, labelMesh.y(), values->value);
+      selectableValues.emplace_back(context, font, values->name(), optionCenterX, labelMesh.y(), values->value());
     }
   }
 }

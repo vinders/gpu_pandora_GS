@@ -24,7 +24,7 @@ ControlType CheckBox::type() const noexcept { return ControlType::checkBox; }
 
 // -- init/resize geometry -- --------------------------------------------------
 
-void CheckBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY) {
+void CheckBox::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY) {
   // load icons
   ControlIcon iconDataOn = context.imageLoader().getIcon(ControlIconType::checked);
   ControlIcon iconDataOff = context.imageLoader().getIcon(ControlIconType::unchecked);

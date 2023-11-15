@@ -21,26 +21,10 @@ GNU General Public License for more details (LICENSE file).
 #include <display/controls/text_mesh.h>
 #include "menu/renderer_context.h"
 #include "menu/renderer_state_buffers.h"
+#include "menu/controls/vertical_tab_option.h"
 
 namespace menu {
   namespace controls {
-    /// @brief Option for vertical tab control creation
-    struct TabOption final {
-      TabOption(const char32_t* name, display::ControlIconType icon)
-        : name(display::controls::TextMesh::toString(name)), icon(icon) {}
-      TabOption() = default;
-      TabOption(const TabOption&) = default;
-      TabOption(TabOption&&) noexcept = default;
-      TabOption& operator=(const TabOption&) = default;
-      TabOption& operator=(TabOption&&) noexcept = default;
-      ~TabOption() noexcept = default;
-
-      std::unique_ptr<char32_t[]> name = nullptr;
-      display::ControlIconType icon = display::ControlIconType::none;
-    };
-
-    // ---
-
     /// @brief UI vertical tab management control (with icons)
     class VerticalTabControl final {
     public:
@@ -48,7 +32,7 @@ namespace menu {
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
       VerticalTabControl(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
                          uint32_t tabPaddingY, uint32_t paddingTop, const float barColor[4], const float borderColor[4],
-                         const TabOption* tabs, size_t tabCount, uint32_t selectedIndex,
+                         const VerticalTabOption* tabs, size_t tabCount, uint32_t selectedIndex,
                          std::function<void(uint32_t)> onChange)
         : selectedIndex((selectedIndex < (uint32_t)tabCount) ? selectedIndex : 0),
           onChange(std::move(onChange)) {
@@ -110,7 +94,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight, uint32_t paddingY,
-                uint32_t paddingTop, const float barColor[4], const float borderColor[4], const TabOption* tabs, size_t tabCount);
+                uint32_t paddingTop, const float barColor[4], const float borderColor[4], const VerticalTabOption* tabs, size_t tabCount);
       static constexpr inline uint32_t iconLabelMargin() noexcept { return 11u; }
 
       struct TabMesh final { // selectable value stored

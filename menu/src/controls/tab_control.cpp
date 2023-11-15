@@ -85,7 +85,7 @@ static std::vector<ControlVertex> generateTabBarGeometry(uint32_t barWidth, uint
 // ---
 
 void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
-                      const char32_t** tabLabels, size_t tabCount) {
+                      const char16_t** tabLabels, size_t tabCount) {
   auto& font = context.getFont(FontType::labels);
   uint32_t tabHeight = font.XHeight() + (paddingY << 1);
 

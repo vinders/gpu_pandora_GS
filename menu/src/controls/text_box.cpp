@@ -56,8 +56,8 @@ static inline void fillCaretColor(const float backgroundColor[4], float outColor
 
 // ---
 
-void TextBox::init(RendererContext& context, const char32_t* label, const char32_t* suffix,
-                   int32_t x, int32_t labelY, uint32_t fixedWidth, const float color[4], const char32_t* initValue) {
+void TextBox::init(RendererContext& context, const char16_t* label, const char16_t* suffix, int32_t x, int32_t labelY,
+                   uint32_t fixedWidth, const float color[4], const char16_t* initValue, bool addButtons) {
   auto& inputFont = context.getFont(FontType::inputText);
   auto& labelFont = context.getFont(FontType::labels);
   const uint32_t height = inputFont.XHeight() + (Control::textBoxPaddingY() << 1);
@@ -106,7 +106,7 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   }
 
   // create hover buttons (+/-)
-  if (valueType == TextBoxType::integer) {
+  if (valueType == TextBoxType::integer && addButtons) {
     const uint32_t buttonWidth = ((height - (height >> 3)) | 0x1u);
     const uint32_t buttonHeight = ((height + 1u) >> 1);
     const uint32_t signSize = ((buttonHeight >> 1) | 0x1u);
@@ -154,10 +154,10 @@ void TextBox::init(RendererContext& context, const char32_t* label, const char32
   // input value storage
   inputValue.reserve((size_t)maxValueLength + 1u); // max possible length + ending zero
   if (initValue != nullptr) {
-    for (const char32_t* it = initValue; *it; ++it)
+    for (const char16_t* it = initValue; *it; ++it)
       inputValue.emplace_back(*it);
   }
-  inputValue.emplace_back((char32_t)0); // ending zero (to allow value() accessor to treat vector as a C-string)
+  inputValue.emplace_back((char16_t)0); // ending zero (to allow value() accessor to treat vector as a C-string)
 }
 
 // ---
@@ -220,8 +220,8 @@ ControlStatus TextBox::getStatus(int32_t mouseX, int32_t mouseY) const noexcept 
 
 // -- operations -- ------------------------------------------------------------
 
-void TextBox::replaceValueText(RendererContext& context, const char32_t* textValue) {
-  assert(valueType == TextBoxType::text || (textValue != nullptr && *textValue >= U'0' && *textValue <= U'9'));
+void TextBox::replaceValueText(RendererContext& context, const char16_t* textValue) {
+  assert(valueType == TextBoxType::text || (textValue != nullptr && *textValue >= u'0' && *textValue <= u'9'));
   isEditing = false;
   const int32_t inputY = controlMesh.y() + (int32_t)Control::textBoxPaddingY() + (int32_t)(inputMesh.height() >> 2);
   inputMesh = TextMesh(context.renderer(), context.getFont(FontType::inputText), textValue,
@@ -230,15 +230,15 @@ void TextBox::replaceValueText(RendererContext& context, const char32_t* textVal
   inputValue.clear();
   inputValue.reserve((size_t)maxValueLength + 1u);
   if (textValue != nullptr) {
-    for (const char32_t* it = textValue; *it; ++it)
+    for (const char16_t* it = textValue; *it; ++it)
       inputValue.emplace_back(*it);
   }
-  inputValue.emplace_back((char32_t)0); // ending zero
+  inputValue.emplace_back((char16_t)0); // ending zero
 }
 
 void TextBox::replaceValueInteger(RendererContext& context, uint32_t integerValue) {
   assert(valueType == TextBoxType::integer || valueType == TextBoxType::number);
-  char32_t buffer[MAX_INTEGER_LENGTH+1];
+  char16_t buffer[MAX_INTEGER_LENGTH+1];
   replaceValueText(context, fromInteger(integerValue, buffer));
 }
 
@@ -324,13 +324,13 @@ void TextBox::addChar(RendererContext& context, char32_t code) {
   if (caretLocation >= (uint32_t)inputValue.size() - 1u/*ignore ending zero*/) {
     if (!inputMesh.push(context.renderer(), font, context.pixelSizeX(), context.pixelSizeY(), code))
       return;
-    inputValue.back() = code;
-    inputValue.emplace_back((char32_t)0); // new ending zero
+    inputValue.back() = (char16_t)code;
+    inputValue.emplace_back((char16_t)0); // new ending zero
   }
   else {
     if (!inputMesh.insertBefore(context.renderer(), font, context.pixelSizeX(), context.pixelSizeY(), code, caretLocation))
       return;
-    inputValue.insert(inputValue.begin()+caretLocation, code);
+    inputValue.insert(inputValue.begin()+caretLocation, (char16_t)code);
   }
   ++caretLocation;
   updateCaretLocation(context);
@@ -343,7 +343,7 @@ void TextBox::removeChar(RendererContext& context) {
   if (caretLocation >= (uint32_t)inputValue.size() - 1u/*ignore ending zero*/) {
     inputMesh.pop(context.renderer());
     inputValue.pop_back();
-    inputValue.back() = (char32_t)0; // new ending zero
+    inputValue.back() = (char16_t)0; // new ending zero
     --caretLocation;
   }
   else {
@@ -428,9 +428,9 @@ uint32_t TextBox::valueInteger() const noexcept {
   assert(valueType == TextBoxType::integer);
 
   uint32_t value = 0;
-  for (const char32_t* it = valueText(); *it; ++it) {
+  for (const char16_t* it = valueText(); *it; ++it) {
     value *= 10u;
-    value += (uint32_t)(*it - U'0');
+    value += (uint32_t)(*it - u'0');
   }
   return value;
 }
@@ -441,10 +441,10 @@ double TextBox::valueNumber() const noexcept {
   bool isSeparatorFound = false;
   uint32_t divider = 1;
   uint64_t value = 0;
-  for (const char32_t* it = valueText(); *it; ++it) {
+  for (const char16_t* it = valueText(); *it; ++it) {
     if (*it != '.') {
       value *= 10uLL;
-      value += (uint64_t)(*it - U'0');
+      value += (uint64_t)(*it - u'0');
       if (isSeparatorFound)
         divider *= 10u;
     }
@@ -455,21 +455,21 @@ double TextBox::valueNumber() const noexcept {
 
 // ---
 
-const char32_t* TextBox::fromInteger(uint32_t integerValue, char32_t buffer[MAX_INTEGER_LENGTH + 1]) noexcept {
-  char32_t* it = &buffer[MAX_INTEGER_LENGTH];
-  *it = (char32_t)0;
+const char16_t* TextBox::fromInteger(uint32_t integerValue, char16_t buffer[MAX_INTEGER_LENGTH + 1]) noexcept {
+  char16_t* it = &buffer[MAX_INTEGER_LENGTH];
+  *it = (char16_t)0;
 
   if (integerValue) {
     while (integerValue) {
-      *(--it) = (char32_t)(integerValue % 10u) + U'0';
+      *(--it) = (char16_t)(integerValue % 10u) + u'0';
       integerValue /= 10u;
     }
   }
-  else *(--it) = U'0';
+  else *(--it) = u'0';
   return it;
 }
 
-std::unique_ptr<char32_t[]> TextBox::fromNumber(double numberValue, size_t bufferLength) {
+std::unique_ptr<char16_t[]> TextBox::fromNumber(double numberValue, size_t bufferLength) {
   char formatter[MAX_INTEGER_LENGTH + 4] = "%."; // create "%.<bufferLength>f" formatter
   itoa((int)bufferLength, &formatter[2], 10);
 
@@ -496,20 +496,20 @@ std::unique_ptr<char32_t[]> TextBox::fromNumber(double numberValue, size_t buffe
   }
 
   // copy formatted string into char32 buffer
-  std::unique_ptr<char32_t[]> output;
+  std::unique_ptr<char16_t[]> output;
   if (length > 0) {
     buffer.get()[length] = '\0';
-    output.reset(new char32_t[length + 1]);
+    output.reset(new char16_t[length + 1]);
 
-    char32_t* destIt = output.get();
+    char16_t* destIt = output.get();
     for (const char* srcIt = buffer.get(); *srcIt; ++srcIt, ++destIt)
-      *destIt = (char32_t)*srcIt;
-    output.get()[length] = (char32_t)0;
+      *destIt = (char16_t)*srcIt;
+    output.get()[length] = (char16_t)0;
   }
   else {
-    output.reset(new char32_t[2]);
-    *output.get() = U'0';
-    output.get()[1] = (char32_t)0;
+    output.reset(new char16_t[2]);
+    *output.get() = u'0';
+    output.get()[1] = (char16_t)0;
   }
   return output;
 }

@@ -15,30 +15,29 @@ GNU General Public License for more details (LICENSE file).
 
 #include <cstdint>
 #include <cstring>
+#include <display/image_loader.h>
 #include <display/controls/text_mesh.h>
 
 namespace menu {
   namespace controls {
-    using ComboValue = uint32_t;
-
-    /// @brief Option for combo-box creation
-    class ComboBoxOption final {
+    /// @brief Option for vertical tabs creation
+    class VerticalTabOption final {
     public:
-      static constexpr const size_t maxLength{ (size_t)35 }; ///< Max option name length
+      static constexpr const size_t maxLength{ (size_t)31 }; ///< Max option name length
 
-      ComboBoxOption(const char16_t* label, ComboValue value) noexcept
-        : value_(value) {
+      VerticalTabOption(const char16_t* label, display::ControlIconType icon) noexcept
+        : icon_(icon) {
         updateName(label);
       }
-      ComboBoxOption() noexcept { *name_ = u'\0'; }
-      ComboBoxOption(const ComboBoxOption&) = default;
-      ComboBoxOption(ComboBoxOption&&) noexcept = default;
-      ComboBoxOption& operator=(const ComboBoxOption&) = default;
-      ComboBoxOption& operator=(ComboBoxOption&&) noexcept = default;
-      ~ComboBoxOption() noexcept = default;
+      VerticalTabOption() noexcept { *name_ = u'\0'; }
+      VerticalTabOption(const VerticalTabOption&) = default;
+      VerticalTabOption(VerticalTabOption&&) noexcept = default;
+      VerticalTabOption& operator=(const VerticalTabOption&) = default;
+      VerticalTabOption& operator=(VerticalTabOption&&) noexcept = default;
+      ~VerticalTabOption() noexcept = default;
 
       inline const char16_t* name() const noexcept { return name_; } ///< Option label to display
-      inline ComboValue value() const noexcept { return value_; }    ///< Value associated with this option
+      inline display::ControlIconType icon() const noexcept { return icon_; } ///< Icon associated with this tab
 
       inline void updateName(const char16_t* label) noexcept { ///< Set option label
         size_t length = display::controls::TextMesh::getStringLength(label);
@@ -52,7 +51,7 @@ namespace menu {
 
     private:
       char16_t name_[maxLength+1];
-      ComboValue value_ = 0;
+      display::ControlIconType icon_ = display::ControlIconType::none;
     };
   }
 }

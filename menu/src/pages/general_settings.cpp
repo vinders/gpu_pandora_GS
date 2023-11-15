@@ -34,63 +34,53 @@ using namespace menu;
 
 // -- helpers -- ---------------------------------------------------------------
 
-static char32_t* FormatInteger(uint32_t value, char32_t* buffer) {
+#define RESOLUTION_BUFFER_SIZE 14
+#define RATE_BUFFER_SIZE 12
+
+static char16_t* FormatInteger(uint32_t value, char16_t* buffer) {
   const size_t offset = (value >= 1000) ? ((value < 10000) ? 3 : 4)
                                         : ((value >= 100) ? 2 : 1);
-  for (char32_t* it = buffer + (intptr_t)offset; it >= buffer; --it) {
-    *it = U'0' + static_cast<char32_t>(value % 10u);
+  for (char16_t* it = buffer + (intptr_t)offset; it >= buffer; --it) {
+    *it = u'0' + static_cast<char16_t>(value % 10u);
     value /= 10u;
   }
   return buffer + (intptr_t)(offset + 1u);
 }
 
-static std::unique_ptr<char32_t[]> FormatResolution(uint32_t width, uint32_t height) {
-  std::unique_ptr<char32_t[]> formatted(new char32_t[14]);
-  char32_t* it = FormatInteger(width, formatted.get());
-  *it = U' ';
-  *(++it) = U'x';
-  *(++it) = U' ';
+static void FormatResolution(uint32_t width, uint32_t height, char16_t outFormatted[RESOLUTION_BUFFER_SIZE]) {
+  char16_t* it = FormatInteger(width, outFormatted);
+  *it = u' ';
+  *(++it) = u'x';
+  *(++it) = u' ';
   it = FormatInteger(height, ++it);
-  *it = (char32_t)0;
-
-# if !defined(_CPP_REVISION) || _CPP_REVISION != 14
-  return formatted;
-# else
-  return std::move(formatted);
-# endif
+  *it = u'\0';
 }
 
-static std::unique_ptr<char32_t[]> FormatRate(uint32_t value) {
-  std::unique_ptr<char32_t[]> formatted(new char32_t[12]);
+static void FormatRate(uint32_t value, char16_t outFormatted[RATE_BUFFER_SIZE]) {
   switch (value) {
     // predefined values
-    case 60000:  memcpy(formatted.get(), U"60 Hz",  6*sizeof(char32_t)); break;
-    case 59940:  memcpy(formatted.get(), U"59.94 Hz", 9*sizeof(char32_t)); break;
-    case 120000: memcpy(formatted.get(), U"120 Hz", 7*sizeof(char32_t)); break;
-    case 144000: memcpy(formatted.get(), U"144 Hz", 7*sizeof(char32_t)); break;
-    case 240000: memcpy(formatted.get(), U"240 Hz", 7*sizeof(char32_t)); break;
+    case 60000:  memcpy(outFormatted, u"60 Hz",  6*sizeof(char16_t)); break;
+    case 59940:  memcpy(outFormatted, u"59.94 Hz", 9*sizeof(char16_t)); break;
+    case 120000: memcpy(outFormatted, u"120 Hz", 7*sizeof(char16_t)); break;
+    case 144000: memcpy(outFormatted, u"144 Hz", 7*sizeof(char16_t)); break;
+    case 240000: memcpy(outFormatted, u"240 Hz", 7*sizeof(char16_t)); break;
     // custom values
     default: {
-      auto* it = FormatInteger(value / 1000u, formatted.get()); // mHz to Hz -- integer part
+      auto* it = FormatInteger(value / 1000u, outFormatted); // mHz to Hz -- integer part
       value %= 1000u;
       if (value) { // decimals
         const auto* decimalIt = it;
-        *it = U'.'; *(++it) = U'0'; *(++it) = U'0'; *(++it) = U'0';
-        for (char32_t* revIt = it; revIt > decimalIt; --revIt) {
-          *it = U'0' + static_cast<char32_t>(value % 10u);
+        *it = u'.'; *(++it) = u'0'; *(++it) = u'0'; *(++it) = u'0';
+        for (char16_t* revIt = it; revIt > decimalIt; --revIt) {
+          *it = u'0' + static_cast<char16_t>(value % 10u);
           value /= 10u;
         }
         ++it;
       }
-      *it = U' '; *(++it) = U'H'; *(++it) = U'z';*(++it) = (char32_t)0;
+      *it = u' '; *(++it) = u'H'; *(++it) = u'z';*(++it) = (char16_t)0;
       break;
     }
   }
-# if !defined(_CPP_REVISION) || _CPP_REVISION != 14
-  return formatted;
-# else
-  return std::move(formatted);
-# endif
 }
 
 // ---
@@ -162,8 +152,10 @@ static uint32_t GetFullscreenResolutionValues(const std::vector<ScreenResolution
   outResolutionOptions.reserve(fullscreenResolutions.size());
 
   uint32_t index = 0;
+  char16_t formattedResolution[RESOLUTION_BUFFER_SIZE];
   for (const auto& resolution : fullscreenResolutions) {
-    outResolutionOptions.emplace_back(FormatResolution(resolution.width, resolution.height), (ComboValue)index);
+    FormatResolution(resolution.width, resolution.height, formattedResolution);
+    outResolutionOptions.emplace_back(formattedResolution, (ComboValue)index);
     ++index;
   }
   return 0;
@@ -172,11 +164,13 @@ static uint32_t GetFullscreenResolutionValues(const std::vector<ScreenResolution
 static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, uint32_t previousRate,
                                         std::vector<ComboBoxOption>& fullscreenRateOptions) {
   uint32_t selectedIndex = 0, currentIndex = 0;
+  char16_t formattedRate[RATE_BUFFER_SIZE];
   for (auto rate : fullscreenRates) {
     if (rate == previousRate)
       selectedIndex = currentIndex;
 
-    fullscreenRateOptions.emplace_back(FormatRate(rate), (ComboValue)rate);
+    FormatRate(rate, formattedRate);
+    fullscreenRateOptions.emplace_back(formattedRate, (ComboValue)rate);
     ++currentIndex;
   }
   return selectedIndex;
@@ -205,15 +199,14 @@ GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std:
 }
 
 void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
-  const MessageResource* textResources = localizedText->generalSettingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
   uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), GET_UI_MESSAGE(textResources,GeneralSettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
+  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText->getMessage(GeneralSettingsMessages::title),
+                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
 
   std::vector<ControlRegistration> registry;
   registry.reserve(12);
@@ -221,20 +214,20 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   auto changeHandler = std::bind(&GeneralSettings::onChange,this,std::placeholders::_1,std::placeholders::_2);
 
   // --- window group ---
-  windowGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowGroup), theme->fieldsetStyle(),
+  windowGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::windowGroup), theme->fieldsetStyle(),
                          theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                          Control::fieldsetContentHeight(3));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // display mode
   {
-    ComboBoxOption displayModeOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::displayMode_fullscreen), 0/*TMP*/),
-                                         ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::displayMode_borderless), 1/*TMP*/),
-                                         ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::displayMode_window),     2/*TMP*/) };
-    displayMode = Slider(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::displayMode), controlX, currentLineY,
+    ComboBoxOption displayModeOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_fullscreen), 0/*TMP*/),
+                                         ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_borderless), 1/*TMP*/),
+                                         ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_window),     2/*TMP*/) };
+    displayMode = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::displayMode), controlX, currentLineY,
                          Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(), DISPLAY_MODE_ID,
                          changeHandler, displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0);
-    registry.emplace_back(displayMode, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::displayMode_tooltip));
+    registry.emplace_back(displayMode, true, localizedText->getMessage(GeneralSettingsMessages::displayMode_tooltip));
     isFullscreenMode = true;
     isWindowMode = enableWidescreenMode = false;
     currentLineY += Control::pageLineHeight();
@@ -247,34 +240,34 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
     std::vector<ComboBoxOption> fullscreenSizeOptions;
     uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, fullscreenSizeOptions);
 
-    fullscreenSize = ComboBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::resolution), controlX, currentLineY,
+    fullscreenSize = ComboBox(*context, localizedText->getMessage(GeneralSettingsMessages::resolution), controlX, currentLineY,
                               Control::pageLabelWidth(), fullscreenSizeWidth, ComboBoxStyle::classic, theme->comboBoxColorParams(),
                               FULLSCREEN_SIZE_ID, changeHandler, fullscreenSizeOptions.data(), fullscreenSizeOptions.size(),
                               selectedResolutionIndex, &isFullscreenMode);
-    registry.emplace_back(fullscreenSize, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::resolution_tooltip));
+    registry.emplace_back(fullscreenSize, true, localizedText->getMessage(GeneralSettingsMessages::resolution_tooltip));
 
     std::vector<ComboBoxOption> fullscreenRateOptions;
     uint32_t selectedFullRate = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], 60000, fullscreenRateOptions);
     fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + fullscreenRateMargin,
                               currentLineY, 0, fullscreenRateWidth, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0, nullptr,
                               fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
-    registry.emplace_back(fullscreenRate, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::refreshRate_tooltip));
+    registry.emplace_back(fullscreenRate, true, localizedText->getMessage(GeneralSettingsMessages::refreshRate_tooltip));
     currentLineY += Control::pageLineHeight();
   }
   // window mode size
   constexpr const uint32_t windowHeightValue = 720u;
   constexpr const uint32_t windowHeightBoxOffsetX = Control::pageLabelWidth() + 11 + ((fullscreenSizeWidth+1) >> 1);
-  windowHeight = TextBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowSize), nullptr, controlX,
+  windowHeight = TextBox(*context, localizedText->getMessage(GeneralSettingsMessages::windowSize), nullptr, controlX,
                          currentLineY, windowHeightBoxOffsetX, (fullscreenSizeWidth >> 1) - 11, theme->textBoxControlColor(),
                          WINDOW_SIZE_ID, [this](uint32_t id){ this->onChange(id, this->windowHeight.valueInteger()); },
-                         windowHeightValue, 4u, &isWindowMode);
-  registry.emplace_back(windowHeight, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::windowSize_tooltip));
+                         windowHeightValue, 4u, false, &isWindowMode);
+  registry.emplace_back(windowHeight, true, localizedText->getMessage(GeneralSettingsMessages::windowSize_tooltip));
 
   onChange(WINDOW_SIZE_ID, windowHeightValue); // fill 'windowSize' text indicator
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- compatibility group ---
-  compatibilityGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::emulatorGroup),
+  compatibilityGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::emulatorGroup),
                                 theme->fieldsetStyle(), theme->fieldsetControlColor(),
                                 x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                                 Control::fieldsetContentHeight(4));
@@ -282,46 +275,46 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
 
   // subprecision modes
   {
-    ComboBoxOption subprecisionOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::precision_original),     0/*TMP*/),
-                                          ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::precision_subprecision), 1/*TMP*/) };
-    subprecisionMode = Slider(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::precision), controlX, currentLineY,
+    ComboBoxOption subprecisionOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_original),     0/*TMP*/),
+                                          ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_subprecision), 1/*TMP*/) };
+    subprecisionMode = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::precision), controlX, currentLineY,
                               Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(), 0, nullptr,
                               subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
-    registry.emplace_back(subprecisionMode, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::precision_tooltip));
+    registry.emplace_back(subprecisionMode, true, localizedText->getMessage(GeneralSettingsMessages::precision_tooltip));
     currentLineY += Control::pageLineHeight();
   }
   // widescreen hack
-  widescreenMode = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::widescreen), controlX,
+  widescreenMode = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::widescreen), controlX,
                             currentLineY, Control::pageLabelWidth(), WIDESCREEN_HACK_ID, changeHandler, enableWidescreenMode);
-  registry.emplace_back(widescreenMode, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::widescreen_tooltip));
+  registry.emplace_back(widescreenMode, true, localizedText->getMessage(GeneralSettingsMessages::widescreen_tooltip));
   currentLineY += Control::pageLineHeight();
 
   isAutosaved = isAutoloaded = false;
-  autosaveOnExit = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autosaveOnExit), controlX, currentLineY,
+  autosaveOnExit = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit), controlX, currentLineY,
                             Control::pageLabelWidth(), 0, nullptr, isAutosaved);
-  registry.emplace_back(autosaveOnExit, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autosaveOnExit_tooltip));
+  registry.emplace_back(autosaveOnExit, true, localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit_tooltip));
   currentLineY += Control::pageLineHeight();
 
-  autoloadOnStart = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autoloadOnStart), controlX, currentLineY,
+  autoloadOnStart = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart), controlX, currentLineY,
                              Control::pageLabelWidth(), 0, nullptr, isAutoloaded, &isAutosaved);
-  registry.emplace_back(autoloadOnStart, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::autoloadOnStart_tooltip));
+  registry.emplace_back(autoloadOnStart, true, localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart_tooltip));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- framerate group ---
-  framerateGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateGroup), theme->fieldsetStyle(),
+  framerateGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::rateGroup), theme->fieldsetStyle(),
                             theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                             Control::fieldsetContentHeight(3));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // frame rate limit mode
   {
-    ComboBoxOption frameLimitOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateLimit_disabled),   0/*TMP*/),
-                                        ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateLimit_autodetect), 1/*TMP*/),
-                                        ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateLimit_custom),     2/*TMP*/) };
-    framerateLimit = Slider(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateLimit), controlX, currentLineY,
+    ComboBoxOption frameLimitOptions[]{ ComboBoxOption(localizedText->getMessage(CommonMessages::disabled),   0/*TMP*/),
+                                        ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_autodetect), 1/*TMP*/),
+                                        ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_custom),     2/*TMP*/) };
+    framerateLimit = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::rateLimit), controlX, currentLineY,
                             Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(),FRAMERATE_LIMIT_ID,
                             changeHandler, frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1);
-    registry.emplace_back(framerateLimit, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::rateLimit_tooltip));
+    registry.emplace_back(framerateLimit, true, localizedText->getMessage(GeneralSettingsMessages::rateLimit_tooltip));
     isFramerateLimit = true;
     isFixedFramerate = isFrameSkipping = false;
     currentLineY += Control::pageLineHeight();
@@ -329,37 +322,37 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   // custom frame rate
   {
     double fixedRateValue = 59.94;
-    fixedFramerate = TextBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::customRate),
-                             GET_UI_MESSAGE(textResources,GeneralSettingsMessages::customRate_fps),
+    fixedFramerate = TextBox(*context, localizedText->getMessage(GeneralSettingsMessages::customRate),
+                             localizedText->getMessage(CommonMessages::fps),
                              controlX, currentLineY, Control::pageLabelWidth(), 80u, theme->textBoxControlColor(),
                              FRAMERATE_FIXED_ID, [this](uint32_t id) { this->onChange(id, 0); },
                              fixedRateValue, 6u, &isFixedFramerate);
-    registry.emplace_back(fixedFramerate, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::customRate_tooltip));
+    registry.emplace_back(fixedFramerate, true, localizedText->getMessage(GeneralSettingsMessages::customRate_tooltip));
     currentLineY += Control::pageLineHeight();
   }
   // other frame rate settings
-  frameSkipping = CheckBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::frameSkip), controlX,
+  frameSkipping = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::frameSkip), controlX,
                            currentLineY, Control::pageLabelWidth(), 0, nullptr, isFrameSkipping, &isFramerateLimit);
-  registry.emplace_back(frameSkipping, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::frameSkip_tooltip));
+  registry.emplace_back(frameSkipping, true, localizedText->getMessage(GeneralSettingsMessages::frameSkip_tooltip));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
   // --- user interface group ---
-  userInterfaceGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::uiGroup), theme->fieldsetStyle(),
+  userInterfaceGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::uiGroup), theme->fieldsetStyle(),
                                 theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
                                 Control::fieldsetContentHeight(2));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // interface color
   {
-    ComboBoxOption colorOptions[]{ ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme_blue),
+    ComboBoxOption colorOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_blue),
                                                   (ComboValue)ColorThemeType::blue),
-                                   ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme_green),
+                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_green),
                                                   (ComboValue)ColorThemeType::green),
-                                   ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme_scifi),
+                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_scifi),
                                                   (ComboValue)ColorThemeType::darkGreen),
-                                   ComboBoxOption(GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme_yellow),
+                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_yellow),
                                                   (ComboValue)ColorThemeType::yellow) };
-    interfaceColor = Slider(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme),
+    interfaceColor = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::theme),
                             controlX, currentLineY, Control::pageLabelWidth(),
                             Control::pageControlWidth(), theme->sliderArrowColor(), 0,
                             [this](uint32_t, uint32_t theme){
@@ -369,7 +362,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
                               init(this->x(), this->y(), this->width());
                             },
                             colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), (uint32_t)theme->themeType());
-    registry.emplace_back(interfaceColor, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::theme_tooltip));
+    registry.emplace_back(interfaceColor, true, localizedText->getMessage(GeneralSettingsMessages::theme_tooltip));
     currentLineY += Control::pageLineHeight();
   }
   // interface language
@@ -377,7 +370,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
     ComboBoxOption languageOptions[(size_t)LocalizationType::COUNT];
     for (size_t i = 0; i < (size_t)LocalizationType::COUNT; ++i)
       languageOptions[i] = ComboBoxOption(LocalizationTypeHelper::toLanguageName((LocalizationType)i), (ComboValue)i);
-    interfaceLanguage = ComboBox(*context, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::language),
+    interfaceLanguage = ComboBox(*context, localizedText->getMessage(GeneralSettingsMessages::language),
                                  controlX, currentLineY, Control::pageLabelWidth(),
                                  105u, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0,
                                  [this](uint32_t, uint32_t language){
@@ -385,7 +378,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
                                    init(this->x(), this->y(), this->width());
                                  },
                                  languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), (uint32_t)localizedText->language());
-    registry.emplace_back(interfaceLanguage, true, GET_UI_MESSAGE(textResources,GeneralSettingsMessages::language_tooltip));
+    registry.emplace_back(interfaceLanguage, true, localizedText->getMessage(GeneralSettingsMessages::language_tooltip));
   }
   currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
 
@@ -433,7 +426,7 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
+  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
 
   // display group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
@@ -511,8 +504,8 @@ void GeneralSettings::onChange(uint32_t id, uint32_t value) {
         value = value ? 480 : 720;
         windowHeight.replaceValueInteger(*context, (uint32_t)value);
       }
-      char32_t windowWidthBuffer[14];
-      memcpy(windowWidthBuffer, U"           x", 13*sizeof(char32_t));
+      char16_t windowWidthBuffer[14];
+      memcpy(windowWidthBuffer, u"           x", 13*sizeof(char16_t));
       FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
 
       auto& inputFont = context->getFont(FontType::inputText);

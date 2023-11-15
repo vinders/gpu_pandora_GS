@@ -26,7 +26,7 @@ namespace menu {
     class Label final {
     public:
       /// @brief Create label control
-      Label(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+      Label(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
             display::controls::TextAlignment align = display::controls::TextAlignment::left,
             display::ControlIconType icon = display::ControlIconType::none) {
         init(context, label, x, labelY, align, icon);
@@ -80,7 +80,7 @@ namespace menu {
       }
 
     private:
-      void init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+      void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                 display::controls::TextAlignment align, display::ControlIconType icon);
       
     private:

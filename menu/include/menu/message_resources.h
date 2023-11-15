@@ -28,11 +28,25 @@ namespace menu {
   };
   class LocalizationTypeHelper final {
   public:
-    static const char32_t* toLanguageName(LocalizationType type) noexcept; ///< Message localization type to string
+    static const char16_t* toLanguageName(LocalizationType type) noexcept; ///< Localization language type to string
   };
   
   // ---
   
+  enum class CommonMessages : size_t { ///< Message types common to all pages
+    disabled = 0,
+    apply,
+    maximum,
+    fps,
+    left,
+    center,
+    right,
+    top,
+    bottom,
+    to,
+    COUNT
+  };
+
   enum class GeneralSettingsMessages : size_t { ///< Message types for general settings page
     title = 0,
     windowGroup, // window/display group
@@ -41,9 +55,9 @@ namespace menu {
     displayMode_borderless,
     displayMode_window,
     displayMode_tooltip,
-    refreshRate_tooltip,
     resolution,
     resolution_tooltip,
+    refreshRate_tooltip,
     windowSize,
     windowSize_tooltip,
     emulatorGroup, // emulator compatibility group
@@ -60,16 +74,12 @@ namespace menu {
     rateGroup, // frame rate group
     rateLimit_tooltip,
     rateLimit,
-    rateLimit_disabled,
     rateLimit_autodetect,
     rateLimit_custom,
     customRate,
-    customRate_fps,
     customRate_tooltip,
     frameSkip,
     frameSkip_tooltip,
-    vsync,
-    vsync_tooltip,
     uiGroup, // user interface group
     theme,
     theme_blue,
@@ -103,17 +113,11 @@ namespace menu {
     title = 0,
     clockGroup, // clock settings group
     clockVisibility,
-    clockVisibility_disabled,
     clockVisibility_mouseMove,
     clockVisibility_always,
     clockFormat,
     clockLocationX,
-    clockLocationX_left,
-    clockLocationX_center,
-    clockLocationX_right,
     clockLocationY,
-    clockLocationY_top,
-    clockLocationY_bottom,
     techInfoGroup, // technical info group
     techInfoVisibility,
     techInfoType,
@@ -131,7 +135,6 @@ namespace menu {
     presetGroup,
     predefinedPreset,
     existingProfile,
-    apply,
     COUNT
   };
   enum class ScreenStretchingMessages : size_t { ///< Message types for screen stretching page
@@ -166,53 +169,45 @@ namespace menu {
     blackBorders,
     blackBorders_tooltip,
     screenCurvature,
-    maxCurved,
     screenCurvature_tooltip,
     COUNT
   };
   enum class SmoothingUpscalingMessages : size_t { ///< Message types for smoothing/upscaling page
     title = 0,
-    frameBufferGroup, // frame-buffer group
+    framebufferGroup, // frame-buffer group
     internalResolution,
     internalResolution_tooltip,
     internalResolution_prefix,
-    internalResolution_to,
     internalResolution_suffix,
+    displaySize_prefix,
     mdecMovieFilter,
     mdecMovieFilter_tooltip,
-    disabled, // common
-    grain_photo,
-    grain_gauss,
-    screenGroup, // screen group
-    screenUpscaling,
-    screenUpscaling_tooltip,
-    displaySize_prefix,
-    screenBlur,
-    screenBlur_tooltip,
-    screenGrain,
-    screenGrain_tooltip,
+    upscaling_tooltip,
     smoothing_nearest,
     smoothing_bilinear,
     smoothing_bicubic,
     smoothing_lanczos,
+    smoothing_tooltip,
+    grain_photo,
+    grain_gauss,
+    grain_tooltip,
+    screenGroup, // screen group
+    screenUpscaling,
+    screenBlur,
+    screenBlur_tooltip,
+    screenGrain,
     textureGroup, // texture group
     textureUpscaling,
-    textureUpscaling_tooltip,
     textureSmoothing,
-    textureSmoothing_tooltip,
     textureGrain,
-    textureGrain_tooltip,
     textureSplatting,
     textureSplatting_tooltip,
     spriteGroup, // sprite group
-    spriteTextureSettings,
-    spriteTextureSettings_tooltip,
+    spriteSameAsTexture,
+    spriteSameAsTexture_tooltip,
     spriteUpscaling,
-    spriteUpscaling_tooltip,
     spriteSmoothing,
-    spriteSmoothing_tooltip,
     spriteGrain,
-    spriteGrain_tooltip,
     COUNT
   };
   enum class CompatibilitySettingsMessages : size_t { ///< Message types for compatibility settings page
@@ -220,8 +215,8 @@ namespace menu {
     specialGameFixesGroup,
     lowCompatibilityFrameRead,
     lowCompatibilityFrameRead_tooltip,
-    ignoreSmallFrameBufferMoves,
-    ignoreSmallFrameBufferMoves_tooltip,
+    ignoreSmallFramebufferMoves,
+    ignoreSmallFramebufferMoves_tooltip,
     fakeGpuBusyStates,
     fakeGpuBusyStates_tooltip,
     COUNT
@@ -229,11 +224,11 @@ namespace menu {
 
   // ---
   
-  using MessageResource = const char32_t*;
-
   /// @brief UI localized text messages
   class MessageResources final {
   public:
+    using Message = const char16_t*;
+
     inline MessageResources(LocalizationType language) {
       updateLocalization(language);
     }
@@ -248,37 +243,30 @@ namespace menu {
 
     // -- message array accessors --
 
+    /// @brief Message resources common to all UI pages
+    inline const char16_t* getMessage(CommonMessages id) const noexcept { return common[(size_t)id]; }
+
     /// @brief Message resources for general settings UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, GeneralSettingsMessages::<...>)
-    inline const MessageResource* generalSettingsMessageArray() const noexcept { return generalSettings; }
+    inline const char16_t* getMessage(GeneralSettingsMessages id) const noexcept { return generalSettings[(size_t)id]; }
     /// @brief Message resources for hotkey bindings UI page - general
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyBindingsMessages::<...>)
-    inline const MessageResource* hotkeyBindingsMessageArray() const noexcept { return hotkeyBindings; }
+    inline const char16_t* getMessage(HotkeyBindingsMessages id) const noexcept { return hotkeyBindings[(size_t)id]; }
     /// @brief Message resources for hotkey bindings UI page - actions
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyActions::<...>)
-    inline const MessageResource* hotkeyActionsMessageArray() const noexcept { return hotkeyActions; }
+    inline const char16_t* getMessage(HotkeyActions id) const noexcept { return hotkeyActions[(size_t)id]; }
     /// @brief Message resources for hotkey bindings UI page - actions tooltips
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, HotkeyActions::<...>)
-    inline const MessageResource* hotkeyActionsTooltipsMessageArray() const noexcept { return hotkeyActionsTooltips; }
+    inline const char16_t* getMessageTooltip(HotkeyActions id) const noexcept { return hotkeyActionsTooltips[(size_t)id]; }
     /// @brief Message resources for on-screen display settings UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, OsdSettingsMessages::<...>)
-    inline const MessageResource* osdSettingsMessageArray() const noexcept { return osdSettings; }
+    inline const char16_t* getMessage(OsdSettingsMessages id) const noexcept { return osdSettings[(size_t)id]; }
 
     /// @brief Message resources for base profile settings UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ProfileSettingsMessages::<...>)
-    inline const MessageResource* profileSettingsMessageArray() const noexcept { return profileSettings; }
+    inline const char16_t* getMessage(ProfileSettingsMessages id) const noexcept { return profileSettings[(size_t)id]; }
     /// @brief Message resources for UI tile color picker
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, TileColors::<...>)
-    inline const MessageResource* tileColorsMessageArray() const noexcept { return tileColors; }
+    inline const char16_t* getMessage(TileColors id) const noexcept { return tileColors[(size_t)id]; }
     /// @brief Message resources for screen stretching UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, ScreenStretchingMessages::<...>)
-    inline const MessageResource* screenStretchingMessageArray() const noexcept { return screenStretching; }
+    inline const char16_t* getMessage(ScreenStretchingMessages id) const noexcept { return screenStretching[(size_t)id]; }
     /// @brief Message resources for smoothing/upscaling UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, SmoothingUpscalingMessages::<...>)
-    inline const MessageResource* smoothingUpscalingMessageArray() const noexcept { return smoothingUpscaling; }
+    inline const char16_t* getMessage(SmoothingUpscalingMessages id) const noexcept { return smoothingUpscaling[(size_t)id]; }
     /// @brief Message resources for compatibility UI page
-    /// @remarks Access messages using GET_UI_MESSAGE(messageArray, CompatibilitySettingsMessages::<...>)
-    inline const MessageResource* compatibilityMessageArray() const noexcept { return compatibility; }
+    inline const char16_t* getMessage(CompatibilitySettingsMessages id) const noexcept { return compatibility[(size_t)id]; }
 
   private:
     void fillMessagesEN();
@@ -287,17 +275,19 @@ namespace menu {
     void fillMessagesES();
     
   private:
-    MessageResource generalSettings[(size_t)GeneralSettingsMessages::COUNT];
-    MessageResource hotkeyBindings[(size_t)HotkeyBindingsMessages::COUNT];
-    MessageResource hotkeyActions[(size_t)HotkeyActions::COUNT];
-    MessageResource hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
-    MessageResource osdSettings[(size_t)OsdSettingsMessages::COUNT];
-    MessageResource profileSettings[(size_t)ProfileSettingsMessages::COUNT];
-    MessageResource tileColors[(size_t)TileColors::COUNT];
-    MessageResource screenStretching[(size_t)ScreenStretchingMessages::COUNT];
-    MessageResource smoothingUpscaling[(size_t)SmoothingUpscalingMessages::COUNT];
-    MessageResource compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
+    Message common[(size_t)CommonMessages::COUNT];
+
+    Message generalSettings[(size_t)GeneralSettingsMessages::COUNT];
+    Message hotkeyBindings[(size_t)HotkeyBindingsMessages::COUNT];
+    Message hotkeyActions[(size_t)HotkeyActions::COUNT];
+    Message hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
+    Message osdSettings[(size_t)OsdSettingsMessages::COUNT];
+
+    Message profileSettings[(size_t)ProfileSettingsMessages::COUNT];
+    Message tileColors[(size_t)TileColors::COUNT];
+    Message screenStretching[(size_t)ScreenStretchingMessages::COUNT];
+    Message smoothingUpscaling[(size_t)SmoothingUpscalingMessages::COUNT];
+    Message compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }
-#define GET_UI_MESSAGE(messageArray,enumValue) messageArray[(size_t)enumValue]

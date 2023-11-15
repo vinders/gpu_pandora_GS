@@ -30,12 +30,12 @@ using namespace menu;
 
 #define DEFAULT_NAME_BUFFER_SIZE 20
 
-static void setDefaultProfileName(uint32_t profileId, char32_t buffer[DEFAULT_NAME_BUFFER_SIZE]) {
-  const char32_t defaultPrefix[] = U"Profile #";
+static void setDefaultProfileName(uint32_t profileId, char16_t buffer[DEFAULT_NAME_BUFFER_SIZE]) {
+  const char16_t defaultPrefix[] = u"Profile #";
   memcpy(buffer, defaultPrefix, sizeof(defaultPrefix));
 
   // append profile ID
-  char32_t* it = buffer + (static_cast<intptr_t>(sizeof(defaultPrefix)/sizeof(char32_t)) - 1u);
+  char16_t* it = buffer + (static_cast<intptr_t>(sizeof(defaultPrefix)/sizeof(char16_t)) - 1u);
   if (profileId >= 10u) {
     it += (profileId < 10000u)
         ? ((profileId < 100u) ? 1 : ((profileId < 1000u) ? 3 : 4) )
@@ -44,17 +44,17 @@ static void setDefaultProfileName(uint32_t profileId, char32_t buffer[DEFAULT_NA
            : ((profileId < 100000000u)
               ? ((profileId < 10000000u) ? 7 : 8)
               : ((profileId < 1000000000u) ? 9 : 10)));
-    *it = U'\0';
+    *it = u'\0';
     --it;
     while (profileId) {
-      *it = U'0' + static_cast<char32_t>(profileId % 10u);
+      *it = u'0' + static_cast<char16_t>(profileId % 10u);
       profileId /= 10u;
       --it;
     }
   }
   else {
-    *it = U'0' + static_cast<char32_t>(profileId);
-    *(++it) = U'\0';
+    *it = u'0' + static_cast<char16_t>(profileId);
+    *(++it) = u'\0';
   }
 }
 
@@ -85,19 +85,18 @@ static void fillPreviewTopColor(const float previewColor[4], float outRgba[4]) {
 #define APPLY_PRESET_ID  3
 #define COPY_PROFILE_ID  4
 
-#define MAX_NAME_LENGTH 36u
+#define MAX_NAME_LENGTH ComboBoxOption::maxLength
 
 void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int32_t y,
                            uint32_t width, const std::vector<ConfigProfile>& profiles, const std::vector<ConfigProfile>& presets) {
-  const MessageResource* textResources = localizedText.profileSettingsMessageArray();
   const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
   const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
   uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), GET_UI_MESSAGE(textResources,ProfileSettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24, TextAlignment::left);
+  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(ProfileSettingsMessages::title),
+                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
 
   std::vector<ControlRegistration> registry;
   registry.reserve(6);
@@ -114,21 +113,21 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
   }
 
   // --- profile ID group ---
-  profileIdGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::profileIdGroup),
+  profileIdGroup = Fieldset(*context, localizedText.getMessage(ProfileSettingsMessages::profileIdGroup),
                             theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                             currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 
   // profile name
-  if (currentProfile == nullptr || currentProfile->name == nullptr || currentProfile->name[0] == U'\0') {
-    char32_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
+  if (currentProfile == nullptr || currentProfile->name == nullptr || currentProfile->name[0] == u'\0') {
+    char16_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
     setDefaultProfileName(profileId, defaultName);
-    profileName = TextBox(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::profileName), nullptr, controlX,
+    profileName = TextBox(*context, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr, controlX,
                           currentLineY, Control::pageLabelWidth(), Control::pageControlWidth(),
                           theme->textBoxControlColor(), PROFILE_NAME_ID, changeHandler, defaultName, MAX_NAME_LENGTH);
   }
   else {
-    profileName = TextBox(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::profileName), nullptr, controlX,
+    profileName = TextBox(*context, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr, controlX,
                           currentLineY, Control::pageLabelWidth(), Control::pageControlWidth(),
                           theme->textBoxControlColor(), PROFILE_NAME_ID, changeHandler, currentProfile->name.get(), MAX_NAME_LENGTH);
   }
@@ -137,13 +136,12 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
 
   // color picker
   {
-    const MessageResource* colorNames = localizedText.tileColorsMessageArray();
     ComboBoxOption tileColorOptions[(size_t)TileColors::COUNT];
     for (size_t i = 0; i < (size_t)TileColors::COUNT; ++i)
-      tileColorOptions[i] = ComboBoxOption(GET_UI_MESSAGE(colorNames,(TileColors)i), (ComboValue)i);
+      tileColorOptions[i] = ComboBoxOption(localizedText.getMessage((TileColors)i), (ComboValue)i);
 
     auto colorChangeHandler = std::bind(&ProfileSettings::onColorChange,this,std::placeholders::_1,std::placeholders::_2);
-    tileColor = ComboBox(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::tileColor), controlX, currentLineY,
+    tileColor = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::tileColor), controlX, currentLineY,
                          Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic, theme->comboBoxColorParams(),
                          TILE_COLOR_ID, colorChangeHandler, tileColorOptions, sizeof(tileColorOptions)/sizeof(*tileColorOptions), 0);
     registry.emplace_back(tileColor, true);
@@ -168,7 +166,7 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
   }
 
   // --- preset group ---
-  presetGroup = Fieldset(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::presetGroup),
+  presetGroup = Fieldset(*context, localizedText.getMessage(ProfileSettingsMessages::presetGroup),
                          theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
                          currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
@@ -180,12 +178,12 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     presetLabels.reserve(presets.size());
     for (const auto& preset : presets)
       presetLabels.emplace_back(preset.name.get(), (ComboValue)preset.id);
-    presetToApply = ComboBox(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::predefinedPreset), controlX,
+    presetToApply = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::predefinedPreset), controlX,
                              currentLineY, Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic,
                              theme->comboBoxColorParams(), 0, nullptr, presetLabels.data(), presetLabels.size(), 0);
     registry.emplace_back(presetToApply, true);
 
-    applyPreset = Button(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::apply),
+    applyPreset = Button(*context, localizedText.getMessage(CommonMessages::apply),
                          presetToApply.x() + (int32_t)presetToApply.width() + Control::controlButtonMargin(),
                          currentLineY, buttonStyle, APPLY_PRESET_ID, changeHandler);
     registry.emplace_back(applyPreset, true, nullptr, Control::controlButtonMargin());
@@ -203,12 +201,12 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
       firstOption = profileLabels.data();
       hasOtherProfiles = true;
     }
-    profileToCopy = ComboBox(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::existingProfile), controlX,
+    profileToCopy = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::existingProfile), controlX,
                              currentLineY, Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic,
                              theme->comboBoxColorParams(), 0, nullptr, firstOption, profileLabels.size(), 0, &hasOtherProfiles);
     registry.emplace_back(profileToCopy, true);
 
-    copyProfile = Button(*context, GET_UI_MESSAGE(textResources,ProfileSettingsMessages::apply),
+    copyProfile = Button(*context, localizedText.getMessage(CommonMessages::apply),
                          profileToCopy.x() + (int32_t)profileToCopy.width() + Control::controlButtonMargin(),
                          currentLineY, buttonStyle, COPY_PROFILE_ID, changeHandler, &hasOtherProfiles);
     registry.emplace_back(copyProfile, true, nullptr, Control::controlButtonMargin());
@@ -249,7 +247,7 @@ void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   if (fieldsetWidth > Control::fieldsetMaxWidth())
     fieldsetWidth = Control::fieldsetMaxWidth();
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + 24);
+  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
 
   // profile ID group
   int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
@@ -280,8 +278,8 @@ void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
 void ProfileSettings::onChange(uint32_t id) {
   switch (id) {
     case PROFILE_NAME_ID: {
-      if (*profileName.valueText() == U'\0') {
-        char32_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
+      if (*profileName.valueText() == u'\0') {
+        char16_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
         setDefaultProfileName(this->profileId, defaultName);
         this->profileName.replaceValueText(*(this->context), defaultName);
       }

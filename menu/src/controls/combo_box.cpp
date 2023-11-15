@@ -82,7 +82,7 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
 
 // ---
 
-void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, int32_t labelY,
+void ComboBox::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                     ComboBoxStyle style, const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
@@ -102,8 +102,7 @@ void ComboBox::init(RendererContext& context, const char32_t* label, int32_t x, 
     int32_t optionNameY = y + (int32_t)boxHeight + (int32_t)comboBoxPaddingY() + 1;
     selectableValues.reserve(valueCount);
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)boxHeight) {
-      EMPLACE_AND_GET(selectableValues, result,
-                      context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
+      EMPLACE_AND_GET(selectableValues, result, context, optionFont, values->name(), optionNameX, optionNameY, values->value());
       if (result.nameMesh.width() > longestOptionNameWidth)
         longestOptionNameWidth = result.nameMesh.width();
     }
@@ -203,7 +202,7 @@ void ComboBox::replaceValues(RendererContext& context, ComboBoxOption* values, s
     selectableValues.reserve(valueCount);
 
     for (size_t remainingOptions = valueCount; remainingOptions; --remainingOptions, ++values, optionNameY += (int32_t)controlMesh.height()) {
-      selectableValues.emplace_back(context, optionFont, values->name.get(), optionNameX, optionNameY, values->value);
+      selectableValues.emplace_back(context, optionFont, values->name(), optionNameX, optionNameY, values->value());
     }
     if (selectedIndex >= 0) { // copy selected option in combo-box
       selectableValues[selectedIndex].nameMesh.cloneAtLocation(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),

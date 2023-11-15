@@ -30,7 +30,7 @@ namespace menu {
       /// @brief Create tab management control
       /// @param onChange    Event handler to call (with tab index) when the active tab is changed
       TabControl(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, uint32_t tabPaddingX, uint32_t tabPaddingY,
-                 uint32_t minTabWidth, const TabControlColors& colors, const char32_t** tabLabels, size_t tabCount,
+                 uint32_t minTabWidth, const TabControlColors& colors, const char16_t** tabLabels, size_t tabCount,
                  std::function<void(uint32_t)> onChange, uint32_t selectedIndex = 0)
         : selectedIndex((selectedIndex < (uint32_t)tabCount) ? selectedIndex : 0),
           onChange(std::move(onChange)),
@@ -91,7 +91,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
-                const char32_t** tabLabels, size_t tabCount);
+                const char16_t** tabLabels, size_t tabCount);
 
     private:
       display::controls::ControlMesh barMesh;

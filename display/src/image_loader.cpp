@@ -29,22 +29,20 @@ using namespace display;
 
 // -- control icons -- ---------------------------------------------------------
 
-const char32_t* display::toDefaultLabel(ControlIconType type) noexcept {
+const char16_t* display::toDefaultLabel(ControlIconType type) noexcept {
   switch (type) {
-    case ControlIconType::checked:    return U"v";
-    case ControlIconType::unchecked:  return U"x";
-    case ControlIconType::info:       return U"Info";
-    case ControlIconType::options:    return U"Options";
-    case ControlIconType::load:       return U"Load";
-    case ControlIconType::save:       return U"Save";
-    case ControlIconType::apply:      return U"Apply";
-    case ControlIconType::cancel:     return U"Cancel";
-    case ControlIconType::add:        return U"Add";
-    case ControlIconType::edit:       return U"Edit";
-    case ControlIconType::remove:     return U"Remove";
-    case ControlIconType::keyboard:   return U"Keyboard";
-    case ControlIconType::controller: return U"Controller";
-    default: return U"";
+    case ControlIconType::info:       return u"Info";
+    case ControlIconType::options:    return u"Options";
+    case ControlIconType::load:       return u"Load";
+    case ControlIconType::save:       return u"Save";
+    case ControlIconType::apply:      return u"Apply";
+    case ControlIconType::cancel:     return u"Cancel";
+    case ControlIconType::add:        return u"Add";
+    case ControlIconType::edit:       return u"Edit";
+    case ControlIconType::remove:     return u"Remove";
+    case ControlIconType::keyboard:   return u"Keyboard";
+    case ControlIconType::controller: return u"Controller";
+    default: return nullptr;
   };
 }
 
