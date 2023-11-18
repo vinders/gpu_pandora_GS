@@ -65,8 +65,8 @@ namespace menu {
       controls::TextBox internalResolutionX;
       controls::TextBox internalResolutionY;
       display::controls::TextMesh framebufferResolutionInfo;
-      controls::CheckBox mdecMovieFilter;
-      bool isMdecFilter = true;
+      controls::ComboBox mdecMovieFilter;
+      controls::ComboBox antiAliasing;
 
       controls::Fieldset screenGroup;
       controls::ComboBox screenUpscaling;

@@ -221,8 +221,7 @@ void ScreenStretching::init(const ColorTheme& theme, const MessageResources& loc
   builder.addDoubleTextBox(0, 0, localizedText.getMessage(ScreenStretchingMessages::blackBorders), u"px",
                            localizedText.getMessage(ScreenStretchingMessages::blackBorders_tooltip),
                            0, 0, 3u, blackBordersX, blackBordersY);
-  builder.addRuler(0, localizedText.getMessage(ScreenStretchingMessages::screenCurvature),
-                   localizedText.getMessage(CommonMessages::maximum),
+  builder.addRuler(0, localizedText.getMessage(ScreenStretchingMessages::screenCurvature), nullptr,
                    localizedText.getMessage(ScreenStretchingMessages::screenCurvature_tooltip),
                    RULER_SIZE, MAX_RULER_VALUE, screenCurvatureValue, screenCurvature);
   builder.addCheckBox(0, localizedText.getMessage(ScreenStretchingMessages::showOverscanArea),

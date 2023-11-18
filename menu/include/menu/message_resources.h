@@ -179,6 +179,8 @@ namespace menu {
     internalResolution_tooltip,
     framebufferResolution_prefix,
     displaySize_prefix,
+    antiAliasing,
+    antiAliasing_tooltip,
     mdecMovieFilter,
     mdecMovieFilter_tooltip,
     upscaling_tooltip,
@@ -262,6 +264,12 @@ namespace menu {
     inline const char16_t* getMessage(SmoothingUpscalingMessages id) const noexcept { return smoothingUpscaling[(size_t)id]; }
     /// @brief Message resources for UI interpolation choice
     inline const char16_t* getMessage(InterpolationType id) const noexcept { return interpolations[(size_t)id]; }
+    /// @brief Message resources for UI upscaling choice
+    inline const char16_t* getMessage(UpscalingType id) const noexcept { return upscalings[(size_t)id]; }
+    /// @brief Message resources for UI MDEC filter choice
+    inline const char16_t* getMessage(MdecFilter id) const noexcept { return mdecFilters[(size_t)id]; }
+    /// @brief Message resources for UI anti-aliasing choice
+    inline const char16_t* getMessage(AntiAliasing id) const noexcept { return antiAliasings[(size_t)id]; }
     /// @brief Message resources for compatibility UI page
     inline const char16_t* getMessage(CompatibilitySettingsMessages id) const noexcept { return compatibility[(size_t)id]; }
 
@@ -285,6 +293,9 @@ namespace menu {
     Message screenStretching[(size_t)ScreenStretchingMessages::COUNT];
     Message smoothingUpscaling[(size_t)SmoothingUpscalingMessages::COUNT];
     Message interpolations[(size_t)InterpolationType::COUNT];
+    Message upscalings[(size_t)UpscalingType::COUNT];
+    Message mdecFilters[(size_t)MdecFilter::COUNT];
+    Message antiAliasings[(size_t)AntiAliasing::COUNT];
     Message compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
