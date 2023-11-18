@@ -266,14 +266,30 @@ void MessageResources::fillMessagesEN() {
   antiAliasings[(size_t)AntiAliasing::msaa4] = u"MSAA 4x (2D/3D, slower)";
   antiAliasings[(size_t)AntiAliasing::msaa8] = u"MSAA 8x (2D/3D, slower)";
   
-  compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
-  compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
+  advancedEffects[(size_t)AdvancedEffectsMessages::title] = u"Advanced effects";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaGroup] = u"Gamma correction";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaCorrection_tooltip] = u"Color linearity adjustment (the diamond shapes should be barely visible)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorGroup] = u"Color settings";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth] = u"Framebuffer bit depth";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth_tooltip] = u"Color palette: 32-bit (better gradients, accurate colors) / 16-bit (dithering, retro look)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines] = u"Show scanlines";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines_tooltip] = u"Display darker lines (or decomposed colors) similar to CRT televisions";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter] = u"Color filter";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter_tooltip] = u"Alter game colors to change the look and feel (or for color-blind filters)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading] = u"Special shading";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading_tooltip] = u"Special rendering effects and gimmicks";
+  advancedEffects[(size_t)AdvancedEffectsMessages::hdrGroup] = u"High dynamic range";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom] = u"Bloom effect";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom_tooltip] = u"Light effect to reproduce an artifact of real-world cameras (move left to disable)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen] = u"Luma sharpen";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen_tooltip] = u"Increase overall image sharpness with unsharp masking (move left to disable)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialGameFixesGroup] = u"Special game fixes";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
 }
 
 void MessageResources::fillMessagesFR() {
@@ -503,14 +519,30 @@ void MessageResources::fillMessagesFR() {
   antiAliasings[(size_t)AntiAliasing::msaa4] = u"MSAA 4x (2D/3D, slower)";
   antiAliasings[(size_t)AntiAliasing::msaa8] = u"MSAA 8x (2D/3D, slower)";
   
-  compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
-  compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
+  advancedEffects[(size_t)AdvancedEffectsMessages::title] = u"Advanced effects";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaGroup] = u"Gamma correction";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaCorrection_tooltip] = u"Color linearity adjustment (the diamond shape should be barely visible)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorGroup] = u"Color settings";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth] = u"Framebuffer bit depth";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth_tooltip] = u"Color palette: 32-bit (better gradients, accurate colors) / 16-bit (dithering, retro look)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines] = u"Show scanlines";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines_tooltip] = u"Display darker lines (or decomposed colors) similar to CRT televisions";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter] = u"Color filter";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter_tooltip] = u"Alter game colors to change the look and feel (or for color-blind filters)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading] = u"Special shading";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading_tooltip] = u"Special rendering effects and gimmicks";
+  advancedEffects[(size_t)AdvancedEffectsMessages::hdrGroup] = u"High dynamic range";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom] = u"Bloom effect";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom_tooltip] = u"Light effect to reproduce an artifact of real-world cameras";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen] = u"Luma sharpen";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen_tooltip] = u"Increase overall image sharpness (with an unsharp mask)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialGameFixesGroup] = u"Special game fixes";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
 }
 
 void MessageResources::fillMessagesDE() {
@@ -740,14 +772,30 @@ void MessageResources::fillMessagesDE() {
   antiAliasings[(size_t)AntiAliasing::msaa4] = u"MSAA 4x (2D/3D, slower)";
   antiAliasings[(size_t)AntiAliasing::msaa8] = u"MSAA 8x (2D/3D, slower)";
   
-  compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
-  compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
+  advancedEffects[(size_t)AdvancedEffectsMessages::title] = u"Advanced effects";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaGroup] = u"Gamma correction";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaCorrection_tooltip] = u"Color linearity adjustment (the diamond shape should be barely visible)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorGroup] = u"Color settings";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth] = u"Framebuffer bit depth";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth_tooltip] = u"Color palette: 32-bit (better gradients, accurate colors) / 16-bit (dithering, retro look)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines] = u"Show scanlines";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines_tooltip] = u"Display darker lines (or decomposed colors) similar to CRT televisions";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter] = u"Color filter";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter_tooltip] = u"Alter game colors to change the look and feel (or for color-blind filters)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading] = u"Special shading";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading_tooltip] = u"Special rendering effects and gimmicks";
+  advancedEffects[(size_t)AdvancedEffectsMessages::hdrGroup] = u"High dynamic range";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom] = u"Bloom effect";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom_tooltip] = u"Light effect to reproduce an artifact of real-world cameras";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen] = u"Luma sharpen";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen_tooltip] = u"Increase overall image sharpness (with an unsharp mask)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialGameFixesGroup] = u"Special game fixes";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
 }
 
 void MessageResources::fillMessagesES() {
@@ -977,12 +1025,28 @@ void MessageResources::fillMessagesES() {
   antiAliasings[(size_t)AntiAliasing::msaa4] = u"MSAA 4x (2D/3D, slower)";
   antiAliasings[(size_t)AntiAliasing::msaa8] = u"MSAA 8x (2D/3D, slower)";
   
-  compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
-  compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
-  compatibility[(size_t)CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
-  compatibility[(size_t)CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
-  compatibility[(size_t)CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
+  advancedEffects[(size_t)AdvancedEffectsMessages::title] = u"Advanced effects";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaGroup] = u"Gamma correction";
+  advancedEffects[(size_t)AdvancedEffectsMessages::gammaCorrection_tooltip] = u"Color linearity adjustment (the diamond shape should be barely visible)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorGroup] = u"Color settings";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth] = u"Framebuffer bit depth";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorBitDepth_tooltip] = u"Color palette: 32-bit (better gradients, accurate colors) / 16-bit (dithering, retro look)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines] = u"Show scanlines";
+  advancedEffects[(size_t)AdvancedEffectsMessages::scanlines_tooltip] = u"Display darker lines (or decomposed colors) similar to CRT televisions";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter] = u"Color filter";
+  advancedEffects[(size_t)AdvancedEffectsMessages::colorFilter_tooltip] = u"Alter game colors to change the look and feel (or for color-blind filters)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading] = u"Special shading";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialShading_tooltip] = u"Special rendering effects and gimmicks";
+  advancedEffects[(size_t)AdvancedEffectsMessages::hdrGroup] = u"High dynamic range";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom] = u"Bloom effect";
+  advancedEffects[(size_t)AdvancedEffectsMessages::bloom_tooltip] = u"Light effect to reproduce an artifact of real-world cameras";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen] = u"Luma sharpen";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen_tooltip] = u"Increase overall image sharpness (with an unsharp mask)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::specialGameFixesGroup] = u"Special game fixes";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
+  advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
 }

@@ -207,8 +207,14 @@ namespace menu {
         (++vertexIt)->position[1] = y2; (++vertexIt)->position[1] = y2;
       }
 
-      // -- cross generation --
-      
+      // -- other shape generation --
+
+      /// @brief Generate filled diamond shape (in 4 menu control vertices)
+      ///        (expected indices: 0,1,2,2,1,3)
+      /// @param outVertexIt       Must point to an array of at least 4 control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillDiamondVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                    float x1, float x2, float y1, float y2) noexcept;
       /// @brief Generate filled cross (in 8 menu control vertices)
       ///        (expected indices: 0,1,2,2,1,3, 4,5,6,6,5,7)
       /// @param outVertexIt       Must point to an array of at least 8 control vertices

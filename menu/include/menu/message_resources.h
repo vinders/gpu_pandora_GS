@@ -207,8 +207,24 @@ namespace menu {
     spriteGrain,
     COUNT
   };
-  enum class CompatibilitySettingsMessages : size_t { ///< Message types for compatibility settings page
+  enum class AdvancedEffectsMessages : size_t { ///< Message types for compatibility settings page
     title = 0,
+    gammaGroup,
+    gammaCorrection_tooltip,
+    colorGroup,
+    colorBitDepth,
+    colorBitDepth_tooltip,
+    scanlines,
+    scanlines_tooltip,
+    colorFilter,
+    colorFilter_tooltip,
+    specialShading,
+    specialShading_tooltip,
+    hdrGroup,
+    bloom,
+    bloom_tooltip,
+    lumaSharpen,
+    lumaSharpen_tooltip,
     specialGameFixesGroup,
     lowCompatibilityFrameRead,
     lowCompatibilityFrameRead_tooltip,
@@ -270,8 +286,8 @@ namespace menu {
     inline const char16_t* getMessage(MdecFilter id) const noexcept { return mdecFilters[(size_t)id]; }
     /// @brief Message resources for UI anti-aliasing choice
     inline const char16_t* getMessage(AntiAliasing id) const noexcept { return antiAliasings[(size_t)id]; }
-    /// @brief Message resources for compatibility UI page
-    inline const char16_t* getMessage(CompatibilitySettingsMessages id) const noexcept { return compatibility[(size_t)id]; }
+    /// @brief Message resources for advanced effects UI page
+    inline const char16_t* getMessage(AdvancedEffectsMessages id) const noexcept { return advancedEffects[(size_t)id]; }
 
   private:
     void fillMessagesEN();
@@ -296,7 +312,7 @@ namespace menu {
     Message upscalings[(size_t)UpscalingType::COUNT];
     Message mdecFilters[(size_t)MdecFilter::COUNT];
     Message antiAliasings[(size_t)AntiAliasing::COUNT];
-    Message compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
+    Message advancedEffects[(size_t)AdvancedEffectsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };
 }

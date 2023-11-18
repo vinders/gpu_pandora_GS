@@ -174,24 +174,23 @@ void Page::onHover(int32_t controlIndex) {
     // move hover rectangle (if a control is selected)
     if (controlIndex != noControlSelection()) {
       const auto* control = &controlRegistry[controlIndex];
-      bool isLeftEnd = (controlIndex == 0 || control->y() != (control - 1)->y());
-      bool isRightEnd = (controlIndex == (int32_t)controlRegistry.size() - 1 || control->y() != (control+1)->y());
 
       int32_t controlHoverX;
       uint32_t controlHoverWidth;
       const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
                                                   + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
       if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
-        controlHoverX = control->x() - (int32_t)Control::lineHoverPaddingX();
+        controlHoverX = controlX - (int32_t)Control::lineHoverPaddingX();
         controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
                           + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
-        if (!isRightEnd) {
+
+        if (controlIndex != (int32_t)controlRegistry.size() - 1 && control->y() == (control+1)->y()) { // next control on the same line
           int32_t nextControlRightHoverX = (control + 1)->x() + (int32_t)(control+1)->width() + (int32_t)Control::lineHoverPaddingX();
           if (controlHoverX + (int32_t)controlHoverWidth < nextControlRightHoverX)
             controlHoverWidth = static_cast<uint32_t>(nextControlRightHoverX - controlHoverX);
         }
       }
-      else if (!isLeftEnd) {
+      else if (controlIndex != 0 && control->y() == (control - 1)->y()) { // previous control on the same line
         controlHoverX = (control-1)->x() - (int32_t)Control::lineHoverPaddingX();
         controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
                           + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();

@@ -67,6 +67,7 @@ namespace menu {
 
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return thumbMesh.y() + 1; }
+      inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t rightX() const noexcept {
         return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
                                   : (controlMesh.x() + (int32_t)controlMesh.width());

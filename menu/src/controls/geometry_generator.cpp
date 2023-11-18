@@ -339,7 +339,17 @@ void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt,
 }
 
 
-// -- cross generation -- ------------------------------------------------------
+// -- other shape generation -- ------------------------------------------------------
+
+void GeometryGenerator::fillDiamondVertices(ControlVertex* outVertexIt, const float rgba[4],
+                                            float x1, float x2, float y1, float y2) noexcept {
+  const float centerX = (x1 + x2) * 0.5f;
+  const float centerY = (y1 + y2) * 0.5f;
+  fillControlVertex(*outVertexIt,     rgba, centerX, y1);
+  fillControlVertex(*(++outVertexIt), rgba, x2, centerY);
+  fillControlVertex(*(++outVertexIt), rgba, x1, centerY);
+  fillControlVertex(*(++outVertexIt), rgba, centerX, y2);
+}
 
 void GeometryGenerator::fillCrossVertices(ControlVertex* outVertexIt, const float rgba[4],
                                           float x1, float x2, float y1, float y2) noexcept {
