@@ -109,7 +109,7 @@ namespace display {
         regenerate(renderer, pxSizeX, pxSizeY);
       }
       /// @brief Mirror image horizontally
-      void invertX(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY);
+      void invertX(video_api::Renderer& renderer);
 
       /// @brief Render mesh
       /// @warning A rendering pipeline for image rendering should be bound before call

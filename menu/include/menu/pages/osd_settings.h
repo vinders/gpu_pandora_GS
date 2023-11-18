@@ -49,8 +49,8 @@ namespace menu {
 
     private:
       void init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width);
-      void onChange(uint32_t id, uint32_t value);
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void onValueChange(uint32_t id, uint32_t value);
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:

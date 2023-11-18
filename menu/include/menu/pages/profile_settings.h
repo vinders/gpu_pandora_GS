@@ -66,21 +66,12 @@ namespace menu {
       /// @brief Report page resize event
       void move(int32_t x, int32_t y, uint32_t width, uint32_t height) override;
 
-      // -- rendering --
-
-      /// @brief Draw page control foregrounds (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      void drawForegrounds() override;
-      /// @brief Draw page control foreground labels (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-      void drawForegroundLabels() override;
-
     private:
       void init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width,
                 const std::vector<ConfigProfile>& profiles, const std::vector<ConfigProfile>& presets);
       void onChange(uint32_t id);
-      void onColorChange(uint32_t id, uint32_t value);
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void onValueChange(uint32_t id, uint32_t value);
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:

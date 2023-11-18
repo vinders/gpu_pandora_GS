@@ -49,35 +49,29 @@ namespace menu {
       /// @brief Draw page control icons
       /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       void drawIcons() override;
-      /// @brief Draw page control foregrounds (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      void drawForegrounds() override;
-      /// @brief Draw page control foreground labels (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-      void drawForegroundLabels() override;
 
     private:
       void init(const ColorTheme& theme, int32_t x, int32_t y, uint32_t width);
-      void onChange(uint32_t id, uint32_t value);
-      void onInternalResolutionChange(uint32_t id);
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void onChange(uint32_t id);
+      void onValueChange(uint32_t id, uint32_t value);
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:
       std::shared_ptr<MessageResources> localizedText = nullptr;
       display::controls::TextMesh title;
 
-      controls::Fieldset frameBufferGroup;
+      controls::Fieldset framebufferGroup;
       controls::TextBox internalResolutionX;
       controls::TextBox internalResolutionY;
-      display::controls::TextMesh internalResolutionValue;
+      display::controls::TextMesh framebufferResolutionInfo;
       controls::CheckBox mdecMovieFilter;
       bool isMdecFilter = true;
 
       controls::Fieldset screenGroup;
       controls::ComboBox screenUpscaling;
       controls::ComboBox screenUpscalingFactor;
-      display::controls::TextMesh displaySize;
+      display::controls::TextMesh displaySizeInfo;
       controls::Slider screenGrain;
       controls::Ruler screenBlur;
       uint32_t screenBlurValue = 0;

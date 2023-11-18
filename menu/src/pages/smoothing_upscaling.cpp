@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cassert>
+#include "menu/pages/page_content_builder.h"
 #include "menu/pages/smoothing_upscaling.h"
 
 using namespace video_api;
@@ -24,6 +25,11 @@ using namespace menu;
 
 
 // -- helpers -- ---------------------------------------------------------------
+
+static inline uint32_t getSelectedValue(const ComboBox& comboBox, uint32_t defaultValue) {
+  const auto* value = comboBox.getSelectedValue();
+  return (value != nullptr) ? *value : defaultValue;
+}
 
 static inline char16_t* copyString(const char16_t* value, char16_t* destination) {
   size_t length = TextMesh::getStringLength(value);
@@ -57,13 +63,13 @@ static inline char16_t* resolutionToString(uint32_t value, char16_t* destination
 
 // ---
 
-#define INT_RES_VALUE_BUFFER_SIZE 64
+#define INT_RES_VALUE_BUFFER_SIZE 48
 #define MAX_FRAMEBUFFER_SIZE_X 640u
 #define MAX_FRAMEBUFFER_SIZE_Y 256u
 
-static void fillInternalResolutionValue(uint32_t resX, uint32_t resY, const MessageResources& localizedText,
+static void fillFramebufferResolutionInfo(uint32_t resX, uint32_t resY, const MessageResources& localizedText,
                                         char16_t outValue[INT_RES_VALUE_BUFFER_SIZE]) {
-  outValue = copyString(localizedText.getMessage(SmoothingUpscalingMessages::internalResolution_prefix), outValue);
+  outValue = copyString(localizedText.getMessage(SmoothingUpscalingMessages::framebufferResolution_prefix), outValue);
   outValue = resolutionToString(resX*320u, outValue);
   *outValue = u'x';
   outValue = resolutionToString(resY*224u, outValue + 1);
@@ -71,7 +77,6 @@ static void fillInternalResolutionValue(uint32_t resX, uint32_t resY, const Mess
   outValue = resolutionToString(resX*MAX_FRAMEBUFFER_SIZE_X, outValue);
   *outValue = u'x';
   outValue = resolutionToString(resY*MAX_FRAMEBUFFER_SIZE_Y, outValue + 1);
-  outValue = copyString(localizedText.getMessage(SmoothingUpscalingMessages::internalResolution_suffix), outValue);
   *outValue = u'\0';
 }
 static void fillDisplaySizeValue(uint32_t resX, uint32_t resY, uint32_t upscalingFactor, const MessageResources& localizedText,
@@ -86,7 +91,6 @@ static void fillDisplaySizeValue(uint32_t resX, uint32_t resY, uint32_t upscalin
   outValue = resolutionToString(resX*MAX_FRAMEBUFFER_SIZE_X, outValue);
   *outValue = u'x';
   outValue = resolutionToString(resY*MAX_FRAMEBUFFER_SIZE_Y, outValue + 1);
-  outValue = copyString(localizedText.getMessage(SmoothingUpscalingMessages::internalResolution_suffix), outValue);
   *outValue = u'\0';
 }
 
@@ -140,205 +144,146 @@ static size_t fillUpscalingFactors(uint32_t upscalingMode, ComboBoxOption option
 #define TEXTURE_UPSCALING_ID        4
 #define SPRITE_UPSCALING_ID         5
 #define SCREEN_UPSCALING_FACTOR_ID  6
+#define SPRITE_SAME_TEXTURE_ID      7
+
+#define MAX_BLUR_VALUE 3
+#define MAX_SPLATTING_VALUE 3
 
 void SmoothingUpscaling::init(const ColorTheme& theme, int32_t x, int32_t y, uint32_t width) {
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentBuilder builder(*context, theme, x, y, width, 17,
+                             std::bind(&SmoothingUpscaling::onChange,this,std::placeholders::_1),
+                             std::bind(&SmoothingUpscaling::onValueChange,this,std::placeholders::_1,std::placeholders::_2));
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText->getMessage(SmoothingUpscalingMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
+  builder.addTitle(localizedText->getMessage(SmoothingUpscalingMessages::title), title);
 
-  std::vector<ControlRegistration> registry;
-  registry.reserve(17);
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&SmoothingUpscaling::onChange,this,std::placeholders::_1,std::placeholders::_2);
-
-  // --- framebuffer group ---
-  frameBufferGroup = Fieldset(*context, localizedText->getMessage(SmoothingUpscalingMessages::framebufferGroup), theme.fieldsetStyle(),
-                              theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                              Control::fieldsetContentHeight(2) + Control::pageLineHeight() - (Control::pageLineHeight() >> 2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
-
-  auto internalResChangeHandler = std::bind(&SmoothingUpscaling::onInternalResolutionChange,this,std::placeholders::_1);
-  internalResolutionX = TextBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::internalResolution), nullptr,
-                                controlX, currentLineY, Control::pageLabelWidth(), 80, theme.textBoxControlColor(),
-                                INTERNAL_RES_X_ID, internalResChangeHandler, (uint32_t)4u, 2u, true);
-  registry.emplace_back(internalResolutionX, true, localizedText->getMessage(SmoothingUpscalingMessages::internalResolution_tooltip));
-  internalResolutionY = TextBox(*context, nullptr, nullptr, internalResolutionX.x() + (int32_t)internalResolutionX.width() + 3,
-                                currentLineY, 0, 80, theme.textBoxControlColor(), INTERNAL_RES_Y_ID, internalResChangeHandler, (uint32_t)4u, 2u, true);
-  registry.emplace_back(internalResolutionY, true, localizedText->getMessage(SmoothingUpscalingMessages::internalResolution_tooltip));
-  currentLineY += Control::pageLineHeight() - (Control::pageLineHeight() >> 2);;
-
-  char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
-  fillInternalResolutionValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(), *localizedText, resolutionValue);
-  internalResolutionValue = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
-                                     internalResolutionX.x() + (int32_t)Control::pageLabelWidth() + (int32_t)Control::labelMargin(), currentLineY + 1);
-  currentLineY += Control::pageLineHeight();
-
+  // framebuffer group
+  builder.addFieldset(localizedText->getMessage(SmoothingUpscalingMessages::framebufferGroup), 2, 
+                      Control::pageLineHeight() - (Control::pageLineHeight() >> 2), framebufferGroup);
   isMdecFilter = true;
-  mdecMovieFilter = CheckBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::mdecMovieFilter), controlX,
-                             currentLineY, Control::pageLabelWidth(), 0, nullptr, isMdecFilter);
-  registry.emplace_back(mdecMovieFilter, true, localizedText->getMessage(SmoothingUpscalingMessages::mdecMovieFilter_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
-  // --- screen group ---
-  screenGroup = Fieldset(*context, localizedText->getMessage(SmoothingUpscalingMessages::screenGroup),
-                         theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                         currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3) + Control::pageLineHeight() - (Control::pageLineHeight() >> 2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  builder.addDoubleTextBox(INTERNAL_RES_X_ID, INTERNAL_RES_Y_ID, localizedText->getMessage(SmoothingUpscalingMessages::internalResolution),
+                           nullptr, localizedText->getMessage(SmoothingUpscalingMessages::internalResolution_tooltip),
+                           4u, 4u, 2u, internalResolutionX, internalResolutionY);
+  builder.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
+
+  // -> framebuffer output resolution
+  char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
+  fillFramebufferResolutionInfo(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(), *localizedText, resolutionValue);
+  framebufferResolutionInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText),
+                                       resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                                       internalResolutionX.controlX(), builder.linePositionY() + 1);
+  builder.addLineOffset((int32_t)Control::pageLineHeight());
+
+  builder.addCheckBox(0, localizedText->getMessage(SmoothingUpscalingMessages::mdecMovieFilter),
+                      localizedText->getMessage(SmoothingUpscalingMessages::mdecMovieFilter_tooltip), isMdecFilter, mdecMovieFilter);
+
+  // screen group
+  builder.addFieldset(localizedText->getMessage(SmoothingUpscalingMessages::screenGroup), 3, 
+                      Control::pageLineHeight() - (Control::pageLineHeight() >> 2), screenGroup);
+  screenBlurValue = 0;
+  constexpr const uint32_t screenUpscalingValue = 0;
 
   ComboBoxOption upscalingOptions[UPSCALING_MODES_ARRAY_SIZE];
-  constexpr const uint32_t upscalingControlWidth = Control::pageControlWidth() - (Control::pageControlWidth() >> 2) - 3u;
-  constexpr const uint32_t smoothingGrainWidth = upscalingControlWidth + Control::comboBoxPaddingY();
+  ComboBoxOption scaleOptions[UPSCALING_FACTORS_MAX_ARRAY_SIZE];
   fillUpscalingModes(localizedText->getMessage(CommonMessages::disabled), upscalingOptions);
-  screenUpscaling = ComboBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::screenUpscaling), controlX,
-                             currentLineY, Control::pageLabelWidth(), upscalingControlWidth, ComboBoxStyle::classic,
-                             theme.comboBoxColorParams(), SCREEN_UPSCALING_ID, changeHandler, upscalingOptions,
-                             sizeof(upscalingOptions)/sizeof(*upscalingOptions), 0);
-  registry.emplace_back(screenUpscaling, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip));
-  {
-    ComboBoxOption scaleOptions[UPSCALING_FACTORS_MAX_ARRAY_SIZE];
-    size_t scaleOptionsCount = fillUpscalingFactors((screenUpscaling.getSelectedIndex() >= 0) ? *screenUpscaling.getSelectedValue() : 0, scaleOptions);
-    screenUpscalingFactor = ComboBox(*context, nullptr, screenUpscaling.x() + (int32_t)screenUpscaling.width() + 3,
-                                     currentLineY, 0, (Control::pageControlWidth() >> 2), ComboBoxStyle::cutCorner,
-                                     theme.comboBoxColorParams(), SCREEN_UPSCALING_FACTOR_ID, changeHandler, scaleOptions, scaleOptionsCount, 0);
-    registry.emplace_back(screenUpscalingFactor, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip), 3);
-  }
-  currentLineY += Control::pageLineHeight() - (Control::pageLineHeight() >> 2);;
+  const char16_t* upscalingTooltip = localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip);
 
-  const auto* factorValue = screenUpscalingFactor.getSelectedValue();
+  size_t scaleOptionsCount = fillUpscalingFactors(screenUpscalingValue, scaleOptions);
+  builder.addDoubleComboBox(SCREEN_UPSCALING_ID, localizedText->getMessage(SmoothingUpscalingMessages::screenUpscaling),
+                            upscalingTooltip, upscalingOptions, UPSCALING_MODES_ARRAY_SIZE, screenUpscalingValue, screenUpscaling,
+                            SCREEN_UPSCALING_FACTOR_ID, (Control::pageControlWidth() >> 2),
+                            scaleOptions, scaleOptionsCount, 0, screenUpscalingFactor);
+  builder.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
+
+  // -> display output resolution
   fillDisplaySizeValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(),
-                       factorValue ? *factorValue : 1, *localizedText, resolutionValue);
-  displaySize = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
-                         screenUpscaling.x() + (int32_t)Control::pageLabelWidth() + (int32_t)Control::labelMargin(), currentLineY + 2);
-  currentLineY += Control::pageLineHeight();
+                       getSelectedValue(screenUpscalingFactor, 1), *localizedText, resolutionValue);
+  displaySizeInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText),
+                             resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                             screenUpscaling.controlX(), builder.linePositionY() + 2);
+  builder.addLineOffset((int32_t)Control::pageLineHeight());
 
+  constexpr const uint32_t grainModeWidth = Control::pageControlWidth() - (Control::pageControlWidth() >> 2) + 19u;
+  constexpr const uint32_t rulerWidth = (Control::pageControlWidth() >> 2) - 1u;
   ComboBoxOption grainOptions[]{ ComboBoxOption(localizedText->getMessage(CommonMessages::disabled), 0/*TMP*/),
                                  ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::grain_photo), 1/*TMP*/),
                                  ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::grain_gauss), 2/*TMP*/) };
-  screenGrain = Slider(*context, localizedText->getMessage(SmoothingUpscalingMessages::screenGrain), controlX, currentLineY,
-                       Control::pageLabelWidth(), smoothingGrainWidth, theme.sliderArrowColor(), 0, nullptr,
-                       grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0);
-  registry.emplace_back(screenGrain, true, localizedText->getMessage(SmoothingUpscalingMessages::grain_tooltip));
-  currentLineY += Control::pageLineHeight();
+  const char16_t* grainTooltip = localizedText->getMessage(SmoothingUpscalingMessages::grain_tooltip);
 
-  screenBlurValue = 0;
-  screenBlur = Ruler(*context, localizedText->getMessage(SmoothingUpscalingMessages::screenBlur), nullptr,
-                     FontType::labels, TextAlignment::left, controlX, currentLineY, Control::pageLabelWidth(),
-                     (Control::pageControlWidth() >> 2) - 1u, theme.rulerColorParams(), 0, nullptr, 0, 3, 1, screenBlurValue);
-  registry.emplace_back(screenBlur, true, localizedText->getMessage(SmoothingUpscalingMessages::screenBlur_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  builder.addSlider(0, localizedText->getMessage(SmoothingUpscalingMessages::screenGrain), grainTooltip, grainModeWidth,
+                    grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0, screenGrain);
+  builder.addRuler(0, localizedText->getMessage(SmoothingUpscalingMessages::screenBlur), nullptr,
+                   localizedText->getMessage(SmoothingUpscalingMessages::screenBlur_tooltip), rulerWidth,
+                   MAX_BLUR_VALUE, screenBlurValue, screenBlur);
 
-  // --- texture group ---
-  textureGroup = Fieldset(*context, localizedText->getMessage(SmoothingUpscalingMessages::textureGroup),
-                          theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                          currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
-
-  textureUpscaling = ComboBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::textureUpscaling), controlX,
-                              currentLineY, Control::pageLabelWidth(), upscalingControlWidth, ComboBoxStyle::classic,
-                              theme.comboBoxColorParams(), TEXTURE_UPSCALING_ID, changeHandler, upscalingOptions,
-                              sizeof(upscalingOptions)/sizeof(*upscalingOptions), 0);
-  registry.emplace_back(textureUpscaling, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip));
-  {
-    ComboBoxOption scaleOptions[UPSCALING_FACTORS_MAX_ARRAY_SIZE];
-    size_t scaleOptionsCount = fillUpscalingFactors((textureUpscaling.getSelectedIndex() >= 0) ? *textureUpscaling.getSelectedValue() : 0, scaleOptions);
-    textureUpscalingFactor = ComboBox(*context, nullptr, textureUpscaling.x() + (int32_t)textureUpscaling.width() + 3,
-                                      currentLineY, 0, (Control::pageControlWidth() >> 2), ComboBoxStyle::cutCorner,
-                                      theme.comboBoxColorParams(), 0, nullptr, scaleOptions, scaleOptionsCount, 0);
-    registry.emplace_back(textureUpscalingFactor, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip), 3);
-    currentLineY += Control::pageLineHeight();
-  }
-
-  ComboBoxOption smoothingOptions[]{ ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::smoothing_nearest), 0/*TMP*/),
-                                     ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::smoothing_bilinear), 1/*TMP*/),
-                                     ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::smoothing_bicubic), 2/*TMP*/),
-                                     ComboBoxOption(localizedText->getMessage(SmoothingUpscalingMessages::smoothing_lanczos), 3/*TMP*/) };
-  textureSmoothing = ComboBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::textureSmoothing), controlX,
-                              currentLineY, Control::pageLabelWidth(), smoothingGrainWidth,
-                              ComboBoxStyle::cutCorner, theme.comboBoxColorParams(), 0, nullptr, smoothingOptions,
-                              sizeof(smoothingOptions)/sizeof(*smoothingOptions), 1);
-  registry.emplace_back(textureSmoothing, true, localizedText->getMessage(SmoothingUpscalingMessages::smoothing_tooltip));
-  currentLineY += Control::pageLineHeight();
-  
-  textureGrain = Slider(*context, localizedText->getMessage(SmoothingUpscalingMessages::textureGrain), controlX, currentLineY,
-                        Control::pageLabelWidth(), smoothingGrainWidth, theme.sliderArrowColor(), 0, nullptr,
-                        grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0);
-  registry.emplace_back(textureGrain, true, localizedText->getMessage(SmoothingUpscalingMessages::grain_tooltip));
-  currentLineY += Control::pageLineHeight();
-
+  // texture group
+  builder.addFieldset(localizedText->getMessage(SmoothingUpscalingMessages::textureGroup), 4, 0, textureGroup);
+  constexpr const uint32_t textureUpscalingValue = 0;
   textureSplattingValue = 0;
-  textureSplatting = Ruler(*context, localizedText->getMessage(SmoothingUpscalingMessages::textureSplatting), nullptr,
-                           FontType::labels, TextAlignment::left, controlX, currentLineY, Control::pageLabelWidth(),
-                           (Control::pageControlWidth() >> 2) - 1u, theme.rulerColorParams(), 0, nullptr, 0, 3, 1, textureSplattingValue);
-  registry.emplace_back(textureSplatting, true, localizedText->getMessage(SmoothingUpscalingMessages::textureSplatting_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
 
-  // --- sprite group ---
-  spriteGroup = Fieldset(*context, localizedText->getMessage(SmoothingUpscalingMessages::spriteGroup),
-                         theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                         currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  scaleOptionsCount = fillUpscalingFactors(textureUpscalingValue, scaleOptions);
+  builder.addDoubleComboBox(TEXTURE_UPSCALING_ID, localizedText->getMessage(SmoothingUpscalingMessages::textureUpscaling),
+                            upscalingTooltip, upscalingOptions, UPSCALING_MODES_ARRAY_SIZE, textureUpscalingValue, textureUpscaling,
+                            0, (Control::pageControlWidth() >> 2),
+                            scaleOptions, scaleOptionsCount, 0, textureUpscalingFactor);
 
-  useTextureSettingsForSprites = true;
-  spriteTextureSettings = CheckBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::spriteSameAsTexture), controlX,
-                                   currentLineY, Control::pageLabelWidth(), 0, [this](uint32_t, uint32_t) {
-                                     this->allowSpriteSettings = !this->useTextureSettingsForSprites;
-                                   }, useTextureSettingsForSprites);
-  registry.emplace_back(spriteTextureSettings, true, localizedText->getMessage(SmoothingUpscalingMessages::spriteSameAsTexture_tooltip));
-  currentLineY += Control::pageLineHeight();
-
-  spriteUpscaling = ComboBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::spriteUpscaling), controlX,
-                             currentLineY, Control::pageLabelWidth(), upscalingControlWidth, ComboBoxStyle::classic,
-                             theme.comboBoxColorParams(), SPRITE_UPSCALING_ID, changeHandler, upscalingOptions,
-                             sizeof(upscalingOptions)/sizeof(*upscalingOptions), 0, &allowSpriteSettings);
-  registry.emplace_back(spriteUpscaling, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip));
-  {
-    ComboBoxOption scaleOptions[UPSCALING_FACTORS_MAX_ARRAY_SIZE];
-    size_t scaleOptionsCount = fillUpscalingFactors((spriteUpscaling.getSelectedIndex() >= 0) ? *spriteUpscaling.getSelectedValue() : 0, scaleOptions);
-    spriteUpscalingFactor = ComboBox(*context, nullptr, spriteUpscaling.x() + (int32_t)spriteUpscaling.width() + 3,
-                                     currentLineY, 0, (Control::pageControlWidth() >> 2), ComboBoxStyle::cutCorner,
-                                     theme.comboBoxColorParams(), 0, nullptr, scaleOptions, scaleOptionsCount, 0, &allowSpriteSettings);
-    registry.emplace_back(spriteUpscalingFactor, true, localizedText->getMessage(SmoothingUpscalingMessages::upscaling_tooltip), 3);
-    currentLineY += Control::pageLineHeight();
+  constexpr const uint32_t smoothingModeWidth = ((Control::pageControlWidth() + grainModeWidth) >> 1) - 1u;
+  ComboBoxOption smoothingOptions[(size_t)InterpolationType::COUNT];
+  for (uint32_t i = 0; i < (uint32_t)InterpolationType::COUNT; ++i) {
+    smoothingOptions[i] = ComboBoxOption(localizedText->getMessage((InterpolationType)i), i);
   }
+  const char16_t* smoothingTooltip = localizedText->getMessage(SmoothingUpscalingMessages::smoothing_tooltip);
 
-  spriteSmoothing = ComboBox(*context, localizedText->getMessage(SmoothingUpscalingMessages::spriteSmoothing), controlX,
-                             currentLineY, Control::pageLabelWidth(), smoothingGrainWidth,
-                             ComboBoxStyle::cutCorner, theme.comboBoxColorParams(), 0, nullptr, smoothingOptions,
-                             sizeof(smoothingOptions)/sizeof(*smoothingOptions), 1, &allowSpriteSettings);
-  registry.emplace_back(spriteSmoothing, true, localizedText->getMessage(SmoothingUpscalingMessages::smoothing_tooltip));
-  currentLineY += Control::pageLineHeight();
+  builder.addComboBox(0, localizedText->getMessage(SmoothingUpscalingMessages::textureSmoothing), smoothingTooltip,
+                      smoothingModeWidth, smoothingOptions, (size_t)InterpolationType::COUNT, 1,
+                      textureSmoothing);
+  builder.addSlider(0, localizedText->getMessage(SmoothingUpscalingMessages::textureGrain), grainTooltip, grainModeWidth,
+                    grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0, textureGrain);
+  builder.addRuler(0, localizedText->getMessage(SmoothingUpscalingMessages::textureSplatting), nullptr,
+                   localizedText->getMessage(SmoothingUpscalingMessages::textureSplatting_tooltip), rulerWidth,
+                   MAX_SPLATTING_VALUE, textureSplattingValue, textureSplatting);
 
-  spriteGrain = Slider(*context, localizedText->getMessage(SmoothingUpscalingMessages::spriteGrain), controlX, currentLineY,
-                       Control::pageLabelWidth(), smoothingGrainWidth, theme.sliderArrowColor(), 0, nullptr,
-                       grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0, &allowSpriteSettings);
-  registry.emplace_back(spriteGrain, true, localizedText->getMessage(SmoothingUpscalingMessages::grain_tooltip));
-  currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
+  // sprite group
+  builder.addFieldset(localizedText->getMessage(SmoothingUpscalingMessages::spriteGroup), 4, 0, spriteGroup);
+  useTextureSettingsForSprites = true;
+  allowSpriteSettings = !useTextureSettingsForSprites;
+  constexpr const uint32_t spriteUpscalingValue = 0;
 
-  // --- control registry ---
-  if (currentLineY > y + (int32_t)contentHeight())
-    Page::moveScrollbarThumb(currentLineY);
-  registerControls(std::move(registry));
+  builder.addCheckBox(SPRITE_SAME_TEXTURE_ID, localizedText->getMessage(SmoothingUpscalingMessages::spriteSameAsTexture),
+                      localizedText->getMessage(SmoothingUpscalingMessages::spriteSameAsTexture_tooltip),
+                      useTextureSettingsForSprites, spriteTextureSettings);
+  builder.setEnabler(allowSpriteSettings);
+
+  scaleOptionsCount = fillUpscalingFactors(spriteUpscalingValue, scaleOptions);
+  builder.addDoubleComboBox(SPRITE_UPSCALING_ID, localizedText->getMessage(SmoothingUpscalingMessages::spriteUpscaling),
+                            upscalingTooltip, upscalingOptions, UPSCALING_MODES_ARRAY_SIZE, spriteUpscalingValue, spriteUpscaling,
+                            0, (Control::pageControlWidth() >> 2),
+                            scaleOptions, scaleOptionsCount, 0, spriteUpscalingFactor);
+  builder.addComboBox(0, localizedText->getMessage(SmoothingUpscalingMessages::spriteSmoothing), smoothingTooltip,
+                      smoothingModeWidth, smoothingOptions, (size_t)InterpolationType::COUNT, 1,
+                      spriteSmoothing);
+  builder.addSlider(0, localizedText->getMessage(SmoothingUpscalingMessages::spriteGrain), grainTooltip, grainModeWidth,
+                    grainOptions, sizeof(grainOptions)/sizeof(*grainOptions), 0, spriteGrain);
+
+  // control registry
+  Page::moveScrollbarThumb(builder.linePositionY());
+  registerControls(std::move(builder.controlRegistry()));
 }
 
 SmoothingUpscaling::~SmoothingUpscaling() noexcept {
   localizedText = nullptr;
   title.release();
 
-  frameBufferGroup.release();
+  framebufferGroup.release();
   internalResolutionX.release();
   internalResolutionY.release();
-  internalResolutionValue.release();
+  framebufferResolutionInfo.release();
   mdecMovieFilter.release();
 
   screenGroup.release();
   screenUpscaling.release();
   screenUpscalingFactor.release();
-  displaySize.release();
+  displaySizeInfo.release();
   screenGrain.release();
   screenBlur.release();
 
@@ -362,86 +307,97 @@ SmoothingUpscaling::~SmoothingUpscaling() noexcept {
 
 void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentMover mover(*context, x, y, width);
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
-
-  //TODO:
-  // - refactor -> avoir méthodes dans PageBuilder -> addComboBox, addTextBox, addFieldset, addTitle... (et y stocker context + currentLineY + changeHandler + theme + registry)
-  //            -> éviter de réécrire tout dans chaque page (sauf cas particuliers comme stretching)
-  //            -> idem pour moveComboBox, moveTextBox... (mais inline -> autre classe pour ne pas avoir handler/theme/registry ?)
-  //            -> y stocker aussi les helpers communs en static (intToStr, ...)
-  //            -> page_builder.h
-  // - draw foreground -> accès openControl pour n'appeler que lui?
-  // - main/frame: n'appeler draw que si invalidé (event mouse/key/window)
+  mover.moveTitle(title);
 
   // framebuffer group
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  frameBufferGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                        Control::fieldsetContentHeight(2) + Control::pageLineHeight() - (Control::pageLineHeight() >> 2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(2, Control::pageLineHeight() - (Control::pageLineHeight() >> 2), framebufferGroup);
 
-  internalResolutionX.move(*context, controlX, currentLineY);
-  internalResolutionY.move(*context, internalResolutionX.x() + (int32_t)internalResolutionX.width() + 3, currentLineY);
-  currentLineY += Control::pageLineHeight() - (Control::pageLineHeight() >> 2);
-  internalResolutionValue.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                               internalResolutionX.x() + (int32_t)Control::pageLabelWidth() + (int32_t)Control::labelMargin(), currentLineY + 1);
-  currentLineY += Control::pageLineHeight();
-  mdecMovieFilter.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveDoubleTextBox(internalResolutionX, internalResolutionY);
+  mover.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
+  framebufferResolutionInfo.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                                 internalResolutionX.controlX(), mover.linePositionY() + 1);
+  mover.addLineOffset((int32_t)Control::pageLineHeight());
+
+  mover.moveCheckBox(mdecMovieFilter);
 
   // screen group
-  screenGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                   Control::fieldsetContentHeight(3) + Control::pageLineHeight() - (Control::pageLineHeight() >> 2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(3, Control::pageLineHeight() - (Control::pageLineHeight() >> 2), screenGroup);
 
-  screenUpscaling.move(*context, controlX, currentLineY);
-  screenUpscalingFactor.move(*context, screenUpscaling.x() + (int32_t)screenUpscaling.width() + 3, currentLineY);
-  currentLineY += Control::pageLineHeight() - (Control::pageLineHeight() >> 2);
-  displaySize.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                   screenUpscaling.x() + (int32_t)Control::pageLabelWidth() + (int32_t)Control::labelMargin(), currentLineY + 2);
-  currentLineY += Control::pageLineHeight();
-  screenGrain.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  screenBlur.move(*context, controlX, currentLineY, TextAlignment::left);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveDoubleComboBox(screenUpscaling, screenUpscalingFactor);
+  mover.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
+  displaySizeInfo.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                       screenUpscaling.controlX(), mover.linePositionY() + 2);
+  mover.addLineOffset((int32_t)Control::pageLineHeight());
+
+  mover.moveSlider(screenGrain);
+  mover.moveRuler(screenBlur);
 
   // texture group
-  textureGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(4, 0, textureGroup);
 
-  textureUpscaling.move(*context, controlX, currentLineY);
-  textureUpscalingFactor.move(*context, textureUpscaling.x() + (int32_t)textureUpscaling.width() + 3, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  textureSmoothing.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  textureGrain.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  textureSplatting.move(*context, controlX, currentLineY, TextAlignment::left);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveDoubleComboBox(textureUpscaling, textureUpscalingFactor);
+  mover.moveComboBox(textureSmoothing);
+  mover.moveSlider(textureGrain);
+  mover.moveRuler(textureSplatting);
 
   // sprite group
-  spriteGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(4, 0, spriteGroup);
 
-  spriteTextureSettings.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  spriteUpscaling.move(*context, controlX, currentLineY);
-  spriteUpscalingFactor.move(*context, spriteUpscaling.x() + (int32_t)spriteUpscaling.width() + 3, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  spriteSmoothing.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  spriteGrain.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
+  mover.moveCheckBox(spriteTextureSettings);
+  mover.moveDoubleComboBox(spriteUpscaling, spriteUpscalingFactor);
+  mover.moveComboBox(spriteSmoothing);
+  mover.moveSlider(spriteGrain);
 
-  Page::moveScrollbarThumb(currentLineY); // required after a move
+  Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
 }
 
-void SmoothingUpscaling::onChange(uint32_t id, uint32_t value) {
+#define MAX_INT_RES_X  (uint32_t)MAX_TEXTURE_SIZE/2048u
+#define MAX_INT_RES_Y  (uint32_t)MAX_TEXTURE_SIZE/1024u
+
+void SmoothingUpscaling::onChange(uint32_t id) {
+  uint32_t resX = internalResolutionX.valueInteger();
+  uint32_t resY = internalResolutionY.valueInteger();
+  uint32_t upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
+  if (id == INTERNAL_RES_X_ID) {
+    if (resX > MAX_INT_RES_X || resX == 0) {
+      resX = (resX == 0) ? 1u : MAX_INT_RES_X;
+      internalResolutionX.replaceValueInteger(*context, resX);
+    }
+    const uint32_t maxUpscalingX = MAX_TEXTURE_SIZE / (resX * MAX_FRAMEBUFFER_SIZE_X);
+    while (upscalingFactor > maxUpscalingX) {
+      screenUpscalingFactor.setSelectedIndex(*context, screenUpscalingFactor.getSelectedIndex() - 1, false);
+      upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
+    }
+  }
+  else if (id == INTERNAL_RES_Y_ID) {
+    if (resY > MAX_INT_RES_Y || resY == 0) {
+      resY = (resY == 0) ? 1u : MAX_INT_RES_Y;
+      internalResolutionY.replaceValueInteger(*context, resY);
+    }
+    const uint32_t maxUpscalingY = MAX_TEXTURE_SIZE / (resY * MAX_FRAMEBUFFER_SIZE_Y);
+    while (upscalingFactor > maxUpscalingY) {
+      screenUpscalingFactor.setSelectedIndex(*context, screenUpscalingFactor.getSelectedIndex() - 1, false);
+      upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
+    }
+  }
+  else { assert(false); return; }
+
+  char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
+  fillFramebufferResolutionInfo(resX, resY, *localizedText, resolutionValue);
+  framebufferResolutionInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText),
+                                       resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                                       framebufferResolutionInfo.x(), framebufferResolutionInfo.y());
+
+  const auto* factorValue = screenUpscalingFactor.getSelectedValue();
+  fillDisplaySizeValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(),
+                       factorValue ? *factorValue : 1, *localizedText, resolutionValue);
+  displaySizeInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                             displaySizeInfo.x(), displaySizeInfo.y());
+}
+
+void SmoothingUpscaling::onValueChange(uint32_t id, uint32_t value) {
   ComboBoxOption scaleOptions[UPSCALING_FACTORS_MAX_ARRAY_SIZE];
   switch (id) {
     case SCREEN_UPSCALING_ID: {
@@ -459,7 +415,7 @@ void SmoothingUpscaling::onChange(uint32_t id, uint32_t value) {
       screenUpscalingFactor.replaceValues(*context, scaleOptions, scaleOptionsCount, selectedIndex);
 
       const auto* factorValue = screenUpscalingFactor.getSelectedValue();
-      onChange(SCREEN_UPSCALING_FACTOR_ID, factorValue ? *factorValue : 1);
+      onValueChange(SCREEN_UPSCALING_FACTOR_ID, factorValue ? *factorValue : 1);
       break;
     }
     case TEXTURE_UPSCALING_ID: {
@@ -502,56 +458,16 @@ void SmoothingUpscaling::onChange(uint32_t id, uint32_t value) {
       char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
       fillDisplaySizeValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(),
                            value, *localizedText, resolutionValue);
-      displaySize = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
-                             displaySize.x(), displaySize.y());
+      displaySizeInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                                 displaySizeInfo.x(), displaySizeInfo.y());
+      break;
+    }
+    case SPRITE_SAME_TEXTURE_ID: {
+      allowSpriteSettings = !useTextureSettingsForSprites;
       break;
     }
     default: assert(false); break;
   }
-}
-
-#define MAX_INT_RES_X  (uint32_t)MAX_TEXTURE_SIZE/2048u
-#define MAX_INT_RES_Y  (uint32_t)MAX_TEXTURE_SIZE/1024u
-
-void SmoothingUpscaling::onInternalResolutionChange(uint32_t id) {
-  uint32_t resX = internalResolutionX.valueInteger();
-  uint32_t resY = internalResolutionY.valueInteger();
-  uint32_t upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
-  if (id == INTERNAL_RES_X_ID) {
-    if (resX > MAX_INT_RES_X || resX == 0) {
-      resX = (resX == 0) ? 1u : MAX_INT_RES_X;
-      internalResolutionX.replaceValueInteger(*context, resX);
-    }
-    const uint32_t maxUpscalingX = MAX_TEXTURE_SIZE / (resX * MAX_FRAMEBUFFER_SIZE_X);
-    while (upscalingFactor > maxUpscalingX) {
-      screenUpscalingFactor.setSelectedIndex(*context, screenUpscalingFactor.getSelectedIndex() - 1, false);
-      upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
-    }
-  }
-  else if (id == INTERNAL_RES_Y_ID) {
-    if (resY > MAX_INT_RES_Y || resY == 0) {
-      resY = (resY == 0) ? 1u : MAX_INT_RES_Y;
-      internalResolutionY.replaceValueInteger(*context, resY);
-    }
-    const uint32_t maxUpscalingY = MAX_TEXTURE_SIZE / (resY * MAX_FRAMEBUFFER_SIZE_Y);
-    while (upscalingFactor > maxUpscalingY) {
-      screenUpscalingFactor.setSelectedIndex(*context, screenUpscalingFactor.getSelectedIndex() - 1, false);
-      upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
-    }
-  }
-  else { assert(false); return; }
-
-  char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
-  fillInternalResolutionValue(resX, resY, *localizedText, resolutionValue);
-  internalResolutionValue = TextMesh(context->renderer(), context->getFont(FontType::inputText),
-                                     resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
-                                     internalResolutionValue.x(), internalResolutionValue.y());
-
-  const auto* factorValue = screenUpscalingFactor.getSelectedValue();
-  fillDisplaySizeValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(),
-                       factorValue ? *factorValue : 1, *localizedText, resolutionValue);
-  displaySize = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
-                         displaySize.x(), displaySize.y());
 }
 
 
@@ -566,12 +482,12 @@ void SmoothingUpscaling::drawIcons() {
   spriteTextureSettings.drawIcon(*context, *buffers, (hoverControl == &spriteTextureSettings));
 }
 
-bool SmoothingUpscaling::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
+void SmoothingUpscaling::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
-  frameBufferGroup.drawBackground(*context, *buffers);
+  framebufferGroup.drawBackground(*context, *buffers);
   textureGroup.drawBackground(*context, *buffers);
   spriteGroup.drawBackground(*context, *buffers);
   screenGroup.drawBackground(*context, *buffers);
@@ -595,7 +511,6 @@ bool SmoothingUpscaling::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   textureGrain.drawBackground(*context, mouseX, *buffers, (hoverControl == &textureGrain));
   screenBlur.drawBackground(*context, *buffers);
   textureSplatting.drawBackground(*context, *buffers);
-  return false;
 }
 
 void SmoothingUpscaling::drawPageLabels() {
@@ -607,10 +522,10 @@ void SmoothingUpscaling::drawPageLabels() {
   buffers->bindLabelBuffer(renderer, LabelBufferType::title);
   title.draw(renderer);
   buffers->bindLabelBuffer(renderer, LabelBufferType::textInputDisabled);
-  internalResolutionValue.draw(renderer);
-  displaySize.draw(renderer);
+  framebufferResolutionInfo.draw(renderer);
+  displaySizeInfo.draw(renderer);
 
-  frameBufferGroup.drawLabel(*context, *buffers);
+  framebufferGroup.drawLabel(*context, *buffers);
   textureGroup.drawLabel(*context, *buffers);
   spriteGroup.drawLabel(*context, *buffers);
   screenGroup.drawLabel(*context, *buffers);
@@ -635,34 +550,4 @@ void SmoothingUpscaling::drawPageLabels() {
   spriteGrain.drawLabels(*context, *buffers, (hoverControl == &spriteGrain));
   screenBlur.drawLabels(*context, *buffers, (hoverControl == &screenBlur));
   textureSplatting.drawLabels(*context, *buffers, (hoverControl == &textureSplatting));
-}
-
-void SmoothingUpscaling::drawForegrounds() {
-  auto& renderer = context->renderer();
-
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
-
-  screenUpscaling.drawDropdown(*context, *buffers);
-  screenUpscalingFactor.drawDropdown(*context, *buffers);
-  textureUpscaling.drawDropdown(*context, *buffers);
-  textureUpscalingFactor.drawDropdown(*context, *buffers);
-  textureSmoothing.drawDropdown(*context, *buffers);
-  spriteUpscaling.drawDropdown(*context, *buffers);
-  spriteUpscalingFactor.drawDropdown(*context, *buffers);
-  spriteSmoothing.drawDropdown(*context, *buffers);
-}
-
-void SmoothingUpscaling::drawForegroundLabels() {
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
-
-  screenUpscaling.drawOptions(*context, *buffers);
-  screenUpscalingFactor.drawOptions(*context, *buffers);
-  textureUpscaling.drawOptions(*context, *buffers);
-  textureUpscalingFactor.drawOptions(*context, *buffers);
-  textureSmoothing.drawOptions(*context, *buffers);
-  spriteUpscaling.drawOptions(*context, *buffers);
-  spriteUpscalingFactor.drawOptions(*context, *buffers);
-  spriteSmoothing.drawOptions(*context, *buffers);
 }

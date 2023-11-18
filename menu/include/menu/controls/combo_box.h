@@ -72,7 +72,8 @@ namespace menu {
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x()); }
       inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
-      inline int32_t controlHeight() const noexcept { return controlMesh.height(); }
+      inline uint32_t controlWidth() const noexcept { return controlMesh.width(); }
+      inline uint32_t controlHeight() const noexcept { return controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isOpen() const noexcept { return isListOpen; }   ///< Verify if the dropdown list is open

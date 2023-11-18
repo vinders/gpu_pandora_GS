@@ -34,10 +34,10 @@ namespace menu {
             display::controls::TextAlignment labelAlign, int32_t x, int32_t labelY, uint32_t minLabelWidth,
             uint32_t fixedRulerWidth, const RulerColors& colors, uint32_t operationId,
             std::function<void(uint32_t,uint32_t)> onChange, uint32_t minValue, uint32_t maxValue, uint32_t step,
-            uint32_t& boundValue, const bool* enabler = nullptr)
-        : boundValue(&boundValue),
+            uint32_t& boundValue_, const bool* enabler = nullptr)
+        : boundValue(&boundValue_),
           enabler(enabler),
-          lastValue(boundValue),
+          lastValue(boundValue_),
           minValue(minValue),
           maxValue(maxValue),
           step(step),

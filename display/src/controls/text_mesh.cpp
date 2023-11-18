@@ -226,7 +226,7 @@ void TextMesh::pop(video_api::Renderer& renderer) {
     const auto& previousGlyph = glyphs[glyphs.size() - (size_t)2];
     int32_t retreatX = lastGlyph->offsetLeft + (int32_t)lastGlyph->width
                      + (int32_t)(previousGlyph->advance >> 6) - (int32_t)previousGlyph->width;
-    width_ = (width_ >= retreatX) ? static_cast<uint32_t>((int32_t)width_ - retreatX) : 0;
+    width_ = ((int32_t)width_ >= retreatX) ? static_cast<uint32_t>((int32_t)width_ - retreatX) : 0;
   }
   else width_ = 0;
 

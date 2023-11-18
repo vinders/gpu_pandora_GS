@@ -52,7 +52,7 @@ namespace menu {
       void init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width);
       void resolveKeyboardBindings(const controls::KeyBinding* updatedControl) noexcept override;
 
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:

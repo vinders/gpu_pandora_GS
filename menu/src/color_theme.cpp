@@ -149,7 +149,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       break;
     }
-    case ColorThemeType::darkGreen: {
+    case ColorThemeType::scifi: {
       SET_MULTIPLIER(0.5f,0.7f,0.65f,0.2f,  disabledControl)
       SET_MULTIPLIER(1.35f,1.35f,1.35f,1.f, activeControl)
       SET_MULTIPLIER(1.25f,1.25f,1.25f,1.f, activeScrollControl)

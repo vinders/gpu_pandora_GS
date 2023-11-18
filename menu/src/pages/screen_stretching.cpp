@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include "display/image_loader.h"
 #include "menu/controls/geometry_generator.h"
+#include "menu/pages/page_content_builder.h"
 #include "menu/pages/screen_stretching.h"
 
 using namespace video_api;
@@ -158,134 +159,85 @@ enum class AspectRatioPreset : uint32_t {
   fillCropped,
   stretchedCropped,
   halfStretchedCropped,
-  custom
+  custom,
+  COUNT
 };
 
 void ScreenStretching::init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentBuilder builder(*context, theme, x, y, width, 11, nullptr,
+                             std::bind(&ScreenStretching::onValueChange,this,std::placeholders::_1,std::placeholders::_2));
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(ScreenStretchingMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
+  builder.addTitle(localizedText.getMessage(ScreenStretchingMessages::title), title);
 
-  std::vector<ControlRegistration> registry;
-  registry.reserve(11);
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&ScreenStretching::onChange,this,std::placeholders::_1,std::placeholders::_2);
+  // aspect ratio group
+  builder.addFieldset(localizedText.getMessage(ScreenStretchingMessages::aspectRatioGroup), 5,
+                      Control::pageLineHeight() + (Control::pageLineHeight() >> 3) + Control::fieldsetContentPaddingTop(),
+                      aspectRatioGroup);
+  builder.addLineOffset((int32_t)(Control::pageLineHeight() >> 3));
 
-  // --- aspect ratio group ---
-  aspectRatioGroup = Fieldset(*context, localizedText.getMessage(ScreenStretchingMessages::aspectRatioGroup),
-                              theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                              currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + (Control::pageLineHeight() >> 1)
-                                                         + Control::pageLineHeight() - (Control::pageLineHeight() >> 3) - 1);
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 1) - (Control::pageLineHeight() >> 3) - 1;
+  generatePreview(theme.fieldsetControlColor(), builder.linePositionX(), builder.linePositionY() + 2);
+  builder.addLineOffset((int32_t)Control::fieldsetContentPaddingTop());
 
-  // ratio preview
-  generatePreview(theme.fieldsetControlColor(), controlX, currentLineY + 2);
-  currentLineY += Control::fieldsetContentPaddingTop();
-
-  // aspect ratio presets
-  const int32_t ratioControlX = controlX + RATIO_PARAMS_OFFSET;
-  {
-    ComboBoxOption presetOptions[]{
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_keep), (ComboValue)AspectRatioPreset::keepAspectRatio),
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_stretch), (ComboValue)AspectRatioPreset::fillStretched),
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_crop), (ComboValue)AspectRatioPreset::fillCropped),
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_both), (ComboValue)AspectRatioPreset::stretchedCropped),
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_half), (ComboValue)AspectRatioPreset::halfStretchedCropped),
-      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::aspectRatio_custom), (ComboValue)AspectRatioPreset::custom) };
-    aspectRatioPreset = ComboBox(*context, nullptr, ratioControlX, currentLineY, 0,
-                                 (Control::pageControlWidth() >> 1) + (Control::pageControlWidth() >> 2) - 2u,
-                                 ComboBoxStyle::cutCorner, theme.comboBoxColorParams(), ASPECT_RATIO_PRESET_ID, changeHandler,
-                                 presetOptions, sizeof(presetOptions)/sizeof(*presetOptions), 0);
-    registry.emplace_back(aspectRatioPreset, true, localizedText.getMessage(ScreenStretchingMessages::aspectRatio_tooltip));
-    currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
+  // -> aspect ratio presets
+  ComboBoxOption ratioPresetOptions[(size_t)AspectRatioPreset::COUNT];
+  for (uint32_t i = 0; i < (uint32_t)AspectRatioPreset::COUNT; ++i) {
+    auto message = static_cast<ScreenStretchingMessages>((uint32_t)ScreenStretchingMessages::aspectRatio_keep + i);
+    ratioPresetOptions[i] = ComboBoxOption(localizedText.getMessage(message), (ComboValue)i);
   }
-  // stretching/cropping
-  int32_t ratioRulerLabelOffsetY = (context->getFont(FontType::labels).XHeight() - context->getFont(FontType::inputText).XHeight())/2;
-  stretching = Ruler(*context, localizedText.getMessage(ScreenStretchingMessages::keepRatio),
-                     localizedText.getMessage(ScreenStretchingMessages::stretch),
-                     FontType::inputText, TextAlignment::right, ratioControlX + RATIO_RULER_OFFSET,
-                     currentLineY + ratioRulerLabelOffsetY, 0, RULER_SIZE, theme.rulerColorParams(),
-                     STRETCHING_ID, changeHandler, 0, MAX_RULER_VALUE, 1, stretchingValue);
-  registry.emplace_back(stretching, true, localizedText.getMessage(ScreenStretchingMessages::stretching_tooltip));
-  currentLineY += Control::pageLineHeight();
-  cropping = Ruler(*context, localizedText.getMessage(ScreenStretchingMessages::entire),
+  const int32_t ratioControlX = builder.linePositionX() + RATIO_PARAMS_OFFSET;
+  builder.addComboBox(ASPECT_RATIO_PRESET_ID, localizedText.getMessage(ScreenStretchingMessages::aspectRatio_tooltip),
+                      ratioControlX, (Control::pageControlWidth() >> 1) + (Control::pageControlWidth() >> 2) - 2u,
+                      ratioPresetOptions, sizeof(ratioPresetOptions)/sizeof(*ratioPresetOptions), 0, aspectRatioPreset);
+  builder.addLineOffset((int32_t)(Control::pageLineHeight() >> 2));
+
+  // -> stretching/cropping
+  builder.addRuler(STRETCHING_ID, localizedText.getMessage(ScreenStretchingMessages::keepRatio),
+                   localizedText.getMessage(ScreenStretchingMessages::stretch),
+                   localizedText.getMessage(ScreenStretchingMessages::stretching_tooltip),
+                   ratioControlX + RATIO_RULER_OFFSET, RULER_SIZE, MAX_RULER_VALUE, stretchingValue, stretching);
+  builder.addRuler(CROPPING_ID, localizedText.getMessage(ScreenStretchingMessages::entire),
                    localizedText.getMessage(ScreenStretchingMessages::cropped),
-                   FontType::inputText, TextAlignment::right, ratioControlX + RATIO_RULER_OFFSET,
-                   currentLineY + ratioRulerLabelOffsetY, 0, RULER_SIZE, theme.rulerColorParams(),
-                   CROPPING_ID, changeHandler, 0, MAX_RULER_VALUE, 1, croppingValue);
-  registry.emplace_back(cropping, true, localizedText.getMessage(ScreenStretchingMessages::cropping_tooltip));
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
-  // pixel ratio
-  {
-    ComboBoxOption pixelRatioOptions[]{ ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::pixelRatio_square), 0/*TMP*/),
-                                        ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::pixelRatio_crt), 1/*TMP*/) };
-    pixelRatio = Slider(*context, nullptr, ratioControlX, currentLineY, 0, RATIO_PARAMS_MAX_WIDTH, theme.sliderArrowColor(), 0,
-                        nullptr, pixelRatioOptions, sizeof(pixelRatioOptions)/sizeof(*pixelRatioOptions), 0);
-    registry.emplace_back(pixelRatio, true, localizedText.getMessage(ScreenStretchingMessages::pixelRatio_tooltip));
-    currentLineY += Control::pageLineHeight();
-  }
-  // mirror
-  {
-    ComboBoxOption mirrorOptions[]{ ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::mirror_none), 0/*TMP*/),
-                                    ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::mirror_mirrorX), 1/*TMP*/) };
-    mirror = Slider(*context, nullptr, ratioControlX, currentLineY, 0, RATIO_PARAMS_MAX_WIDTH, theme.sliderArrowColor(),
-                    MIRROR_ID, changeHandler, mirrorOptions, sizeof(mirrorOptions)/sizeof(*mirrorOptions), 0);
-    registry.emplace_back(mirror, true, localizedText.getMessage(ScreenStretchingMessages::mirror_tooltip));
-    currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom() + (Control::pageLineHeight() >> 1) + 1;
-  }
+                   localizedText.getMessage(ScreenStretchingMessages::cropping_tooltip),
+                   ratioControlX + RATIO_RULER_OFFSET, RULER_SIZE, MAX_RULER_VALUE, croppingValue, cropping);
+  builder.addLineOffset((int32_t)(Control::pageLineHeight() >> 2));
 
-  // --- display adjustments group ---
-  displayAdjustGroup = Fieldset(*context, localizedText.getMessage(ScreenStretchingMessages::displayAdjustmentsGroup),
-                                theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                                currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + 1u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  // -> pixel ratio / mirroring
+  ComboBoxOption pixelRatioOptions[]{ ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::pixelRatio_square), 0/*TMP*/),
+                                      ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::pixelRatio_crt), 1/*TMP*/) };
+  builder.addSlider(0, localizedText.getMessage(ScreenStretchingMessages::pixelRatio_tooltip), ratioControlX, RATIO_PARAMS_MAX_WIDTH,
+                    pixelRatioOptions, sizeof(pixelRatioOptions)/sizeof(*pixelRatioOptions), 0, pixelRatio);
 
-  // black borders
-  blackBordersX = TextBox(*context, localizedText.getMessage(ScreenStretchingMessages::blackBorders), nullptr, controlX,
-                          currentLineY, Control::pageLabelWidth(), (Control::pageControlWidth() >> 2) - 1u,
-                          theme.textBoxControlColor(), 0, nullptr, (uint32_t)0, 3u, true);
-  registry.emplace_back(blackBordersX, true, localizedText.getMessage(ScreenStretchingMessages::blackBorders_tooltip));
-  blackBordersY = TextBox(*context, nullptr, u"px", blackBordersX.rightX() + 2, currentLineY, 0,
-                          (Control::pageControlWidth() >> 2) - 1u, theme.textBoxControlColor(), 0, nullptr, (uint32_t)0, 3u, true);
-  registry.emplace_back(blackBordersY, true, localizedText.getMessage(ScreenStretchingMessages::blackBorders_tooltip));
-  currentLineY += Control::pageLineHeight();
+  ComboBoxOption mirrorOptions[]{ ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::mirror_none), 0/*TMP*/),
+                                  ComboBoxOption(localizedText.getMessage(ScreenStretchingMessages::mirror_mirrorX), 1/*TMP*/) };
+  builder.addSlider(MIRROR_ID, localizedText.getMessage(ScreenStretchingMessages::mirror_tooltip), ratioControlX, RATIO_PARAMS_MAX_WIDTH,
+                    mirrorOptions, sizeof(mirrorOptions)/sizeof(*mirrorOptions), 0, mirror);
+  builder.addLineOffset((int32_t)Control::pageLineHeight() - (int32_t)((Control::pageLineHeight() >> 2) << 1));
 
-  // screen curvature
-  screenCurvature = Ruler(*context, localizedText.getMessage(ScreenStretchingMessages::screenCurvature),
-                          localizedText.getMessage(CommonMessages::maximum), FontType::labels,
-                          TextAlignment::left, controlX, currentLineY, Control::pageLabelWidth(), RULER_SIZE,
-                          theme.rulerColorParams(), 0, nullptr, 0, MAX_RULER_VALUE, 1, screenCurvatureValue);
-  registry.emplace_back(screenCurvature, true, localizedText.getMessage(ScreenStretchingMessages::screenCurvature_tooltip));
-  currentLineY += Control::pageLineHeight();
+  // display adjustments group
+  builder.addFieldset(localizedText.getMessage(ScreenStretchingMessages::displayAdjustmentsGroup), 5, 1, displayAdjustGroup);
+  screenCurvatureValue = 0;
+  isOverscanVisible = isCenteredX = isCenteredY = false;
 
-  // overscan/center
-  showOverscanArea = CheckBox(*context, localizedText.getMessage(ScreenStretchingMessages::showOverscanArea), controlX,
-                              currentLineY, Control::pageLabelWidth(), 0, nullptr, isOverscanVisible);
-  isOverscanVisible = false;
-  registry.emplace_back(showOverscanArea, true, localizedText.getMessage(ScreenStretchingMessages::showOverscanArea_tooltip));
-  currentLineY += Control::pageLineHeight();
-
-  centerX = CheckBox(*context, localizedText.getMessage(ScreenStretchingMessages::centerX), controlX,
-                     currentLineY, Control::pageLabelWidth(), 0, nullptr, isCenteredX);
-  isCenteredX = false;
-  registry.emplace_back(centerX, true, localizedText.getMessage(ScreenStretchingMessages::centerX_tooltip));
-  currentLineY += Control::pageLineHeight();
-
-  centerY = CheckBox(*context, localizedText.getMessage(ScreenStretchingMessages::centerY), controlX,
-                     currentLineY, Control::pageLabelWidth(), 0, nullptr, isCenteredY);
-  isCenteredY = false;
-  registry.emplace_back(centerY, true, localizedText.getMessage(ScreenStretchingMessages::centerY_tooltip));
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
+  builder.addDoubleTextBox(0, 0, localizedText.getMessage(ScreenStretchingMessages::blackBorders), u"px",
+                           localizedText.getMessage(ScreenStretchingMessages::blackBorders_tooltip),
+                           0, 0, 3u, blackBordersX, blackBordersY);
+  builder.addRuler(0, localizedText.getMessage(ScreenStretchingMessages::screenCurvature),
+                   localizedText.getMessage(CommonMessages::maximum),
+                   localizedText.getMessage(ScreenStretchingMessages::screenCurvature_tooltip),
+                   RULER_SIZE, MAX_RULER_VALUE, screenCurvatureValue, screenCurvature);
+  builder.addCheckBox(0, localizedText.getMessage(ScreenStretchingMessages::showOverscanArea),
+                      localizedText.getMessage(ScreenStretchingMessages::showOverscanArea_tooltip),
+                      isOverscanVisible, showOverscanArea);
+  builder.addCheckBox(0, localizedText.getMessage(ScreenStretchingMessages::centerX),
+                      localizedText.getMessage(ScreenStretchingMessages::centerX_tooltip),
+                      isCenteredX, centerX);
+  builder.addCheckBox(0, localizedText.getMessage(ScreenStretchingMessages::centerY),
+                      localizedText.getMessage(ScreenStretchingMessages::centerY_tooltip),
+                      isCenteredY, centerY);
 
   // --- control registry ---
-  if (currentLineY > y + (int32_t)contentHeight())
-    Page::moveScrollbarThumb(currentLineY);
-  registerControls(std::move(registry));
+  Page::moveScrollbarThumb(builder.linePositionY());
+  registerControls(std::move(builder.controlRegistry()));
 }
 
 ScreenStretching::~ScreenStretching() noexcept {
@@ -301,12 +253,12 @@ ScreenStretching::~ScreenStretching() noexcept {
   mirror.release();
 
   displayAdjustGroup.release();
-  showOverscanArea.release();
-  centerX.release();
-  centerY.release();
   blackBordersX.release();
   blackBordersY.release();
   screenCurvature.release();
+  showOverscanArea.release();
+  centerX.release();
+  centerY.release();
 }
 
 
@@ -314,60 +266,47 @@ ScreenStretching::~ScreenStretching() noexcept {
 
 void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentMover mover(*context, x, y, width);
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
+  mover.moveTitle(title);
 
   // aspect ratio group
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  aspectRatioGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                        Control::fieldsetContentHeight(5) + (Control::pageLineHeight() >> 1)
-                      + Control::pageLineHeight() - (Control::pageLineHeight() >> 3));
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 1) - (Control::pageLineHeight() >> 3);
+  mover.moveFieldset(5, Control::pageLineHeight() + (Control::pageLineHeight() >> 3) + Control::fieldsetContentPaddingTop(),
+                     aspectRatioGroup);
+  mover.addLineOffset((int32_t)(Control::pageLineHeight() >> 3));
 
-  // ratio preview
   ratioPreviewImage.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                         controlX + ratioPreviewImage.x() - ratioPreviewScreen.x(),
-                         currentLineY + 1 + RATIO_PREVIEW_OFFSET_Y + ratioPreviewImage.y() - ratioPreviewScreen.y());
-  ratioPreviewScreen.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlX, currentLineY + 1 + RATIO_PREVIEW_OFFSET_Y);
-  currentLineY += Control::fieldsetContentPaddingTop() - 1;
+                         mover.linePositionX() + ratioPreviewImage.x() - ratioPreviewScreen.x(),
+                         mover.linePositionY() + 2 + RATIO_PREVIEW_OFFSET_Y + ratioPreviewImage.y() - ratioPreviewScreen.y());
+  ratioPreviewScreen.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                          mover.linePositionX(), mover.linePositionY() + 2 + RATIO_PREVIEW_OFFSET_Y);
+  mover.addLineOffset((int32_t)Control::fieldsetContentPaddingTop());
 
-  const int32_t ratioControlX = controlX + RATIO_PARAMS_OFFSET;
-  aspectRatioPreset.move(*context, ratioControlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
-  stretching.move(*context, ratioControlX + RATIO_RULER_OFFSET, currentLineY, TextAlignment::right);
-  currentLineY += Control::pageLineHeight();
-  cropping.move(*context, ratioControlX + RATIO_RULER_OFFSET, currentLineY, TextAlignment::right);
-  currentLineY += Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
-  pixelRatio.move(*context, ratioControlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  mirror.move(*context, ratioControlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom() + (Control::pageLineHeight() >> 1);
+  const int32_t ratioControlX = mover.linePositionX() + RATIO_PARAMS_OFFSET;
+  mover.moveComboBox(ratioControlX, aspectRatioPreset);
+  mover.addLineOffset((int32_t)(Control::pageLineHeight() >> 2));
+
+  mover.moveRuler(ratioControlX + RATIO_RULER_OFFSET, stretching);
+  mover.moveRuler(ratioControlX + RATIO_RULER_OFFSET, cropping);
+  mover.addLineOffset((int32_t)(Control::pageLineHeight() >> 2));
+
+  mover.moveSlider(ratioControlX, pixelRatio);
+  mover.moveSlider(ratioControlX, mirror);
+  mover.addLineOffset((int32_t)Control::pageLineHeight() - (int32_t)((Control::pageLineHeight() >> 2) << 1));
 
   // display adjustements group
-  displayAdjustGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(5) + 1u);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(5, 1, displayAdjustGroup);
 
-  blackBordersX.move(*context, controlX, currentLineY);
-  blackBordersY.move(*context, blackBordersX.rightX() + 2, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  screenCurvature.move(*context, controlX, currentLineY, TextAlignment::left);
-  currentLineY += Control::pageLineHeight();
-  showOverscanArea.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  centerX.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  centerY.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
+  mover.moveDoubleTextBox(blackBordersX, blackBordersY);
+  mover.moveRuler(screenCurvature);
+  mover.moveCheckBox(showOverscanArea);
+  mover.moveCheckBox(centerX);
+  mover.moveCheckBox(centerY);
 
-  Page::moveScrollbarThumb(currentLineY); // required after a move
+  Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
 }
 
-void ScreenStretching::onChange(uint32_t id, uint32_t value) {
+void ScreenStretching::onValueChange(uint32_t id, uint32_t value) {
   bool isRatioPreviewUpdated = false;
   switch (id) {
     case ASPECT_RATIO_PRESET_ID: {
@@ -416,7 +355,7 @@ void ScreenStretching::onChange(uint32_t id, uint32_t value) {
       break;
     }
     case MIRROR_ID: {
-      ratioPreviewImage.invertX(context->renderer(), context->pixelSizeX(), context->pixelSizeY());
+      ratioPreviewImage.invertX(context->renderer());
       break;
     }
     default: assert(false); break;
@@ -444,7 +383,7 @@ void ScreenStretching::drawIcons() {
   ratioPreviewImage.draw(context->renderer());
 }
 
-bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
+void ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -465,7 +404,6 @@ bool ScreenStretching::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
 
   blackBordersX.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &blackBordersX));
   blackBordersY.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &blackBordersY));
-  return false;
 }
 
 void ScreenStretching::drawPageLabels() {
@@ -494,20 +432,4 @@ void ScreenStretching::drawPageLabels() {
 
   blackBordersX.drawLabels(*context, *buffers, (hoverControl == &blackBordersX));
   blackBordersY.drawLabels(*context, *buffers, (hoverControl == &blackBordersY));
-}
-
-void ScreenStretching::drawForegrounds() {
-  auto& renderer = context->renderer();
-
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
-
-  aspectRatioPreset.drawDropdown(*context, *buffers);
-}
-
-void ScreenStretching::drawForegroundLabels() {
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
-
-  aspectRatioPreset.drawOptions(*context, *buffers);
 }

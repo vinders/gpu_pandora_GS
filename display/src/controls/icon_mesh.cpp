@@ -97,7 +97,7 @@ void IconMesh::regenerate(Renderer& renderer, const float pxSizeX, const float p
                                                   4*sizeof(IconVertex), vertices);
 }
 
-void IconMesh::invertX(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY) {
+void IconMesh::invertX(video_api::Renderer& renderer) {
   for (auto& vertex : vertices)
     vertex.coords[0] = -vertex.coords[0];
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,

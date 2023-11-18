@@ -235,7 +235,7 @@ bool ComboBox::isHover(int32_t mouseX, int32_t mouseY) const noexcept {
   return (isListOpen && mouseX >= controlMesh.x())
           ? (mouseY >= y() && mouseY < y() + (int32_t)(controlMesh.height() + dropdownMesh.height())
                            && mouseX < controlMesh.x() + (int32_t)controlMesh.width())
-          : (mouseY >= y() && mouseY < y() + (int32_t)controlMesh.height() && mouseX >= x()
+          : (mouseY >= y() && mouseY < y() + (int32_t)controlMesh.height() && mouseX >= x() - (int32_t)Control::controlSideMargin()
                            && mouseX < controlMesh.x() + (int32_t)controlMesh.width());
 }
 

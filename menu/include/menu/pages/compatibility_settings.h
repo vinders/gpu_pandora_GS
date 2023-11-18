@@ -47,7 +47,7 @@ namespace menu {
 
     private:
       void init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width);
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:
@@ -55,10 +55,10 @@ namespace menu {
 
       controls::Fieldset specialGameFixesGroup;
       controls::CheckBox lowCompatibilityFrameRead;
-      controls::CheckBox ignoreSmallFrameBufferMoves;
+      controls::CheckBox ignoreSmallFramebufferMoves;
       controls::CheckBox fakeGpuBusyStates;
       bool lowCompatibilityFrameReadValue = false;
-      bool ignoreSmallFrameBufferMovesValue = false;
+      bool ignoreSmallFramebufferMovesValue = false;
       bool fakeGpuBusyStatesValue = false;
     };
   }

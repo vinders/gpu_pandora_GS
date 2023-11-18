@@ -15,6 +15,7 @@ GNU General Public License for more details (LICENSE file).
 #include <vector>
 #include <unordered_map>
 #include "menu/controls/geometry_generator.h"
+#include "menu/pages/page_content_builder.h"
 #include "menu/pages/general_settings.h"
 
 using namespace video_api;
@@ -179,12 +180,14 @@ static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, 
 
 // -- page -- ------------------------------------------------------------------
 
-#define DISPLAY_MODE_ID      1
-#define FULLSCREEN_SIZE_ID   2
-#define WINDOW_SIZE_ID       3
-#define WIDESCREEN_HACK_ID   4
-#define FRAMERATE_LIMIT_ID   5
-#define FRAMERATE_FIXED_ID   6
+#define DISPLAY_MODE_ID       1
+#define FULLSCREEN_SIZE_ID    2
+#define WINDOW_HEIGHT_ID      3
+#define WIDESCREEN_MODE_ID    4
+#define FRAMERATE_LIMIT_ID    5
+#define FIXED_FRAMERATE_ID    6
+#define INTERFACE_COLOR_ID    7
+#define INTERFACE_LANGUAGE_ID 8
 
 GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
                                  const std::shared_ptr<ColorTheme>& theme_, const std::shared_ptr<MessageResources>& localizedText_,
@@ -199,193 +202,107 @@ GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std:
 }
 
 void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentBuilder builder(*context, *theme, x, y, width, 12,
+                             std::bind(&GeneralSettings::onChange,this,std::placeholders::_1),
+                             std::bind(&GeneralSettings::onValueChange,this,std::placeholders::_1,std::placeholders::_2));
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText->getMessage(GeneralSettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
+  builder.addTitle(localizedText->getMessage(GeneralSettingsMessages::title), title);
 
-  std::vector<ControlRegistration> registry;
-  registry.reserve(12);
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&GeneralSettings::onChange,this,std::placeholders::_1,std::placeholders::_2);
+  // window group
+  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::windowGroup), 3, 0, windowGroup);
+  isFullscreenMode = true;
+  isWindowMode = enableWidescreenMode = false;
 
-  // --- window group ---
-  windowGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::windowGroup), theme->fieldsetStyle(),
-                         theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                         Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
-
-  // display mode
-  {
-    ComboBoxOption displayModeOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_fullscreen), 0/*TMP*/),
-                                         ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_borderless), 1/*TMP*/),
-                                         ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_window),     2/*TMP*/) };
-    displayMode = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::displayMode), controlX, currentLineY,
-                         Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(), DISPLAY_MODE_ID,
-                         changeHandler, displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0);
-    registry.emplace_back(displayMode, true, localizedText->getMessage(GeneralSettingsMessages::displayMode_tooltip));
-    isFullscreenMode = true;
-    isWindowMode = enableWidescreenMode = false;
-    currentLineY += Control::pageLineHeight();
-  }
-  // fullscreen resolution/rate
-  constexpr const uint32_t fullscreenSizeWidth = Control::pageControlWidth() - 108;
-  constexpr const uint32_t fullscreenRateWidth = 105;
-  constexpr const int32_t fullscreenRateMargin = 3;
-  {
-    std::vector<ComboBoxOption> fullscreenSizeOptions;
-    uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, fullscreenSizeOptions);
-
-    fullscreenSize = ComboBox(*context, localizedText->getMessage(GeneralSettingsMessages::resolution), controlX, currentLineY,
-                              Control::pageLabelWidth(), fullscreenSizeWidth, ComboBoxStyle::classic, theme->comboBoxColorParams(),
-                              FULLSCREEN_SIZE_ID, changeHandler, fullscreenSizeOptions.data(), fullscreenSizeOptions.size(),
-                              selectedResolutionIndex, &isFullscreenMode);
-    registry.emplace_back(fullscreenSize, true, localizedText->getMessage(GeneralSettingsMessages::resolution_tooltip));
-
-    std::vector<ComboBoxOption> fullscreenRateOptions;
-    uint32_t selectedFullRate = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], 60000, fullscreenRateOptions);
-    fullscreenRate = ComboBox(*context, nullptr, fullscreenSize.x() + (int32_t)fullscreenSize.width() + fullscreenRateMargin,
-                              currentLineY, 0, fullscreenRateWidth, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0, nullptr,
-                              fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate, &isFullscreenMode);
-    registry.emplace_back(fullscreenRate, true, localizedText->getMessage(GeneralSettingsMessages::refreshRate_tooltip));
-    currentLineY += Control::pageLineHeight();
-  }
-  // window mode size
+  ComboBoxOption displayModeOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_fullscreen), 0/*TMP*/),
+                                       ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_borderless), 1/*TMP*/),
+                                       ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::displayMode_window),     2/*TMP*/) };
+  builder.addSlider(DISPLAY_MODE_ID, localizedText->getMessage(GeneralSettingsMessages::displayMode),
+                    localizedText->getMessage(GeneralSettingsMessages::displayMode_tooltip), Control::pageControlWidth(),
+                    displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0, displayMode);
+  
+  std::vector<ComboBoxOption> fullscreenSizeOptions, fullscreenRateOptions;
+  uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, fullscreenSizeOptions);
+  uint32_t selectedRateIndex = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], 60000, fullscreenRateOptions);
   constexpr const uint32_t windowHeightValue = 720u;
-  constexpr const uint32_t windowHeightBoxOffsetX = Control::pageLabelWidth() + 11 + ((fullscreenSizeWidth+1) >> 1);
-  windowHeight = TextBox(*context, localizedText->getMessage(GeneralSettingsMessages::windowSize), nullptr, controlX,
-                         currentLineY, windowHeightBoxOffsetX, (fullscreenSizeWidth >> 1) - 11, theme->textBoxControlColor(),
-                         WINDOW_SIZE_ID, [this](uint32_t id){ this->onChange(id, this->windowHeight.valueInteger()); },
-                         windowHeightValue, 4u, false, &isWindowMode);
-  registry.emplace_back(windowHeight, true, localizedText->getMessage(GeneralSettingsMessages::windowSize_tooltip));
 
-  onChange(WINDOW_SIZE_ID, windowHeightValue); // fill 'windowSize' text indicator
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  builder.setEnabler(isFullscreenMode);
+  builder.addDoubleComboBox(FULLSCREEN_SIZE_ID, localizedText->getMessage(GeneralSettingsMessages::resolution),
+                            localizedText->getMessage(GeneralSettingsMessages::resolution_tooltip),
+                            fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedResolutionIndex, fullscreenSize,
+                            0, 105, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedRateIndex, fullscreenRate);
+  builder.setEnabler(isWindowMode);
+  builder.addResolutionTextBox(WINDOW_HEIGHT_ID, localizedText->getMessage(GeneralSettingsMessages::windowSize),
+                               localizedText->getMessage(GeneralSettingsMessages::windowSize_tooltip),
+                               (fullscreenSize.controlWidth() >> 1) - 11u, ((fullscreenSize.controlWidth()+1u) >> 1) + 11u,
+                               windowHeightValue, windowHeight);
+  onValueChange(WINDOW_HEIGHT_ID, windowHeightValue); // fill 'windowSizeInfo' text indicator
+  builder.resetEnabler();
 
-  // --- compatibility group ---
-  compatibilityGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::emulatorGroup),
-                                theme->fieldsetStyle(), theme->fieldsetControlColor(),
-                                x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                                Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
-
-  // subprecision modes
-  {
-    ComboBoxOption subprecisionOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_original),     0/*TMP*/),
-                                          ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_subprecision), 1/*TMP*/) };
-    subprecisionMode = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::precision), controlX, currentLineY,
-                              Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(), 0, nullptr,
-                              subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0);
-    registry.emplace_back(subprecisionMode, true, localizedText->getMessage(GeneralSettingsMessages::precision_tooltip));
-    currentLineY += Control::pageLineHeight();
-  }
-  // widescreen hack
-  widescreenMode = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::widescreen), controlX,
-                            currentLineY, Control::pageLabelWidth(), WIDESCREEN_HACK_ID, changeHandler, enableWidescreenMode);
-  registry.emplace_back(widescreenMode, true, localizedText->getMessage(GeneralSettingsMessages::widescreen_tooltip));
-  currentLineY += Control::pageLineHeight();
-
+  // compatibility group
+  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::emulatorGroup), 4, 0, compatibilityGroup);
   isAutosaved = isAutoloaded = false;
-  autosaveOnExit = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit), controlX, currentLineY,
-                            Control::pageLabelWidth(), 0, nullptr, isAutosaved);
-  registry.emplace_back(autosaveOnExit, true, localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit_tooltip));
-  currentLineY += Control::pageLineHeight();
 
-  autoloadOnStart = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart), controlX, currentLineY,
-                             Control::pageLabelWidth(), 0, nullptr, isAutoloaded, &isAutosaved);
-  registry.emplace_back(autoloadOnStart, true, localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  ComboBoxOption subprecisionOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_original),     0/*TMP*/),
+                                        ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::precision_subprecision), 1/*TMP*/) };
+  builder.addSlider(0, localizedText->getMessage(GeneralSettingsMessages::precision),
+                    localizedText->getMessage(GeneralSettingsMessages::precision_tooltip), Control::pageControlWidth(),
+                    subprecisionOptions, sizeof(subprecisionOptions)/sizeof(*subprecisionOptions), 0, subprecisionMode);
+  builder.addCheckBox(WIDESCREEN_MODE_ID, localizedText->getMessage(GeneralSettingsMessages::widescreen),
+                      localizedText->getMessage(GeneralSettingsMessages::widescreen_tooltip), enableWidescreenMode, widescreenMode);
 
-  // --- framerate group ---
-  framerateGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::rateGroup), theme->fieldsetStyle(),
-                            theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                            Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  builder.addCheckBox(0, localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit),
+                      localizedText->getMessage(GeneralSettingsMessages::autosaveOnExit_tooltip), isAutosaved, autosaveOnExit);
+  builder.setEnabler(isAutosaved);
+  builder.addCheckBox(0, localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart),
+                      localizedText->getMessage(GeneralSettingsMessages::autoloadOnStart_tooltip), isAutoloaded, autoloadOnStart);
+  builder.resetEnabler();
 
-  // frame rate limit mode
-  {
-    ComboBoxOption frameLimitOptions[]{ ComboBoxOption(localizedText->getMessage(CommonMessages::disabled),   0/*TMP*/),
-                                        ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_autodetect), 1/*TMP*/),
-                                        ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_custom),     2/*TMP*/) };
-    framerateLimit = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::rateLimit), controlX, currentLineY,
-                            Control::pageLabelWidth(), Control::pageControlWidth(), theme->sliderArrowColor(),FRAMERATE_LIMIT_ID,
-                            changeHandler, frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1);
-    registry.emplace_back(framerateLimit, true, localizedText->getMessage(GeneralSettingsMessages::rateLimit_tooltip));
-    isFramerateLimit = true;
-    isFixedFramerate = isFrameSkipping = false;
-    currentLineY += Control::pageLineHeight();
+  // framerate group
+  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::rateGroup), 3, 0, framerateGroup);
+  isFramerateLimit = true;
+  isFixedFramerate = isFrameSkipping = false;
+  double fixedRateValue = 59.94;
+
+  ComboBoxOption frameLimitOptions[]{ ComboBoxOption(localizedText->getMessage(CommonMessages::disabled),   0/*TMP*/),
+                                      ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_autodetect), 1/*TMP*/),
+                                      ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::rateLimit_custom),     2/*TMP*/) };
+  builder.addSlider(FRAMERATE_LIMIT_ID, localizedText->getMessage(GeneralSettingsMessages::rateLimit),
+                    localizedText->getMessage(GeneralSettingsMessages::rateLimit_tooltip), Control::pageControlWidth(),
+                    frameLimitOptions, sizeof(frameLimitOptions)/sizeof(*frameLimitOptions), 1, framerateLimit);
+
+  builder.setEnabler(isFixedFramerate);
+  builder.addNumberTextBox(FIXED_FRAMERATE_ID, localizedText->getMessage(GeneralSettingsMessages::customRate),
+                           localizedText->getMessage(CommonMessages::fps), localizedText->getMessage(GeneralSettingsMessages::customRate_tooltip),
+                           80u, fixedRateValue, fixedFramerate);
+  
+  builder.setEnabler(isFramerateLimit);
+  builder.addCheckBox(0, localizedText->getMessage(GeneralSettingsMessages::frameSkip),
+                      localizedText->getMessage(GeneralSettingsMessages::frameSkip_tooltip), isFrameSkipping, frameSkipping);
+  builder.resetEnabler();
+
+  // user interface group
+  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::uiGroup), 2, 0, userInterfaceGroup);
+
+  ComboBoxOption colorOptions[(size_t)ColorThemeType::COUNT];
+  for (uint32_t i = 0; i < (uint32_t)ColorThemeType::COUNT; ++i) {
+    const auto messageId = static_cast<GeneralSettingsMessages>((uint32_t)GeneralSettingsMessages::theme + 1u + i);
+    colorOptions[i] = ComboBoxOption(localizedText->getMessage(messageId), (ComboValue)i);
   }
-  // custom frame rate
-  {
-    double fixedRateValue = 59.94;
-    fixedFramerate = TextBox(*context, localizedText->getMessage(GeneralSettingsMessages::customRate),
-                             localizedText->getMessage(CommonMessages::fps),
-                             controlX, currentLineY, Control::pageLabelWidth(), 80u, theme->textBoxControlColor(),
-                             FRAMERATE_FIXED_ID, [this](uint32_t id) { this->onChange(id, 0); },
-                             fixedRateValue, 6u, &isFixedFramerate);
-    registry.emplace_back(fixedFramerate, true, localizedText->getMessage(GeneralSettingsMessages::customRate_tooltip));
-    currentLineY += Control::pageLineHeight();
-  }
-  // other frame rate settings
-  frameSkipping = CheckBox(*context, localizedText->getMessage(GeneralSettingsMessages::frameSkip), controlX,
-                           currentLineY, Control::pageLabelWidth(), 0, nullptr, isFrameSkipping, &isFramerateLimit);
-  registry.emplace_back(frameSkipping, true, localizedText->getMessage(GeneralSettingsMessages::frameSkip_tooltip));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  builder.addSlider(INTERFACE_COLOR_ID, localizedText->getMessage(GeneralSettingsMessages::theme),
+                    localizedText->getMessage(GeneralSettingsMessages::theme_tooltip), Control::pageControlWidth(),
+                    colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), (uint32_t)theme->themeType(), interfaceColor);
 
-  // --- user interface group ---
-  userInterfaceGroup = Fieldset(*context, localizedText->getMessage(GeneralSettingsMessages::uiGroup), theme->fieldsetStyle(),
-                                theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth,
-                                Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
-
-  // interface color
-  {
-    ComboBoxOption colorOptions[]{ ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_blue),
-                                                  (ComboValue)ColorThemeType::blue),
-                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_green),
-                                                  (ComboValue)ColorThemeType::green),
-                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_scifi),
-                                                  (ComboValue)ColorThemeType::darkGreen),
-                                   ComboBoxOption(localizedText->getMessage(GeneralSettingsMessages::theme_yellow),
-                                                  (ComboValue)ColorThemeType::yellow) };
-    interfaceColor = Slider(*context, localizedText->getMessage(GeneralSettingsMessages::theme),
-                            controlX, currentLineY, Control::pageLabelWidth(),
-                            Control::pageControlWidth(), theme->sliderArrowColor(), 0,
-                            [this](uint32_t, uint32_t theme){
-                              this->theme->updateTheme((ColorThemeType)theme);
-                              this->buffers->updateColorBuffers(this->context->renderer(), *(this->theme));
-                              Page::updateColors(*(this->theme));
-                              init(this->x(), this->y(), this->width());
-                            },
-                            colorOptions, sizeof(colorOptions)/sizeof(*colorOptions), (uint32_t)theme->themeType());
-    registry.emplace_back(interfaceColor, true, localizedText->getMessage(GeneralSettingsMessages::theme_tooltip));
-    currentLineY += Control::pageLineHeight();
+  ComboBoxOption languageOptions[(size_t)LocalizationType::COUNT];
+  for (size_t i = 0; i < (size_t)LocalizationType::COUNT; ++i) {
+    languageOptions[i] = ComboBoxOption(LocalizationTypeHelper::toLanguageName((LocalizationType)i), (ComboValue)i);
   }
-  // interface language
-  {
-    ComboBoxOption languageOptions[(size_t)LocalizationType::COUNT];
-    for (size_t i = 0; i < (size_t)LocalizationType::COUNT; ++i)
-      languageOptions[i] = ComboBoxOption(LocalizationTypeHelper::toLanguageName((LocalizationType)i), (ComboValue)i);
-    interfaceLanguage = ComboBox(*context, localizedText->getMessage(GeneralSettingsMessages::language),
-                                 controlX, currentLineY, Control::pageLabelWidth(),
-                                 105u, ComboBoxStyle::cutCorner, theme->comboBoxColorParams(), 0,
-                                 [this](uint32_t, uint32_t language){
-                                   this->localizedText->updateLocalization((LocalizationType)language);
-                                   init(this->x(), this->y(), this->width());
-                                 },
-                                 languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), (uint32_t)localizedText->language());
-    registry.emplace_back(interfaceLanguage, true, localizedText->getMessage(GeneralSettingsMessages::language_tooltip));
-  }
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
+  builder.addComboBox(INTERFACE_LANGUAGE_ID, localizedText->getMessage(GeneralSettingsMessages::language),
+                      localizedText->getMessage(GeneralSettingsMessages::language_tooltip), 105u,
+                      languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), (uint32_t)localizedText->language(), interfaceLanguage);
 
-  // --- control registry ---
-  if (currentLineY > y + (int32_t)contentHeight())
-    Page::moveScrollbarThumb(currentLineY);
-  registerControls(std::move(registry));
+  // control registration
+  Page::moveScrollbarThumb(builder.linePositionY());
+  registerControls(std::move(builder.controlRegistry()));
 }
 
 GeneralSettings::~GeneralSettings() noexcept {
@@ -396,7 +313,7 @@ GeneralSettings::~GeneralSettings() noexcept {
   fullscreenSize.release();
   fullscreenRate.release();
   windowHeight.release();
-  windowSize.release();
+  windowSizeInfo.release();
   fullscreenRatesPerSize.clear();
 
   compatibilityGroup.release();
@@ -420,68 +337,54 @@ GeneralSettings::~GeneralSettings() noexcept {
 
 void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentMover mover(*context, x, y, width);
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
+  mover.moveTitle(title);
 
   // display group
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  windowGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(3, 0, windowGroup);
 
-  displayMode.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  fullscreenSize.move(*context, controlX, currentLineY);
-  fullscreenRate.move(*context, fullscreenSize.x() + (int32_t)fullscreenSize.width() + 3, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  const int32_t windowSizeOffsetX = windowSize.x() - windowHeight.controlX();
-  const int32_t windowSizeOffsetY = windowSize.y() - (windowHeight.y() + Control::textBoxPaddingY());
-  windowHeight.move(*context, controlX, currentLineY);
-  windowSize.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                  windowHeight.controlX() + windowSizeOffsetX, currentLineY + windowSizeOffsetY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveSlider(displayMode);
+  mover.moveDoubleComboBox(fullscreenSize, fullscreenRate);
+
+  const int32_t windowSizeOffsetX = windowSizeInfo.x() - windowHeight.controlX();
+  const int32_t windowSizeY = mover.linePositionY() + windowSizeInfo.y() - (windowHeight.y() + (int32_t)Control::textBoxPaddingY());
+  mover.moveTextBox(windowHeight);
+  windowSizeInfo.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                      windowHeight.controlX() + windowSizeOffsetX, windowSizeY);
 
   // compatibility group
-  compatibilityGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(4));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(4, 0, compatibilityGroup);
 
-  subprecisionMode.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  widescreenMode.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  autosaveOnExit.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  autoloadOnStart.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveSlider(subprecisionMode);
+  mover.moveCheckBox(widescreenMode);
+  mover.moveCheckBox(autosaveOnExit);
+  mover.moveCheckBox(autoloadOnStart);
 
   // framerate group
-  framerateGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(3, 0, framerateGroup);
 
-  framerateLimit.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  fixedFramerate.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  frameSkipping.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveSlider(framerateLimit);
+  mover.moveTextBox(fixedFramerate);
+  mover.moveCheckBox(frameSkipping);
 
   // user interface group
-  userInterfaceGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(2, 0, userInterfaceGroup);
 
-  interfaceColor.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  interfaceLanguage.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
+  mover.moveSlider(interfaceColor);
+  mover.moveComboBox(interfaceLanguage);
 
-  Page::moveScrollbarThumb(currentLineY); // required after a move
+  Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
 }
 
-void GeneralSettings::onChange(uint32_t id, uint32_t value) {
+void GeneralSettings::onChange(uint32_t id) {
+  if (id == WINDOW_HEIGHT_ID)
+    onValueChange(id, windowHeight.valueInteger());
+  else if (id == FIXED_FRAMERATE_ID)
+    onValueChange(id, 0);
+}
+
+void GeneralSettings::onValueChange(uint32_t id, uint32_t value) {
   switch (id) {
     case DISPLAY_MODE_ID: {
       isFullscreenMode = (value == 0/*TMP*/);
@@ -496,10 +399,10 @@ void GeneralSettings::onChange(uint32_t id, uint32_t value) {
       fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
       break;
     }
-    case WIDESCREEN_HACK_ID:
+    case WIDESCREEN_MODE_ID:
       value = windowHeight.valueInteger();
       SWITCH_FALLTHROUGH;
-    case WINDOW_SIZE_ID: {
+    case WINDOW_HEIGHT_ID: {
       if (value < 480) {
         value = value ? 480 : 720;
         windowHeight.replaceValueInteger(*context, (uint32_t)value);
@@ -509,13 +412,13 @@ void GeneralSettings::onChange(uint32_t id, uint32_t value) {
       FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
 
       auto& inputFont = context->getFont(FontType::inputText);
-      int32_t windowSizeY = windowSize.y();
+      int32_t windowSizeY = windowSizeInfo.y();
       if (windowSizeY == 0) {
         auto& labelFont = context->getFont(FontType::labels);
         windowSizeY = windowHeight.labelY() + (int32_t)(labelFont.XHeight() - inputFont.XHeight() + 1)/2;
       }
-      windowSize = TextMesh(context->renderer(), inputFont, windowWidthBuffer, context->pixelSizeX(), context->pixelSizeY(),
-                            windowHeight.controlX() - 8, windowSizeY, TextAlignment::right);
+      windowSizeInfo = TextMesh(context->renderer(), inputFont, windowWidthBuffer, context->pixelSizeX(), context->pixelSizeY(),
+                                windowHeight.controlX() - 8, windowSizeY, TextAlignment::right);
       break;
     }
     case FRAMERATE_LIMIT_ID: {
@@ -523,9 +426,23 @@ void GeneralSettings::onChange(uint32_t id, uint32_t value) {
       isFixedFramerate = (value == 2/*TMP*/);
       break;
     }
-    case FRAMERATE_FIXED_ID: {
+    case FIXED_FRAMERATE_ID: {
       if (fixedFramerate.valueNumber() == 0.0)
         fixedFramerate.replaceValueNumber(*context, 59.94);
+      break;
+    }
+    case INTERFACE_COLOR_ID: {
+      theme->updateTheme((ColorThemeType)value);
+      buffers->updateColorBuffers(context->renderer(), *theme);
+      Page::updateColors(*theme);
+      init(x(), y(), width());
+      selectControlIndex(static_cast<uint32_t>(countRegistryControls() - 2u));
+      break;
+    }
+    case INTERFACE_LANGUAGE_ID: {
+      localizedText->updateLocalization((LocalizationType)value);
+      init(x(), y(), width());
+      selectControlIndex(static_cast<uint32_t>(countRegistryControls() - 1u));
       break;
     }
     default: assert(false); break;
@@ -546,7 +463,7 @@ void GeneralSettings::drawIcons() {
   frameSkipping.drawIcon(*context, *buffers, (hoverControl == &frameSkipping));
 }
 
-bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
+void GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -567,7 +484,6 @@ bool GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   interfaceLanguage.drawBackground(*context, *buffers, (hoverControl == &interfaceLanguage));
   windowHeight.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &windowHeight));
   fixedFramerate.drawBackground(*context, mouseX, mouseY, *buffers, (hoverControl == &fixedFramerate));
-  return false;
 }
 
 void GeneralSettings::drawPageLabels() {
@@ -596,30 +512,10 @@ void GeneralSettings::drawPageLabels() {
   windowHeight.drawLabels(*context, *buffers, (hoverControl == &windowHeight));
   fixedFramerate.drawLabels(*context, *buffers, (hoverControl == &fixedFramerate));
   buffers->bindLabelBuffer(renderer, windowHeight.isEnabled() ? LabelBufferType::regular : LabelBufferType::disabled);
-  windowSize.draw(renderer);
+  windowSizeInfo.draw(renderer);
 
   widescreenMode.drawLabel(*context, *buffers, (hoverControl == &widescreenMode));
   autosaveOnExit.drawLabel(*context, *buffers, (hoverControl == &autosaveOnExit));
   autoloadOnStart.drawLabel(*context, *buffers, (hoverControl == &autoloadOnStart));
   frameSkipping.drawLabel(*context, *buffers, (hoverControl == &frameSkipping));
-}
-
-void GeneralSettings::drawForegrounds() {
-  auto& renderer = context->renderer();
-
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
-
-  fullscreenSize.drawDropdown(*context, *buffers);
-  fullscreenRate.drawDropdown(*context, *buffers);
-  interfaceLanguage.drawDropdown(*context, *buffers);
-}
-
-void GeneralSettings::drawForegroundLabels() {
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
-
-  fullscreenSize.drawOptions(*context, *buffers);
-  fullscreenRate.drawOptions(*context, *buffers);
-  interfaceLanguage.drawOptions(*context, *buffers);
 }

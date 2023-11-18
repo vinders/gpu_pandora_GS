@@ -260,7 +260,20 @@ int32_t Page::findActiveControlIndex(int32_t mouseX, int32_t mouseY) const noexc
   return (controlRegistry[low].compareLocation(mouseX, mouseY, scrollY) == 0) ? low : noControlSelection();
 }
 
-void Page::selectPreviousControlIndex() noexcept {
+void Page::selectControlIndex(uint32_t controlIndex) {
+  if (controlIndex >= (uint32_t)controlRegistry.size()
+  || controlRegistry[controlIndex].controlStatus(0,0,0) == ControlStatus::disabled)
+    return;
+  if (openControl != nullptr) {
+    openControl->control()->close();
+    openControl = nullptr;
+  }
+
+  onHover((int32_t)controlIndex);
+  adaptControlSelection((int32_t)controlIndex, &controlRegistry[controlIndex]);
+}
+
+void Page::selectPreviousControlIndex() {
   if (controlRegistry.empty())
     return;
   if (openControl != nullptr) {
@@ -287,7 +300,7 @@ void Page::selectPreviousControlIndex() noexcept {
   }
 }
 
-void Page::selectNextControlIndex() noexcept {
+void Page::selectNextControlIndex() {
   if (controlRegistry.empty())
     return;
   if (openControl != nullptr) {
@@ -313,7 +326,7 @@ void Page::selectNextControlIndex() noexcept {
   }
 }
 
-void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* control) noexcept {
+void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* control) {
   if (controlIndex != noControlSelection()) {
     if (scrollbar.isEnabled()) { // auto-scroll if needed
       const uint32_t controlTopLevel = static_cast<uint32_t>(control->y() - scrollbar.y());
@@ -338,6 +351,8 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
 // ---
 
 void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
+  isMouseDown_ = true;
+
   // click on scrollbar
   if (scrollbar.isEnabled() && mouseX >= scrollbar.x()) {
     if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
@@ -427,6 +442,7 @@ void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
 }
 
 void Page::mouseUp(int32_t mouseX, int32_t mouseY) {
+  isMouseDown_ = false;
   if (scrollbar.isDragged()) {
     scrollbar.mouseUp(*context, mouseY);
   }
@@ -651,8 +667,8 @@ bool Page::drawBackgrounds() {
     controlHoverMesh.draw(renderer);
   }
 
-  bool hasForegroundGeometry = drawPageBackgrounds(mouseX_, mouseY_);
-  return (hasForegroundGeometry || (openControl != nullptr && openControl->control()->type() == ControlType::comboBox));
+  drawPageBackgrounds(mouseX_, mouseY_);
+  return (openControl != nullptr && openControl->control()->type() == ControlType::comboBox);
 }
 
 void Page::drawLabels() {
@@ -664,4 +680,30 @@ void Page::drawLabels() {
 
   // custom page geometry
   drawPageLabels();
+}
+
+void Page::drawForegrounds() {
+  if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
+    auto& renderer = context->renderer();
+    ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight()); // visible outside of scroll area -> full window
+    if (openControl->isFixed())
+      buffers->bindFixedLocationBuffer(renderer, fullWindowArea);
+    else
+      buffers->bindScrollLocationBuffer(renderer, fullWindowArea);
+
+    reinterpret_cast<ComboBox*>(openControl->control())->drawDropdown(*context, *buffers);
+  }
+}
+
+void Page::drawForegroundLabels() {
+  if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
+    auto& renderer = context->renderer();
+    ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight()); // visible outside of scroll area -> full window
+    if (openControl->isFixed())
+      buffers->bindFixedLocationBuffer(renderer, fullWindowArea);
+    else
+      buffers->bindScrollLocationBuffer(renderer, fullWindowArea);
+
+    reinterpret_cast<ComboBox*>(openControl->control())->drawOptions(*context, *buffers);
+  }
 }

@@ -19,10 +19,11 @@ GNU General Public License for more details (LICENSE file).
 
 namespace menu {
   enum class ColorThemeType : uint32_t { ///< Menu color theme type
-    blue = 0,       ///< blue background, blue controls, gradients
-    green,      ///< green background, green controls, gradients
-    darkGreen,  ///< dark background, green controls, gradient boxes
-    yellow  ///< dark background, yellow controls, gradient boxes
+    blue = 0, ///< blue background, blue controls, gradients
+    green,    ///< green background, green controls, gradients
+    scifi,    ///< dark background, green controls, gradient boxes
+    yellow,   ///< dark background, yellow controls, gradient boxes
+    COUNT
   };
 
   // ---

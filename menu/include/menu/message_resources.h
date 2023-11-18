@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstddef>
 #include <cstdint>
 #include "menu/hotkey_actions.h"
+#include "menu/interpolation_type.h"
 #include "menu/tile_colors.h"
 
 namespace menu {
@@ -57,7 +58,6 @@ namespace menu {
     displayMode_tooltip,
     resolution,
     resolution_tooltip,
-    refreshRate_tooltip,
     windowSize,
     windowSize_tooltip,
     emulatorGroup, // emulator compatibility group
@@ -177,16 +177,11 @@ namespace menu {
     framebufferGroup, // frame-buffer group
     internalResolution,
     internalResolution_tooltip,
-    internalResolution_prefix,
-    internalResolution_suffix,
+    framebufferResolution_prefix,
     displaySize_prefix,
     mdecMovieFilter,
     mdecMovieFilter_tooltip,
     upscaling_tooltip,
-    smoothing_nearest,
-    smoothing_bilinear,
-    smoothing_bicubic,
-    smoothing_lanczos,
     smoothing_tooltip,
     grain_photo,
     grain_gauss,
@@ -265,6 +260,8 @@ namespace menu {
     inline const char16_t* getMessage(ScreenStretchingMessages id) const noexcept { return screenStretching[(size_t)id]; }
     /// @brief Message resources for smoothing/upscaling UI page
     inline const char16_t* getMessage(SmoothingUpscalingMessages id) const noexcept { return smoothingUpscaling[(size_t)id]; }
+    /// @brief Message resources for UI interpolation choice
+    inline const char16_t* getMessage(InterpolationType id) const noexcept { return interpolations[(size_t)id]; }
     /// @brief Message resources for compatibility UI page
     inline const char16_t* getMessage(CompatibilitySettingsMessages id) const noexcept { return compatibility[(size_t)id]; }
 
@@ -287,6 +284,7 @@ namespace menu {
     Message tileColors[(size_t)TileColors::COUNT];
     Message screenStretching[(size_t)ScreenStretchingMessages::COUNT];
     Message smoothingUpscaling[(size_t)SmoothingUpscalingMessages::COUNT];
+    Message interpolations[(size_t)InterpolationType::COUNT];
     Message compatibility[(size_t)CompatibilitySettingsMessages::COUNT];
     LocalizationType language_ = LocalizationType::en;
   };

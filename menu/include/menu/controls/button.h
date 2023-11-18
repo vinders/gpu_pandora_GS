@@ -63,7 +63,7 @@ namespace menu {
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() - (int32_t)controlButtonMargin()
+        return (mouseY >= y() && mouseX >= x() - (int32_t)controlSideMargin()
              && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
@@ -86,7 +86,7 @@ namespace menu {
       /// @brief Draw button background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      void drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive);
+      void drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isMouseDown);
       /// @brief Draw button icon (if any)
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.

@@ -130,8 +130,8 @@ bool Button::click(RendererContext&, int32_t, int32_t) {
 
 // -- rendering -- -------------------------------------------------------------
 
-void Button::drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
-  buffers.bindControlBuffer(context.renderer(), isEnabled() ? (isActive ? ControlBufferType::active : ControlBufferType::regular)
+void Button::drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isMouseDown) {
+  buffers.bindControlBuffer(context.renderer(), isEnabled() ? ((isActive && !isMouseDown) ? ControlBufferType::active : ControlBufferType::regular)
                                                             : ControlBufferType::disabled);
   controlMesh.draw(context.renderer());
 }

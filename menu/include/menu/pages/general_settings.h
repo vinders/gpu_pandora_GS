@@ -63,17 +63,12 @@ namespace menu {
       /// @brief Draw page control icons
       /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       void drawIcons() override;
-      /// @brief Draw page control foregrounds (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
-      void drawForegrounds() override;
-      /// @brief Draw page control foreground labels (if any)
-      /// @remarks Use 'bindGraphicsPipeline' (for control labels) before call.
-      void drawForegroundLabels() override;
 
     private:
       void init(int32_t x, int32_t y, uint32_t width);
-      void onChange(uint32_t id, uint32_t value);
-      bool drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
+      void onChange(uint32_t id);
+      void onValueChange(uint32_t id, uint32_t value);
+      void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
     private:
@@ -85,7 +80,7 @@ namespace menu {
       controls::ComboBox fullscreenSize;
       controls::ComboBox fullscreenRate;
       controls::TextBox windowHeight;
-      display::controls::TextMesh windowSize;
+      display::controls::TextMesh windowSizeInfo;
       bool isFullscreenMode = false;
       bool isWindowMode = false;
       std::vector<ScreenResolution> fullscreenResolutions;

@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cassert>
+#include "menu/pages/page_content_builder.h"
 #include "menu/pages/compatibility_settings.h"
 
 using namespace video_api;
@@ -25,49 +26,27 @@ using namespace menu;
 // -- page -- ------------------------------------------------------------------
 
 void CompatibilitySettings::init(const ColorTheme& theme, const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentBuilder builder(*context, theme, x, y, width, 3);
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(CompatibilitySettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
+  builder.addTitle(localizedText.getMessage(CompatibilitySettingsMessages::title), title);
 
-  std::vector<ControlRegistration> registry;
-  registry.reserve(3);
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
+  // special game fixes group
+  builder.addFieldset(localizedText.getMessage(CompatibilitySettingsMessages::specialGameFixesGroup), 3, 0, specialGameFixesGroup);
+  lowCompatibilityFrameReadValue = ignoreSmallFramebufferMovesValue = fakeGpuBusyStatesValue = false;
 
-  // --- special game fixes group ---
-  specialGameFixesGroup = Fieldset(*context, localizedText.getMessage(CompatibilitySettingsMessages::specialGameFixesGroup),
-                                   theme.fieldsetStyle(), theme.fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                                   currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  builder.addCheckBox(0, localizedText.getMessage(CompatibilitySettingsMessages::lowCompatibilityFrameRead),
+                      localizedText.getMessage(CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip),
+                      lowCompatibilityFrameReadValue, lowCompatibilityFrameRead);
+  builder.addCheckBox(0, localizedText.getMessage(CompatibilitySettingsMessages::ignoreSmallFramebufferMoves),
+                      localizedText.getMessage(CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip),
+                      ignoreSmallFramebufferMovesValue, ignoreSmallFramebufferMoves);
+  builder.addCheckBox(0, localizedText.getMessage(CompatibilitySettingsMessages::fakeGpuBusyStates),
+                      localizedText.getMessage(CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip),
+                      fakeGpuBusyStatesValue, fakeGpuBusyStates);
 
-  lowCompatibilityFrameRead = CheckBox(*context, localizedText.getMessage(CompatibilitySettingsMessages::lowCompatibilityFrameRead),
-                                       controlX, currentLineY, Control::pageLabelWidth(), 0, nullptr, lowCompatibilityFrameReadValue);
-  lowCompatibilityFrameReadValue = false;
-  registry.emplace_back(lowCompatibilityFrameRead, true,
-                        localizedText.getMessage(CompatibilitySettingsMessages::lowCompatibilityFrameRead_tooltip));
-  currentLineY += Control::pageLineHeight();
-
-  ignoreSmallFrameBufferMoves = CheckBox(*context, localizedText.getMessage(CompatibilitySettingsMessages::ignoreSmallFramebufferMoves),
-                                         controlX, currentLineY, Control::pageLabelWidth(), 0, nullptr, ignoreSmallFrameBufferMovesValue);
-  ignoreSmallFrameBufferMovesValue = false;
-  registry.emplace_back(ignoreSmallFrameBufferMoves, true,
-                        localizedText.getMessage(CompatibilitySettingsMessages::ignoreSmallFramebufferMoves_tooltip));
-  currentLineY += Control::pageLineHeight();
-
-  fakeGpuBusyStates = CheckBox(*context, localizedText.getMessage(CompatibilitySettingsMessages::fakeGpuBusyStates),
-                               controlX, currentLineY, Control::pageLabelWidth(), 0, nullptr, fakeGpuBusyStatesValue);
-  fakeGpuBusyStatesValue = false;
-  registry.emplace_back(fakeGpuBusyStates, true, localizedText.getMessage(CompatibilitySettingsMessages::fakeGpuBusyStates_tooltip));
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
-
-  // --- control registry ---
-  if (currentLineY > y + (int32_t)contentHeight())
-    Page::moveScrollbarThumb(currentLineY);
-  registerControls(std::move(registry));
+  // control registry
+  Page::moveScrollbarThumb(builder.linePositionY());
+  registerControls(std::move(builder.controlRegistry()));
 }
 
 CompatibilitySettings::~CompatibilitySettings() noexcept {
@@ -75,7 +54,7 @@ CompatibilitySettings::~CompatibilitySettings() noexcept {
 
   specialGameFixesGroup.release();
   lowCompatibilityFrameRead.release();
-  ignoreSmallFrameBufferMoves.release();
+  ignoreSmallFramebufferMoves.release();
   fakeGpuBusyStates.release();
 }
 
@@ -84,27 +63,18 @@ CompatibilitySettings::~CompatibilitySettings() noexcept {
 
 void CompatibilitySettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentMover mover(*context, x, y, width);
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
+  mover.moveTitle(title);
 
-  // aspect ratio group
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  specialGameFixesGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(3));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  // special game fixes group
+  mover.moveFieldset(3, 0, specialGameFixesGroup);
 
-  lowCompatibilityFrameRead.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  ignoreSmallFrameBufferMoves.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  fakeGpuBusyStates.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();// + Control::fieldsetContentMarginBottom();
+  mover.moveCheckBox(lowCompatibilityFrameRead);
+  mover.moveCheckBox(ignoreSmallFramebufferMoves);
+  mover.moveCheckBox(fakeGpuBusyStates);
 
-  Page::moveScrollbarThumb(currentLineY); // required after a move
+  Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
 }
 
 
@@ -116,17 +86,16 @@ void CompatibilitySettings::drawIcons() {
 
   auto* hoverControl = getActiveControl();
   lowCompatibilityFrameRead.drawIcon(*context, *buffers, (hoverControl == &lowCompatibilityFrameRead));
-  ignoreSmallFrameBufferMoves.drawIcon(*context, *buffers, (hoverControl == &ignoreSmallFrameBufferMoves));
+  ignoreSmallFramebufferMoves.drawIcon(*context, *buffers, (hoverControl == &ignoreSmallFramebufferMoves));
   fakeGpuBusyStates.drawIcon(*context, *buffers, (hoverControl == &fakeGpuBusyStates));
 }
 
-bool CompatibilitySettings::drawPageBackgrounds(int32_t, int32_t) {
+void CompatibilitySettings::drawPageBackgrounds(int32_t, int32_t) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
   specialGameFixesGroup.drawBackground(*context, *buffers);
-  return false;
 }
 
 void CompatibilitySettings::drawPageLabels() {
@@ -142,6 +111,6 @@ void CompatibilitySettings::drawPageLabels() {
 
   auto* hoverControl = getActiveControl();
   lowCompatibilityFrameRead.drawLabel(*context, *buffers, (hoverControl == &lowCompatibilityFrameRead));
-  ignoreSmallFrameBufferMoves.drawLabel(*context, *buffers, (hoverControl == &ignoreSmallFrameBufferMoves));
+  ignoreSmallFramebufferMoves.drawLabel(*context, *buffers, (hoverControl == &ignoreSmallFramebufferMoves));
   fakeGpuBusyStates.drawLabel(*context, *buffers, (hoverControl == &fakeGpuBusyStates));
 }

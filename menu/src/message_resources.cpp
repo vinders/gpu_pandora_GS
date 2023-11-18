@@ -59,8 +59,7 @@ void MessageResources::fillMessagesEN() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Window mode";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modes: fullscreen / borderless (fullscreen window) / window (resizable)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Fullscreen resolution";
-  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Display resolution (pixels) in fullscreen mode";
-  generalSettings[(size_t)GeneralSettingsMessages::refreshRate_tooltip] = u"Display refresh rate (Hz) in fullscreen mode";
+  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Display resolution (pixels) and refresh rate (Hz) in fullscreen mode";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Window size";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize_tooltip] = u"Display area height (pixels) in window mode";
   generalSettings[(size_t)GeneralSettingsMessages::emulatorGroup] = u"Emulator compatibility"; // ---
@@ -210,16 +209,11 @@ void MessageResources::fillMessagesEN() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_prefix] = u"Drawing area:  ";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_suffix] = u" (game specific)";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferResolution_prefix] = u"Drawing area:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::displaySize_prefix] = u"Display size:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter] = u"MDEC movie filter";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter_tooltip] = u"YUV filtering to decode full motion videos (MDEC unit emulation)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::upscaling_tooltip] = u"Advanced image scaling to improve sharpness and definition, especially with 2D and pixel art (can be slow)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_nearest] = u"Nearest neighbor";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bilinear] = u"Bilinear (smoother)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bicubic] = u"Bicubic (enhanced, slower)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_lanczos] = u"Lanczos (enhanced, slower)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_tooltip] = u"Minification/magnification interpolation type (scaled pixel smoothing)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_photo] = u"Photographic";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_gauss] = u"Gaussian noise";
@@ -241,6 +235,12 @@ void MessageResources::fillMessagesEN() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteUpscaling] = u"Sprite upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteSmoothing] = u"Sprite smoothing";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteGrain] = u"Sprite grain";
+  interpolations[(size_t)InterpolationType::nearest] = u"Nearest neighbor";
+  interpolations[(size_t)InterpolationType::bilinear] = u"Bilinear (smoothed)";
+  interpolations[(size_t)InterpolationType::gaussian] = u"Gaussian (blurriest)";
+  interpolations[(size_t)InterpolationType::bessel] = u"Bessel (blurry)";
+  interpolations[(size_t)InterpolationType::mitchell] = u"Mitchell (vibrant colors)";
+  interpolations[(size_t)InterpolationType::lanczos] = u"Lanczos (sharper, vibrant colors)";
   
   compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
   compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
@@ -272,8 +272,7 @@ void MessageResources::fillMessagesFR() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Mode fenêtré";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modes : plein écran / sans bordure (fenêtre plein écran) / mode fenêtré (taille libre)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Résolution plein écran";
-  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Résolution d'affichage (pixels) en mode plein écran";
-  generalSettings[(size_t)GeneralSettingsMessages::refreshRate_tooltip] = u"Fréquence de rafraîchissement (Hz) en mode plein écran";
+  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Résolution d'affichage (pixels) et rafraîchissement (Hz) en mode plein écran";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Taille de fenêtre";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize_tooltip] = u"Hauteur d'affichage (pixels) en mode fenêtré";
   generalSettings[(size_t)GeneralSettingsMessages::emulatorGroup] = u"Compatibilité avec l'émulateur"; // ---
@@ -423,16 +422,11 @@ void MessageResources::fillMessagesFR() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_prefix] = u"Drawing area:  ";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_suffix] = u" (game specific)";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferResolution_prefix] = u"Drawing area:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::displaySize_prefix] = u"Display size:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter] = u"MDEC movie filter";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter_tooltip] = u"YUV filtering to decode full motion videos (MDEC unit emulation)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::upscaling_tooltip] = u"Advanced image scaling to improve sharpness and definition, especially with 2D and pixel art (can be slow)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_nearest] = u"Nearest neighbor";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bilinear] = u"Bilinear (smoother)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bicubic] = u"Bicubic (enhanced, slower)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_lanczos] = u"Lanczos (enhanced, slower)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_tooltip] = u"Minification/magnification interpolation type (scaled pixel smoothing)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_photo] = u"Photographic";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_gauss] = u"Gaussian noise";
@@ -454,6 +448,12 @@ void MessageResources::fillMessagesFR() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteUpscaling] = u"Sprite upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteSmoothing] = u"Sprite smoothing";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteGrain] = u"Sprite grain";
+  interpolations[(size_t)InterpolationType::nearest] = u"Nearest neighbor";
+  interpolations[(size_t)InterpolationType::bilinear] = u"Bilinear (smoothed)";
+  interpolations[(size_t)InterpolationType::gaussian] = u"Gaussian (blurred)";
+  interpolations[(size_t)InterpolationType::bessel] = u"Bessel (blurred)";
+  interpolations[(size_t)InterpolationType::mitchell] = u"Mitchell (sharper, vibrant colors)";
+  interpolations[(size_t)InterpolationType::lanczos] = u"Lanczos (sharpest, vibrant colors)";
   
   compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
   compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
@@ -485,8 +485,7 @@ void MessageResources::fillMessagesDE() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Fenster";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modi: Vollbild / Randlos (Vollbildfenster) / Fenster (veränderbares)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Vollbildauflösung";
-  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Anzeigeauflösung (Pixel) im Vollbildmodus";
-  generalSettings[(size_t)GeneralSettingsMessages::refreshRate_tooltip] = u"Bildwiederholfrequenz (Hz) im Vollbildmodus";
+  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Anzeigeauflösung (Pixel) und Bildwiederholfrequenz (Hz) im Vollbildmodus";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Fenstergröße";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize_tooltip] = u"Anzeigehöhe (Pixel) im Fenstermodus";
   generalSettings[(size_t)GeneralSettingsMessages::emulatorGroup] = u"Emulatorkompatibilität"; // ---
@@ -636,16 +635,11 @@ void MessageResources::fillMessagesDE() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_prefix] = u"Drawing area:  ";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_suffix] = u" (game specific)";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferResolution_prefix] = u"Drawing area:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::displaySize_prefix] = u"Display size:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter] = u"MDEC movie filter";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter_tooltip] = u"YUV filtering to decode full motion videos (MDEC unit emulation)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::upscaling_tooltip] = u"Advanced image scaling to improve sharpness and definition, especially with 2D and pixel art (can be slow)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_nearest] = u"Nearest neighbor";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bilinear] = u"Bilinear (smoother)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bicubic] = u"Bicubic (enhanced, slower)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_lanczos] = u"Lanczos (enhanced, slower)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_tooltip] = u"Minification/magnification interpolation type (scaled pixel smoothing)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_photo] = u"Photographic";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_gauss] = u"Gaussian noise";
@@ -667,6 +661,12 @@ void MessageResources::fillMessagesDE() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteUpscaling] = u"Sprite upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteSmoothing] = u"Sprite smoothing";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteGrain] = u"Sprite grain";
+  interpolations[(size_t)InterpolationType::nearest] = u"Nearest neighbor";
+  interpolations[(size_t)InterpolationType::bilinear] = u"Bilinear (smoothed)";
+  interpolations[(size_t)InterpolationType::gaussian] = u"Gaussian (blurred)";
+  interpolations[(size_t)InterpolationType::bessel] = u"Bessel (blurred)";
+  interpolations[(size_t)InterpolationType::mitchell] = u"Mitchell (sharper, vibrant colors)";
+  interpolations[(size_t)InterpolationType::lanczos] = u"Lanczos (sharpest, vibrant colors)";
   
   compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
   compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";
@@ -698,8 +698,7 @@ void MessageResources::fillMessagesES() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Ventana";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modos: pantalla completa / sin bordes (ventana de pantalla completa) / ventana (redimensionable)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Resolución de la pantalla";
-  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Resolución de pantalla (píxeles) en modo de pantalla completa";
-  generalSettings[(size_t)GeneralSettingsMessages::refreshRate_tooltip] = u"Frecuencia de actualización (Hz) en modo de pantalla completa";
+  generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Resolución de pantalla (píxeles) y frecuencia de actualización (Hz) en modo de pantalla completa";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Tamaño de ventana";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize_tooltip] = u"Altura de visualización (píxeles) en modo ventana";
   generalSettings[(size_t)GeneralSettingsMessages::emulatorGroup] = u"Compatibilidad del emulador"; // ---
@@ -849,16 +848,11 @@ void MessageResources::fillMessagesES() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_prefix] = u"Drawing area:  ";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_suffix] = u" (game specific)";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferResolution_prefix] = u"Drawing area:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::displaySize_prefix] = u"Display size:  ";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter] = u"MDEC movie filter";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::mdecMovieFilter_tooltip] = u"YUV filtering to decode full motion videos (MDEC unit emulation)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::upscaling_tooltip] = u"Advanced image scaling to improve sharpness and definition, especially with 2D and pixel art (can be slow)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_nearest] = u"Nearest neighbor";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bilinear] = u"Bilinear (smoother)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_bicubic] = u"Bicubic (enhanced, slower)";
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_lanczos] = u"Lanczos (enhanced, slower)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::smoothing_tooltip] = u"Minification/magnification interpolation type (scaled pixel smoothing)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_photo] = u"Photographic";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::grain_gauss] = u"Gaussian noise";
@@ -880,6 +874,12 @@ void MessageResources::fillMessagesES() {
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteUpscaling] = u"Sprite upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteSmoothing] = u"Sprite smoothing";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::spriteGrain] = u"Sprite grain";
+  interpolations[(size_t)InterpolationType::nearest] = u"Nearest neighbor";
+  interpolations[(size_t)InterpolationType::bilinear] = u"Bilinear (smoothed)";
+  interpolations[(size_t)InterpolationType::gaussian] = u"Gaussian (blurred)";
+  interpolations[(size_t)InterpolationType::bessel] = u"Bessel (blurred)";
+  interpolations[(size_t)InterpolationType::mitchell] = u"Mitchell (sharper, vibrant colors)";
+  interpolations[(size_t)InterpolationType::lanczos] = u"Lanczos (sharpest, vibrant colors)";
   
   compatibility[(size_t)CompatibilitySettingsMessages::title] = u"Compatibility settings";
   compatibility[(size_t)CompatibilitySettingsMessages::specialGameFixesGroup] = u"Special game fixes";

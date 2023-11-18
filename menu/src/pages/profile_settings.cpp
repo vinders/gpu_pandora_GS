@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstring>
 #include "menu/tile_colors.h"
 #include "menu/controls/geometry_generator.h"
+#include "menu/pages/page_content_builder.h"
 #include "menu/pages/profile_settings.h"
 
 using namespace video_api;
@@ -58,25 +59,6 @@ static void setDefaultProfileName(uint32_t profileId, char16_t buffer[DEFAULT_NA
   }
 }
 
-static void fillPreviewBorderColor(const float previewColor[4], float outRgba[4]) {
-  *outRgba = *previewColor * 0.6f;
-  *(++outRgba) = *(++previewColor) * 0.6f;
-  *(++outRgba) = *(++previewColor) * 0.6f;
-  *(++outRgba) = *(++previewColor);
-}
-static void fillPreviewTopColor(const float previewColor[4], float outRgba[4]) {
-  *outRgba = *previewColor * 1.45f;
-  if (*outRgba > 1.0f)
-    *outRgba = 1.0f;
-  *(++outRgba) = *(++previewColor) * 1.45f;
-  if (*outRgba > 1.0f)
-    *outRgba = 1.0f;
-  *(++outRgba) = *(++previewColor) * 1.45f;
-  if (*outRgba > 1.0f)
-    *outRgba = 1.0f;
-  *(++outRgba) = *(++previewColor);
-}
-
 
 // -- page -- ------------------------------------------------------------------
 
@@ -89,19 +71,11 @@ static void fillPreviewTopColor(const float previewColor[4], float outRgba[4]) {
 
 void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int32_t y,
                            uint32_t width, const std::vector<ConfigProfile>& profiles, const std::vector<ConfigProfile>& presets) {
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentBuilder builder(*context, *theme, x, y, width, 6,
+                             std::bind(&ProfileSettings::onChange,this,std::placeholders::_1),
+                             std::bind(&ProfileSettings::onValueChange,this,std::placeholders::_1,std::placeholders::_2));
 
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(ProfileSettingsMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop(), TextAlignment::left);
-
-  std::vector<ControlRegistration> registry;
-  registry.reserve(6);
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  auto changeHandler = std::bind(&ProfileSettings::onChange,this,std::placeholders::_1);
+  builder.addTitle(localizedText.getMessage(ProfileSettingsMessages::title), title);
 
   // find profile
   const ConfigProfile* currentProfile = nullptr;
@@ -112,111 +86,60 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     }
   }
 
-  // --- profile ID group ---
-  profileIdGroup = Fieldset(*context, localizedText.getMessage(ProfileSettingsMessages::profileIdGroup),
-                            theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                            currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  // profile ID group
+  builder.addFieldset(localizedText.getMessage(ProfileSettingsMessages::profileIdGroup), 2, 0, profileIdGroup);
 
-  // profile name
   if (currentProfile == nullptr || currentProfile->name == nullptr || currentProfile->name[0] == u'\0') {
     char16_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
     setDefaultProfileName(profileId, defaultName);
-    profileName = TextBox(*context, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr, controlX,
-                          currentLineY, Control::pageLabelWidth(), Control::pageControlWidth(),
-                          theme->textBoxControlColor(), PROFILE_NAME_ID, changeHandler, defaultName, MAX_NAME_LENGTH);
+    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr,
+                             defaultName, MAX_NAME_LENGTH, profileName);
   }
   else {
-    profileName = TextBox(*context, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr, controlX,
-                          currentLineY, Control::pageLabelWidth(), Control::pageControlWidth(),
-                          theme->textBoxControlColor(), PROFILE_NAME_ID, changeHandler, currentProfile->name.get(), MAX_NAME_LENGTH);
-  }
-  registry.emplace_back(profileName, true);
-  currentLineY += Control::pageLineHeight();
-
-  // color picker
-  {
-    ComboBoxOption tileColorOptions[(size_t)TileColors::COUNT];
-    for (size_t i = 0; i < (size_t)TileColors::COUNT; ++i)
-      tileColorOptions[i] = ComboBoxOption(localizedText.getMessage((TileColors)i), (ComboValue)i);
-
-    auto colorChangeHandler = std::bind(&ProfileSettings::onColorChange,this,std::placeholders::_1,std::placeholders::_2);
-    tileColor = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::tileColor), controlX, currentLineY,
-                         Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic, theme->comboBoxColorParams(),
-                         TILE_COLOR_ID, colorChangeHandler, tileColorOptions, sizeof(tileColorOptions)/sizeof(*tileColorOptions), 0);
-    registry.emplace_back(tileColor, true);
-
-    // color preview
-    const uint32_t previewBoxSize = tileColor.height();
-    const float* previewColor = theme->tileColor(TileColors::themeColor);
-    float previewBorderColor[4];
-    fillPreviewBorderColor(previewColor, previewBorderColor);
-
-    std::vector<ControlVertex> vertices(static_cast<size_t>(8)); 
-    GeometryGenerator::fillRectangleVertices(vertices.data(), previewBorderColor,
-                                             0.f, (float)previewBoxSize, 0.f, -(float)previewBoxSize);
-    GeometryGenerator::fillRectangleVertices(vertices.data() + 4, previewColor,
-                                             1.f, (float)previewBoxSize - 1.f, -1.f, -(float)previewBoxSize + 1.f);
-    fillPreviewTopColor(previewColor, vertices[4].color);
-    fillPreviewTopColor(previewColor, vertices[5].color);
-    std::vector<uint32_t> indices{ 0,1,2,2,1,3,  4,5,6,6,5,7 };
-    colorPreview = ControlMesh(context->renderer(), std::move(vertices), indices, context->pixelSizeX(), context->pixelSizeY(),
-                               tileColor.x() + (int32_t)tileColor.width() + 1, tileColor.y(), previewBoxSize, previewBoxSize);
-    currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr,
+                             currentProfile->name.get(), MAX_NAME_LENGTH, profileName);
   }
 
-  // --- preset group ---
-  presetGroup = Fieldset(*context, localizedText.getMessage(ProfileSettingsMessages::presetGroup),
-                         theme->fieldsetStyle(), theme->fieldsetControlColor(), x + (int32_t)fieldsetPaddingX,
-                         currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  ComboBoxOption tileColorOptions[(size_t)TileColors::COUNT];
+  for (size_t i = 0; i < (size_t)TileColors::COUNT; ++i)
+    tileColorOptions[i] = ComboBoxOption(localizedText.getMessage((TileColors)i), (ComboValue)i);
 
-  ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none, theme->buttonControlColor(),
-                                    theme->buttonBorderColor(), 1, 0, Control::buttonPaddingX(), Control::comboBoxPaddingY());
-  {
-    std::vector<ComboBoxOption> presetLabels;
-    presetLabels.reserve(presets.size());
-    for (const auto& preset : presets)
-      presetLabels.emplace_back(preset.name.get(), (ComboValue)preset.id);
-    presetToApply = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::predefinedPreset), controlX,
-                             currentLineY, Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic,
-                             theme->comboBoxColorParams(), 0, nullptr, presetLabels.data(), presetLabels.size(), 0);
-    registry.emplace_back(presetToApply, true);
+  builder.addColorPicker(TILE_COLOR_ID, localizedText.getMessage(ProfileSettingsMessages::tileColor),
+                         theme->tileColor(TileColors::themeColor), tileColorOptions,
+                         sizeof(tileColorOptions)/sizeof(*tileColorOptions), 0, tileColor, colorPreview);
 
-    applyPreset = Button(*context, localizedText.getMessage(CommonMessages::apply),
-                         presetToApply.x() + (int32_t)presetToApply.width() + Control::controlButtonMargin(),
-                         currentLineY, buttonStyle, APPLY_PRESET_ID, changeHandler);
-    registry.emplace_back(applyPreset, true, nullptr, Control::controlButtonMargin());
-    currentLineY += Control::pageLineHeight();
+  // preset group
+  builder.addFieldset(localizedText.getMessage(ProfileSettingsMessages::presetGroup), 2, 0, presetGroup);
+  hasOtherProfiles = false;
+
+  std::vector<ComboBoxOption> comboBoxLabels;
+  comboBoxLabels.reserve(presets.size());
+  for (const auto& preset : presets) {
+    comboBoxLabels.emplace_back(preset.name.get(), (ComboValue)preset.id);
   }
-  {
-    std::vector<ComboBoxOption> profileLabels;
-    ComboBoxOption* firstOption = nullptr;
-    if (profiles.size() > (size_t)1u) {
-      profileLabels.reserve(profiles.size() - 1u);
-      for (const auto& profile : profiles) {
-        if (profile.id != profileId)
-          profileLabels.emplace_back(profile.name.get(), (ComboValue)profile.id);
-      }
-      firstOption = profileLabels.data();
-      hasOtherProfiles = true;
+  const char16_t* buttonLabel = localizedText.getMessage(CommonMessages::apply);
+  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::predefinedPreset), nullptr,
+                                comboBoxLabels.data(), comboBoxLabels.size(), presetToApply,
+                                APPLY_PRESET_ID, buttonLabel, applyPreset);
+
+  ComboBoxOption* firstComboBoxLabel = nullptr;
+  comboBoxLabels.clear();
+  if (profiles.size() > (size_t)1u) {
+    comboBoxLabels.reserve(profiles.size() - 1u);
+    for (const auto& profile : profiles) {
+      if (profile.id != profileId)
+        comboBoxLabels.emplace_back(profile.name.get(), (ComboValue)profile.id);
     }
-    profileToCopy = ComboBox(*context, localizedText.getMessage(ProfileSettingsMessages::existingProfile), controlX,
-                             currentLineY, Control::pageLabelWidth(), (Control::pageControlWidth() >> 1), ComboBoxStyle::classic,
-                             theme->comboBoxColorParams(), 0, nullptr, firstOption, profileLabels.size(), 0, &hasOtherProfiles);
-    registry.emplace_back(profileToCopy, true);
-
-    copyProfile = Button(*context, localizedText.getMessage(CommonMessages::apply),
-                         profileToCopy.x() + (int32_t)profileToCopy.width() + Control::controlButtonMargin(),
-                         currentLineY, buttonStyle, COPY_PROFILE_ID, changeHandler, &hasOtherProfiles);
-    registry.emplace_back(copyProfile, true, nullptr, Control::controlButtonMargin());
-    currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
+    firstComboBoxLabel = comboBoxLabels.data();
+    hasOtherProfiles = true;
   }
+  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::existingProfile), nullptr,
+                                firstComboBoxLabel, comboBoxLabels.size(), profileToCopy,
+                                COPY_PROFILE_ID, buttonLabel, copyProfile);
 
-  // --- control registry ---
-  if (currentLineY > y + (int32_t)contentHeight())
-    Page::moveScrollbarThumb(currentLineY);
-  registerControls(std::move(registry));
+  // control registry
+  Page::moveScrollbarThumb(builder.linePositionY());
+  registerControls(std::move(builder.controlRegistry()));
 }
 
 ProfileSettings::~ProfileSettings() noexcept {
@@ -241,38 +164,23 @@ ProfileSettings::~ProfileSettings() noexcept {
 
 void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
-  const uint32_t fieldsetPaddingX = Control::fieldsetMarginX(width);
-  const int32_t controlX = x + (int32_t)fieldsetPaddingX + (int32_t)Control::fieldsetContentMarginX(width);
-  uint32_t fieldsetWidth = width - (fieldsetPaddingX << 1);
-  if (fieldsetWidth > Control::fieldsetMaxWidth())
-    fieldsetWidth = Control::fieldsetMaxWidth();
+  PageContentMover mover(*context, x, y, width);
 
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), x + (int32_t)fieldsetPaddingX, y + Control::titleMarginTop());
+  mover.moveTitle(title);
 
   // profile ID group
-  int32_t currentLineY = title.y() + (int32_t)title.height() + Control::pageLineHeight();
-  profileIdGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(2, 0, profileIdGroup);
 
-  profileName.move(*context, controlX, currentLineY);
-  currentLineY += Control::pageLineHeight();
-  tileColor.move(*context, controlX, currentLineY);
-  colorPreview.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                    tileColor.x() + (int32_t)tileColor.width() + 1, tileColor.y());
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentMarginBottom();
+  mover.moveTextBox(profileName);
+  mover.moveColorPicker(tileColor, colorPreview);
 
   // preset group
-  presetGroup.move(*context, x + (int32_t)fieldsetPaddingX, currentLineY, fieldsetWidth, Control::fieldsetContentHeight(2));
-  currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
+  mover.moveFieldset(2, 0, presetGroup);
 
-  presetToApply.move(*context, controlX, currentLineY);
-  applyPreset.move(*context, presetToApply.x() + (int32_t)presetToApply.width() + Control::controlButtonMargin(), currentLineY);
-  currentLineY += Control::pageLineHeight();
-  profileToCopy.move(*context, controlX, currentLineY);
-  copyProfile.move(*context, profileToCopy.x() + (int32_t)profileToCopy.width() + Control::controlButtonMargin(), currentLineY);
-  currentLineY += Control::pageLineHeight();//+ Control::fieldsetContentMarginBottom();
+  mover.moveComboBoxWithButton(presetToApply, applyPreset);
+  mover.moveComboBoxWithButton(profileToCopy, copyProfile);
 
-  Page::moveScrollbarThumb(currentLineY); // required after a move
+  Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
 }
 
 void ProfileSettings::onChange(uint32_t id) {
@@ -295,31 +203,15 @@ void ProfileSettings::onChange(uint32_t id) {
   }
 }
 
-void ProfileSettings::onColorChange(uint32_t id, uint32_t value) {
-  if (id == TILE_COLOR_ID) {
-    const float* previewColor = theme->tileColor((TileColors)value);
-    float previewBorderColor[4];
-    fillPreviewBorderColor(previewColor, previewBorderColor);
-
-    std::vector<ControlVertex> vertices = colorPreview.relativeVertices();
-    memcpy(vertices[0].color, previewBorderColor, sizeof(float)*4);
-    memcpy(vertices[1].color, previewBorderColor, sizeof(float)*4);
-    memcpy(vertices[2].color, previewBorderColor, sizeof(float)*4);
-    memcpy(vertices[3].color, previewBorderColor, sizeof(float)*4);
-    fillPreviewTopColor(previewColor, vertices[4].color);
-    fillPreviewTopColor(previewColor, vertices[5].color);
-    memcpy(vertices[6].color, previewColor, sizeof(float)*4);
-    memcpy(vertices[7].color, previewColor, sizeof(float)*4);
-
-    colorPreview.update(context->renderer(), std::move(vertices), context->pixelSizeX(), context->pixelSizeY(),
-                        colorPreview.x(), colorPreview.y(), colorPreview.width(), colorPreview.height());
-  }
+void ProfileSettings::onValueChange(uint32_t id, uint32_t value) {
+  if (id == TILE_COLOR_ID)
+    PageContentBuilder::changeColorPickerColors(*context, theme->tileColor((TileColors)value), colorPreview);
 }
 
 
 // -- rendering -- -------------------------------------------------------------
 
-bool ProfileSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
+void ProfileSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
@@ -336,9 +228,8 @@ bool ProfileSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   presetToApply.drawBackground(*context, *buffers, (hoverControl == &presetToApply));
   profileToCopy.drawBackground(*context, *buffers, (hoverControl == &profileToCopy));
 
-  applyPreset.drawBackground(*context, *buffers, (hoverControl == &applyPreset));
-  copyProfile.drawBackground(*context, *buffers, (hoverControl == &copyProfile));
-  return false;
+  applyPreset.drawBackground(*context, *buffers, (hoverControl == &applyPreset), isMouseDown());
+  copyProfile.drawBackground(*context, *buffers, (hoverControl == &copyProfile), isMouseDown());
 }
 
 void ProfileSettings::drawPageLabels() {
@@ -362,24 +253,4 @@ void ProfileSettings::drawPageLabels() {
 
   applyPreset.drawLabel(*context, *buffers, (hoverControl == &applyPreset));
   copyProfile.drawLabel(*context, *buffers, (hoverControl == &copyProfile));
-}
-
-void ProfileSettings::drawForegrounds() {
-  auto& renderer = context->renderer();
-
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(renderer, fullWindowArea); // visible outside of scroll area -> full window
-
-  tileColor.drawDropdown(*context, *buffers);
-  presetToApply.drawDropdown(*context, *buffers);
-  profileToCopy.drawDropdown(*context, *buffers);
-}
-
-void ProfileSettings::drawForegroundLabels() {
-  ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight());
-  buffers->bindScrollLocationBuffer(context->renderer(), fullWindowArea); // visible outside of scroll area -> full window
-
-  tileColor.drawOptions(*context, *buffers);
-  presetToApply.drawOptions(*context, *buffers);
-  profileToCopy.drawOptions(*context, *buffers);
 }

@@ -115,7 +115,8 @@ namespace menu {
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < rightX());
+        return (mouseY >= y() && mouseX >= x() - (int32_t)Control::controlSideMargin()
+             && mouseY < y() + (int32_t)height() && mouseX < rightX());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;
