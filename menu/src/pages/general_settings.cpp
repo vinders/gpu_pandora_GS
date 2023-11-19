@@ -193,7 +193,7 @@ GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std:
                                  const std::shared_ptr<ColorTheme>& theme_, const std::shared_ptr<MessageResources>& localizedText_,
                                  const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
                                  uint32_t width, uint32_t height, std::function<void()> onThemeChange_)
-  : Page(std::move(context_), std::move(buffers_), *theme_, x, y, width, height, true),
+  : Page(std::move(context_), std::move(buffers_), *theme_, x, y, width, height, true, true),
     theme(theme_),
     localizedText(localizedText_),
     onThemeChange(std::move(onThemeChange_)) {

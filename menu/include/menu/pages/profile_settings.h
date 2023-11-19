@@ -18,6 +18,7 @@ GNU General Public License for more details (LICENSE file).
 #include <memory>
 #include <vector>
 #include "menu/color_theme.h"
+#include "menu/config_profile.h"
 #include "menu/message_resources.h"
 #include "menu/renderer_state_buffers.h"
 #include "menu/controls/button.h"
@@ -28,32 +29,13 @@ GNU General Public License for more details (LICENSE file).
 
 namespace menu {
   namespace pages {
-    struct ConfigProfile final {
-      ConfigProfile(uint32_t id, const char16_t* nameValue)
-        : id(id) {
-        size_t length = display::controls::TextMesh::getStringLength(nameValue);
-        name.reset(new char16_t[length + 1]);
-        memcpy(name.get(), nameValue, (length+1)*sizeof(char16_t));
-      }
-      ConfigProfile(uint32_t id, std::unique_ptr<char16_t[]>&& name)
-        : id(id), name(std::move(name)) {}
-      ConfigProfile(ConfigProfile&&) noexcept = default;
-      ConfigProfile& operator=(ConfigProfile&&) noexcept = default;
-      ~ConfigProfile() noexcept = default;
-
-      uint32_t id;
-      std::unique_ptr<char16_t[]> name;
-    };
-
-    // ---
-
     class ProfileSettings final : public Page {
     public:
       ProfileSettings(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
                       const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
                       int32_t x, int32_t y, uint32_t width, uint32_t height,
                       uint32_t profileId, const std::vector<ConfigProfile>& profiles, const std::vector<ConfigProfile>& presets)
-        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false),
+        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, true),
           theme(theme),
           profileId(profileId),
           hasOtherProfiles(profiles.size() > (size_t)1) {

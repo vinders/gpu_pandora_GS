@@ -109,14 +109,15 @@ namespace menu {
                                   : (controlMesh.x() + (int32_t)controlMesh.width());
       }
       inline int32_t labelY() const noexcept { return labelMesh.y(); }
+      inline int32_t hoverMarginY() const noexcept { return 3; }
 
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() - (int32_t)Control::controlSideMargin()
-             && mouseY < y() + (int32_t)height() && mouseX < rightX());
+        return (mouseY >= y() - hoverMarginY() && mouseX >= x() - (int32_t)Control::controlSideMargin()
+             && mouseY < y() + (int32_t)height() + hoverMarginY() && mouseX < rightX());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;

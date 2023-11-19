@@ -59,7 +59,8 @@ static ControlMesh generateBackground(RendererContext& context, const ColorTheme
 #define HOVER_BORDER_RADIUS 3.f
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
-           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip)
+           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
+           bool enableTooltip, bool enableHoverMesh)
   : context(std::move(context_)),
     buffers(std::move(buffers_)),
     scrollY(0),
@@ -96,8 +97,9 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   std::vector<uint32_t> indices(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
   GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
 
-  controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
-                                 context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, Control::pageLineHeight());
+  if (enableHoverMesh)
+    controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
+                                   context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, Control::pageLineHeight());
 }
 
 Page::~Page() noexcept {
@@ -132,9 +134,11 @@ void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight
   backgroundMesh.update(context->renderer(), std::move(backgroundVertices), context->pixelSizeX(), context->pixelSizeY(),
                         x, y, width, visibleHeight);
 
-  const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
-                              + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
-  controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, 0);
+  if (controlHoverMesh.width()) {
+    const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
+                                + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
+    controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, 0);
+  }
   activeControlIndex = noControlSelection();
 
   if (openControl != nullptr) { // close open control
@@ -151,11 +155,13 @@ void Page::updateColors(const ColorTheme& theme) {
                                       backgroundMesh.width(), backgroundMesh.height());
   backgroundType = theme.backgroundStyle();
 
-  std::vector<ControlVertex> vertices = controlHoverMesh.relativeVertices();
-  for (auto& vertex : vertices)
-    memcpy(vertex.color, theme.lineSelectorControlColor(), sizeof(float) * 4u);
-  controlHoverMesh.update(context->renderer(), std::move(vertices), context->pixelSizeX(), context->pixelSizeY(),
-                          controlHoverMesh.x(), controlHoverMesh.y(), controlHoverMesh.width(), controlHoverMesh.height());
+  if (controlHoverMesh.width()) {
+    std::vector<ControlVertex> vertices = controlHoverMesh.relativeVertices();
+    for (auto& vertex : vertices)
+      memcpy(vertex.color, theme.lineSelectorControlColor(), sizeof(float) * 4u);
+    controlHoverMesh.update(context->renderer(), std::move(vertices), context->pixelSizeX(), context->pixelSizeY(),
+                            controlHoverMesh.x(), controlHoverMesh.y(), controlHoverMesh.width(), controlHoverMesh.height());
+  }
 }
 
 // ---
@@ -170,48 +176,54 @@ void Page::onScroll(uint32_t visibleTopY) {
 void Page::onHover(int32_t controlIndex) {
   if (controlIndex != activeControlIndex) {
     activeControlIndex = controlIndex;
-
-    // move hover rectangle (if a control is selected)
     if (controlIndex != noControlSelection()) {
       const auto* control = &controlRegistry[controlIndex];
 
-      int32_t controlHoverX;
-      uint32_t controlHoverWidth;
-      const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
-                                                  + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
-      if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
-        controlHoverX = controlX - (int32_t)Control::lineHoverPaddingX();
-        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
-                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+      // move hover rectangle (if a control is selected)
+      if (controlHoverMesh.width()) {
+        int32_t controlHoverX;
+        uint32_t controlHoverWidth;
+        const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
+                                                    + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
+        if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
+          controlHoverX = controlX - (int32_t)Control::lineHoverPaddingX();
+          controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                            + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
 
-        if (controlIndex != (int32_t)controlRegistry.size() - 1 && control->y() == (control+1)->y()) { // next control on the same line
-          int32_t nextControlRightHoverX = (control + 1)->x() + (int32_t)(control+1)->width() + (int32_t)Control::lineHoverPaddingX();
-          if (controlHoverX + (int32_t)controlHoverWidth < nextControlRightHoverX)
-            controlHoverWidth = static_cast<uint32_t>(nextControlRightHoverX - controlHoverX);
+          if (controlIndex != (int32_t)controlRegistry.size() - 1 && control->y() == (control+1)->y()) { // next control on the same line
+            int32_t nextControlRightHoverX = (control + 1)->x() + (int32_t)(control+1)->width() + (int32_t)Control::lineHoverPaddingX();
+            if (controlHoverX + (int32_t)controlHoverWidth < nextControlRightHoverX)
+              controlHoverWidth = static_cast<uint32_t>(nextControlRightHoverX - controlHoverX);
+          }
+          else if (control->x() > controlX + (int32_t)(Control::pageLabelWidth() >> 1)) {
+            const int32_t paddingX = (controlHoverX + (int32_t)controlHoverWidth) - (control->x() + (int32_t)control->width());
+            controlHoverX = control->x() - paddingX;
+            controlHoverWidth = control->width() + ((uint32_t)paddingX << 1);
+          }
         }
-      }
-      else if (controlIndex != 0 && control->y() == (control - 1)->y()) { // previous control on the same line
-        controlHoverX = (control-1)->x() - (int32_t)Control::lineHoverPaddingX();
-        controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
-                          + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
-        int32_t controlRightHoverX = control->x() + (int32_t)control->width() + (int32_t)Control::lineHoverPaddingX();
-        if (controlHoverX + (int32_t)controlHoverWidth < controlRightHoverX)
-          controlHoverWidth = static_cast<uint32_t>(controlRightHoverX - controlHoverX);
-      }
-      else {
-        controlHoverX = controlX + (int32_t)Control::pageLabelWidth() + 12 - (int32_t)Control::lineHoverPaddingX();
-        controlHoverWidth = Control::pageControlWidth() + (Control::lineHoverPaddingX() << 1) + Control::labelMargin() - 12u;
-      }
+        else if (controlIndex != 0 && control->y() == (control - 1)->y()) { // previous control on the same line
+          controlHoverX = (control-1)->x() - (int32_t)Control::lineHoverPaddingX();
+          controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                            + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+          int32_t controlRightHoverX = control->x() + (int32_t)control->width() + (int32_t)Control::lineHoverPaddingX();
+          if (controlHoverX + (int32_t)controlHoverWidth < controlRightHoverX)
+            controlHoverWidth = static_cast<uint32_t>(controlRightHoverX - controlHoverX);
+        }
+        else {
+          controlHoverX = controlX + (int32_t)Control::pageLabelWidth() + 12 - (int32_t)Control::lineHoverPaddingX();
+          controlHoverWidth = Control::pageControlWidth() + (Control::lineHoverPaddingX() << 1) + Control::labelMargin() - 12u;
+        }
       
-      const int32_t controlHoverY = control->y() - static_cast<int32_t>((Control::pageLineHeight() - control->height()) >> 1) - 1;
-      if (controlHoverWidth != controlHoverMesh.width()) {
-        std::vector<ControlVertex> controlHoverVertices = controlHoverMesh.relativeVertices();
-        GeometryGenerator::resizeRoundedRectangleVerticesX(controlHoverVertices.data(), (float)controlHoverWidth, 3.f);
-        controlHoverMesh.update(context->renderer(), std::move(controlHoverVertices), context->pixelSizeX(), context->pixelSizeY(),
-                                controlHoverX, controlHoverY, controlHoverWidth, controlHoverMesh.height());
+        const int32_t controlHoverY = control->y() - static_cast<int32_t>((Control::pageLineHeight() - control->height()) >> 1) - 1;
+        if (controlHoverWidth != controlHoverMesh.width()) {
+          std::vector<ControlVertex> controlHoverVertices = controlHoverMesh.relativeVertices();
+          GeometryGenerator::resizeRoundedRectangleVerticesX(controlHoverVertices.data(), (float)controlHoverWidth, 3.f);
+          controlHoverMesh.update(context->renderer(), std::move(controlHoverVertices), context->pixelSizeX(), context->pixelSizeY(),
+                                  controlHoverX, controlHoverY, controlHoverWidth, controlHoverMesh.height());
+        }
+        else
+          controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, controlHoverY);
       }
-      else
-        controlHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlHoverX, controlHoverY);
 
       // replace tooltip content
       if (tooltip.width())
@@ -287,7 +299,7 @@ void Page::selectPreviousControlIndex() {
     int32_t controlIndex = (activeControlIndex != noControlSelection())
                          ? (activeControlIndex - 1) : static_cast<int32_t>(controlRegistry.size() - 1u);
     auto* control = &controlRegistry[controlIndex];
-    while (controlIndex >= 0 && control->controlStatus(0,0,0) == ControlStatus::disabled) {
+    while (controlIndex >= 0 && !control->isFixed() && control->controlStatus(0,0,0) == ControlStatus::disabled) {
       --controlIndex;
       --control;
     }
@@ -313,7 +325,7 @@ void Page::selectNextControlIndex() {
   else { // select next entry (selected from key/pad)
     int32_t controlIndex = (activeControlIndex != noControlSelection()) ? (activeControlIndex + 1) : 0;
     auto* control = &controlRegistry[controlIndex];
-    while (controlIndex < (int32_t)controlRegistry.size() && control->controlStatus(0,0,0) == ControlStatus::disabled) {
+    while (controlIndex < (int32_t)controlRegistry.size() && !control->isFixed() && control->controlStatus(0,0,0) == ControlStatus::disabled) {
       ++controlIndex;
       ++control;
     }
@@ -659,7 +671,7 @@ bool Page::drawBackgrounds() {
   scrollbar.drawControl(*context, mouseX_, mouseY_, *buffers);
 
   // scrollable geometry
-  if (activeControlIndex != noControlSelection()) {
+  if (activeControlIndex != noControlSelection() && controlHoverMesh.width()) {
     buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(backgroundMesh.x(), backgroundMesh.y(),
                                                                  backgroundMesh.width(), contentHeight()));
     buffers->bindControlBuffer(renderer, ControlBufferType::regular);

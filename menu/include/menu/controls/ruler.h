@@ -67,6 +67,7 @@ namespace menu {
 
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return thumbMesh.y() + 1; }
+      inline int32_t hoverMarginY() const noexcept { return 4; }
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t rightX() const noexcept {
         return suffixMesh.width() ? (suffixMesh.x() + (int32_t)suffixMesh.width())
@@ -79,7 +80,7 @@ namespace menu {
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isDragged() const noexcept { return isDragging; } ///< Verify if thumb is currently being dragged
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseX >= x() && mouseY >= y() && mouseX < x() + (int32_t)width() && mouseY < y() + (int32_t)height());
+        return (mouseX >= x() && mouseY >= y() - hoverMarginY() && mouseX < x() + (int32_t)width() && mouseY < y() + (int32_t)height() + hoverMarginY());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;

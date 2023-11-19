@@ -35,8 +35,8 @@ namespace menu {
       ControlRegistration(CtrlT& control, bool isInScrollableArea,
                           const char16_t* tooltip = nullptr, uint32_t leftHoverMargin = 0) noexcept
         : target(&control),
-          top(control.y()),
-          bottom(control.y() + (int32_t)control.height()),
+          top(control.y() - control.hoverMarginY()),
+          bottom(control.y() + (int32_t)control.height() + control.hoverMarginY()),
           left(control.x() - (int32_t)leftHoverMargin),
           right(control.x() + (int32_t)control.width()),
           isScrollable(isInScrollableArea),
@@ -172,7 +172,8 @@ namespace menu {
 
     protected:
       Page(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight, bool enableTooltip);
+           const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
+           bool enableTooltip, bool enableHoverMesh);
 
       void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
       inline void moveScrollbarThumb(int32_t bottomY) {

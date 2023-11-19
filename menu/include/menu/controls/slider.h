@@ -64,6 +64,7 @@ namespace menu {
 
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return arrowLeftMesh.y(); }
+      inline int32_t hoverMarginY() const noexcept { return 2; }
       inline uint32_t width() const noexcept {
         const uint32_t labelWidth = ((labelMesh.width() >= minLabelWidth) ? labelMesh.width() : minLabelWidth);
         return (labelWidth + (labelMargin() << 1) + fixedSliderWidth); // add extra padding to improve prev/next button access
@@ -72,7 +73,7 @@ namespace menu {
 
       inline bool isEnabled() const noexcept { return (enabler == nullptr || *enabler); } ///< Verify if control is enabled
       inline bool isHover(int32_t mouseX, int32_t mouseY) const noexcept { ///< Verify mouse hover
-        return (mouseY >= y() && mouseX >= x() && mouseY < y() + (int32_t)height() && mouseX < x() + (int32_t)width());
+        return (mouseY >= y() - hoverMarginY() && mouseX >= x() && mouseY < y() + (int32_t)height() + hoverMarginY() && mouseX < x() + (int32_t)width());
       }
       /// @brief Get control status, based on mouse location (hover, disabled...)
       ControlStatus getStatus(int32_t mouseX, int32_t mouseY) const noexcept override;

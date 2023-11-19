@@ -72,6 +72,7 @@ namespace menu {
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
       inline int32_t rightX() const noexcept { return (controlMesh.x() + (int32_t)controlMesh.width()); }
       inline int32_t labelY() const noexcept { return labelMesh.y(); }
+      inline int32_t hoverMarginY() const noexcept { return 0; }
 
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(rightX() - x()); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }

@@ -31,7 +31,7 @@ namespace menu {
       OsdSettings(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
                   const ColorTheme& theme, const MessageResources& localizedText,
                   int32_t x, int32_t y, uint32_t width, uint32_t height)
-        : Page(std::move(context), std::move(buffers), theme, x, y, width, height, false) {
+        : Page(std::move(context), std::move(buffers), theme, x, y, width, height, false, true) {
         init(theme, localizedText, x, y, width);
       }
       ~OsdSettings() noexcept override;

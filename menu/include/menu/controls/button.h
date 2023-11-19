@@ -58,6 +58,7 @@ namespace menu {
 
       inline int32_t x() const noexcept { return controlMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
+      inline int32_t hoverMarginY() const noexcept { return 0; }
       inline uint32_t width() const noexcept { return controlMesh.width(); }
       inline uint32_t height() const noexcept { return controlMesh.height(); }
 

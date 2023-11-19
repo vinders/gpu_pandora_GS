@@ -70,6 +70,7 @@ namespace menu {
       inline int32_t x() const noexcept { return labelMesh.x(); }
       inline int32_t y() const noexcept { return controlMesh.y(); }
       inline int32_t controlX() const noexcept { return controlMesh.x(); }
+      inline int32_t hoverMarginY() const noexcept { return 0; }
       inline uint32_t width() const noexcept { return static_cast<uint32_t>(controlMesh.x() + (int32_t)controlMesh.width() - x()); }
       inline uint32_t height() const noexcept { return isListOpen ? controlMesh.height() + dropdownMesh.height() : controlMesh.height(); }
       inline uint32_t controlWidth() const noexcept { return controlMesh.width(); }
