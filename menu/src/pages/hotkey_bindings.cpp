@@ -47,7 +47,7 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
   builder.setEnabler(isBindingEnabled);
   builder.addControllerKeyBinding(localizedText.getMessage(HotkeyBindingsMessages::hotkey),
                                   localizedText.getMessage(HotkeyBindingsMessages::hotkey_tooltip),
-                                  0x20u/*XINPUT_GAMEPAD_BACK*/, hotkeyBinding);
+                                  0x40u/*XINPUT_GAMEPAD_LEFT_THUMB*/, hotkeyBinding);
 
   ComboBoxOption speedCommandOptions[]{ ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::hold),  0/*TMP*/),
                                         ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::toggle), 1/*TMP*/) };

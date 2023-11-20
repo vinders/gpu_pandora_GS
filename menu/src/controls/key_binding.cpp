@@ -119,21 +119,22 @@ static const char16_t* GetMouseKeyName(uint32_t virtualKeyCode) noexcept {
 static ControlIcon GetControllerKeyIcon(RendererContext& context, uint32_t virtualKeyCode) noexcept {
   // https://learn.microsoft.com/fr-fr/windows/win32/api/xinput/ns-xinput-xinput_gamepad?redirectedfrom=MSDN
   switch (virtualKeyCode) {
-    case /*XINPUT_GAMEPAD_DPAD_UP*/0x0001:
-    case /*XINPUT_GAMEPAD_DPAD_DOWN*/0x0002:
-    case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004:
-    case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008:
-    case /*XINPUT_GAMEPAD_START*/0x0010:
-    case /*XINPUT_GAMEPAD_BACK*/0x0020:
-    case /*XINPUT_GAMEPAD_LEFT_THUMB*/0x0040:
-    case /*XINPUT_GAMEPAD_RIGHT_THUMB*/0x0080:
-    case /*XINPUT_GAMEPAD_LEFT_SHOULDER*/0x0100:
-    case /*XINPUT_GAMEPAD_RIGHT_SHOULDER*/0x0200:
-    case /*XINPUT_GAMEPAD_A*/0x1000:
-    case /*XINPUT_GAMEPAD_B*/0x2000:
-    case /*XINPUT_GAMEPAD_X*/0x4000:
-    case /*XINPUT_GAMEPAD_Y*/0x8000:
-      return context.imageLoader().getIcon(ControlIconType::controller);
+    case /*XINPUT_GAMEPAD_DPAD_UP*/0x0001:    return context.imageLoader().getIcon(ControlIconType::buttonDpadUp);
+    case /*XINPUT_GAMEPAD_DPAD_DOWN*/0x0002:  return context.imageLoader().getIcon(ControlIconType::buttonDpadDown);
+    case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004:  return context.imageLoader().getIcon(ControlIconType::buttonDpadLeft);
+    case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008: return context.imageLoader().getIcon(ControlIconType::buttonDpadRight);
+    case /*XINPUT_GAMEPAD_START*/0x0010: return context.imageLoader().getIcon(ControlIconType::buttonStart);
+    case /*XINPUT_GAMEPAD_BACK*/0x0020:  return context.imageLoader().getIcon(ControlIconType::buttonSelect);
+    case /*XINPUT_GAMEPAD_LEFT_THUMB*/0x0040:  return context.imageLoader().getIcon(ControlIconType::buttonL3);
+    case /*XINPUT_GAMEPAD_RIGHT_THUMB*/0x0080: return context.imageLoader().getIcon(ControlIconType::buttonR3);
+    case /*XINPUT_GAMEPAD_LEFT_SHOULDER*/0x0100:  return context.imageLoader().getIcon(ControlIconType::buttonL1);
+    case /*XINPUT_GAMEPAD_RIGHT_SHOULDER*/0x0200: return context.imageLoader().getIcon(ControlIconType::buttonR1);
+    case /*bLeftTrigger*/0xFFFFFF00:              return context.imageLoader().getIcon(ControlIconType::buttonL2);
+    case /*bRightTrigger*/0xFFFFFF01:             return context.imageLoader().getIcon(ControlIconType::buttonR2);
+    case /*XINPUT_GAMEPAD_A*/0x1000: return context.imageLoader().getIcon(ControlIconType::buttonCross);
+    case /*XINPUT_GAMEPAD_B*/0x2000: return context.imageLoader().getIcon(ControlIconType::buttonCircle);
+    case /*XINPUT_GAMEPAD_X*/0x4000: return context.imageLoader().getIcon(ControlIconType::buttonSquare);
+    case /*XINPUT_GAMEPAD_Y*/0x8000: return context.imageLoader().getIcon(ControlIconType::buttonTriangle);
     default: return ControlIcon{};
   }
 }
@@ -292,7 +293,7 @@ void KeyBinding::init(RendererContext& context, const char16_t* label, int32_t x
         controllerValue_ = emptyKeyValue();
     }
     controllerValueMesh = IconMesh(context.renderer(), icon.texture(), context.pixelSizeX(), context.pixelSizeY(),
-                                   inputX - (int32_t)(icon.width() >> 1), boxY + (int32_t)((height - icon.height()) >> 1),
+                                   inputX - (int32_t)(icon.width() >> 1), boxY + ((int32_t)height - (int32_t)icon.height())/2,
                                    icon.offsetX(), icon.offsetY(), icon.width(), icon.height());
   }
 }
@@ -328,7 +329,7 @@ void KeyBinding::move(RendererContext& context, int32_t x, int32_t labelY) {
   if ((uint32_t)bindingType & (uint32_t)KeyBindingType::controller) {
     controllerValueMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                              inputX - (int32_t)(controllerValueMesh.width() >> 1),
-                             boxY + (int32_t)((controlMesh.height() - controllerValueMesh.height()) >> 1));
+                             boxY + ((int32_t)controlMesh.height() - (int32_t)controllerValueMesh.height())/2);
   }
 }
 

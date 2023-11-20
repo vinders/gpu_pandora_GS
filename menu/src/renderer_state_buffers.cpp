@@ -79,9 +79,7 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   // vertex slot 0 - control color modifier / fragment slot 0 - icon color modifier
   MeshColorUniform colorData{ {1.f,1.f,1.f,1.f} };
   controlBuffers[(size_t)ControlBufferType::regular] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  colorData.color[0] = 1.5f;
-  colorData.color[1] = 1.5f;
-  colorData.color[2] = 1.5f;
+  colorData.color[2] = colorData.color[1] = colorData.color[0] = 1.5f;
   controlBuffers[(size_t)ControlBufferType::selectedTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.disabledControlModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);

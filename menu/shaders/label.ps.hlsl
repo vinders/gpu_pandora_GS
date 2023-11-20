@@ -18,5 +18,5 @@ Texture2D Glyph : register(t0);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-  return float4(textColor.r, textColor.g, textColor.b, Glyph.Sample(TextureSampler, input.coords).a);
+  return float4(textColor.r, textColor.g, textColor.b, Glyph.Sample(TextureSampler, input.coords).a * textColor.a);
 }

@@ -20,9 +20,6 @@ GNU General Public License for more details (LICENSE file).
 #endif
 #include "display/image_loader.h"
 
-#define CHECKBOX_ICON_SIZE  64
-#define BASE_ICON_SIZE  22
-
 using namespace video_api;
 using namespace pandora::system;
 using namespace display;
@@ -31,17 +28,29 @@ using namespace display;
 
 const char16_t* display::toDefaultLabel(ControlIconType type) noexcept {
   switch (type) {
-    case ControlIconType::info:       return u"Info";
-    case ControlIconType::options:    return u"Options";
-    case ControlIconType::load:       return u"Load";
-    case ControlIconType::save:       return u"Save";
-    case ControlIconType::apply:      return u"Apply";
-    case ControlIconType::cancel:     return u"Cancel";
-    case ControlIconType::add:        return u"Add";
-    case ControlIconType::edit:       return u"Edit";
-    case ControlIconType::remove:     return u"Remove";
-    case ControlIconType::keyboard:   return u"Keyboard";
+    case ControlIconType::add: return u"+";
+    case ControlIconType::edit: return u">";
+    case ControlIconType::remove: return u"-";
+    case ControlIconType::keyboard: return u"Keyboard";
     case ControlIconType::controller: return u"Controller";
+    case ControlIconType::buttonDpad:
+    case ControlIconType::buttonDpadY: return u"D-pad";
+    case ControlIconType::buttonDpadUp: return u"^";
+    case ControlIconType::buttonDpadDown: return u"v";
+    case ControlIconType::buttonDpadLeft: return u"<";
+    case ControlIconType::buttonDpadRight: return u">";
+    case ControlIconType::buttonStart: return u"Start";
+    case ControlIconType::buttonSelect: return u"Select";
+    case ControlIconType::buttonL1: return u"L1";
+    case ControlIconType::buttonL2: return u"L2";
+    case ControlIconType::buttonR1: return u"R1";
+    case ControlIconType::buttonR2: return u"R2";
+    case ControlIconType::buttonTriangle: return u"Triangle";
+    case ControlIconType::buttonCircle: return u"Circle";
+    case ControlIconType::buttonSquare: return u"Square";
+    case ControlIconType::buttonCross: return u"X";
+    case ControlIconType::buttonL3: return u"L3";
+    case ControlIconType::buttonR3: return u"R3";
     default: return nullptr;
   };
 }
@@ -49,14 +58,42 @@ const char16_t* display::toDefaultLabel(ControlIconType type) noexcept {
 ControlIcon ImageLoader::getIcon(ControlIconType type) {
   if (iconsSprite != nullptr) {
     switch (type) {
-      case ControlIconType::none: break;
-      case ControlIconType::checked:   return ControlIcon(iconsSprite, 0,0, CHECKBOX_ICON_SIZE,BASE_ICON_SIZE);
-      case ControlIconType::unchecked: return ControlIcon(iconsSprite, CHECKBOX_ICON_SIZE,0, CHECKBOX_ICON_SIZE,BASE_ICON_SIZE);
-      default: return ControlIcon(iconsSprite, 2*CHECKBOX_ICON_SIZE + BASE_ICON_SIZE*((uint32_t)type - 3),0, BASE_ICON_SIZE,BASE_ICON_SIZE);
+      case ControlIconType::checked:   return ControlIcon(iconsSprite, 0, 0, 64,22);
+      case ControlIconType::unchecked: return ControlIcon(iconsSprite, 0,24, 64,22);
+      case ControlIconType::home:      break;//TODO
+      case ControlIconType::settings:  break;//TODO
+      case ControlIconType::selector:  break;//TODO
+      case ControlIconType::profile:   break;//TODO
+      case ControlIconType::add:    return ControlIcon(iconsSprite, 1,48, 19,19);
+      case ControlIconType::edit:   return ControlIcon(iconsSprite, 1,69, 19,19);
+      case ControlIconType::remove: return ControlIcon(iconsSprite, 1,90, 19,19);
+      case ControlIconType::keyboard:   return ControlIcon(iconsSprite, 1,111, 22,22);
+      case ControlIconType::controller: return ControlIcon(iconsSprite, 1,135, 22,22);
+      case ControlIconType::buttonDpad:      return ControlIcon(iconsSprite, 26,48, 38,38);
+      case ControlIconType::buttonDpadY:     return ControlIcon(iconsSprite, 26,86, 38,38);
+      case ControlIconType::buttonDpadUp:    return ControlIcon(iconsSprite, 38,49, 14,15);
+      case ControlIconType::buttonDpadDown:  return ControlIcon(iconsSprite, 38,70, 14,15);
+      case ControlIconType::buttonDpadLeft:  return ControlIcon(iconsSprite, 27,60, 15,14);
+      case ControlIconType::buttonDpadRight: return ControlIcon(iconsSprite, 48,60, 15,14);
+      case ControlIconType::buttonStart:  return ControlIcon(iconsSprite, 0,167, 26,14);
+      case ControlIconType::buttonSelect: return ControlIcon(iconsSprite, 0,187, 26,12);
+      case ControlIconType::buttonL1: return ControlIcon(iconsSprite, 26,126, 38,19);
+      case ControlIconType::buttonL2: return ControlIcon(iconsSprite, 26,145, 38,19);
+      case ControlIconType::buttonR1: return ControlIcon(iconsSprite, 26,164, 38,19);
+      case ControlIconType::buttonR2: return ControlIcon(iconsSprite, 26,183, 38,19);
+      case ControlIconType::buttonTriangle: return ControlIcon(iconsSprite,  1,204, 26,26);
+      case ControlIconType::buttonCircle:   return ControlIcon(iconsSprite, 28,204, 26,26);
+      case ControlIconType::buttonSquare:   return ControlIcon(iconsSprite,  1,231, 26,26);
+      case ControlIconType::buttonCross:    return ControlIcon(iconsSprite, 28,231, 26,26);
+      case ControlIconType::buttonL3:       return ControlIcon(iconsSprite,  1,258, 26,26);
+      case ControlIconType::buttonR3:       return ControlIcon(iconsSprite, 28,258, 26,26);
+      default: break;
     }
   }
   return ControlIcon(nullptr, 0,0, 0,0);
 }
+
+#define BASE_ICON_SIZE 22
 
 ControlIcon ImageLoader::generateSquareIcon(bool isFilled) {
   assert(renderer != nullptr);
