@@ -151,6 +151,11 @@ void MessageResources::fillMessagesEN() {
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_format] = u"Framebuffer format";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_all] = u"All information";
   
+  profileSelector[(size_t)ProfileSelectorMessages::title] = u"Profile selector";
+  profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
+  profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
+  profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
@@ -403,6 +408,11 @@ void MessageResources::fillMessagesFR() {
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_fps] = u"Images par seconde";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_format] = u"Format du framebuffer";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_all] = u"Toutes les informations";
+  
+  profileSelector[(size_t)ProfileSelectorMessages::title] = u"Profile selector";
+  profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
+  profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
+  profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
@@ -657,6 +667,11 @@ void MessageResources::fillMessagesDE() {
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_format] = u"Framebuffer-Format";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_all] = u"Alles";
   
+  profileSelector[(size_t)ProfileSelectorMessages::title] = u"Profile selector";
+  profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
+  profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
+  profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
@@ -909,6 +924,11 @@ void MessageResources::fillMessagesES() {
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_fps] = u"Cuadros por segundo";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_format] = u"Formato de framebuffer";
   osdSettings[(size_t)OsdSettingsMessages::techInfoType_all] = u"Todo";
+  
+  profileSelector[(size_t)ProfileSelectorMessages::title] = u"Profile selector";
+  profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
+  profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
+  profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";

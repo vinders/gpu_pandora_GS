@@ -54,6 +54,9 @@ namespace menu {
     inline const float* regularLabelColor() const noexcept { return regularLabel; }      ///< Regular control label color
     inline const float* disabledLabelColor() const noexcept { return disabledLabel; }    ///< Disabled control label color
     inline const float* activeLabelColor() const noexcept { return activeLabel; }        ///< Active/hover control label color
+    inline const float* tileLabelColor() const noexcept { return tileLabel; }            ///< Profile tile label color
+    inline const float* activeTileLabelColor() const noexcept { return activeTileLabel; }///< Active/hover tile label color
+    inline const float* selectedTileLabelColor() const noexcept { return selectedTileLabel; }///< Active/hover tile label color
 
     inline const float* backgroundColor() const noexcept { return background; }             ///< Page background color
     inline const float* backgroundGradientColor() const noexcept{ return backgroundGradient; }///< Page background gradient secondary color
@@ -109,6 +112,9 @@ namespace menu {
     float regularLabel[4];
     float disabledLabel[4];
     float activeLabel[4];
+    float tileLabel[4];
+    float activeTileLabel[4];
+    float selectedTileLabel[4];
 
     float background[4];
     float backgroundGradient[4]{ 0.f,0.f,0.f,1.f };

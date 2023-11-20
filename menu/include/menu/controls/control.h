@@ -22,13 +22,14 @@ namespace menu {
   namespace controls {
     enum class ControlType : uint32_t { ///< Selectable menu control type
       unknown = 0,
-      button,   ///< Button (with optional icon)
-      checkBox, ///< Check-box (with optional label)
-      comboBox, ///< Combo-box dropdown selector (with optional label)
-      textBox,  ///< Text edit box (with optional label and suffix)
-      ruler,    ///< Sliding ruler (with optional label)
-      slider,   ///< Left/right slider selector (with optional label)
-      keyBinding///< Key-binding box (with optional label)
+      button,    ///< Button (with optional icon)
+      checkBox,  ///< Check-box (with optional label)
+      comboBox,  ///< Combo-box dropdown selector (with optional label)
+      textBox,   ///< Text edit box (with optional label and suffix)
+      ruler,     ///< Sliding ruler (with optional label)
+      slider,    ///< Left/right slider selector (with optional label)
+      keyBinding,///< Key-binding box (with optional label)
+      tile       ///< Selector tile
     };
     enum class ControlStatus : uint32_t { ///< Control status type
       regular = 0, ///< Neutral status

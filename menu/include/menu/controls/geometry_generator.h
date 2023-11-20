@@ -221,6 +221,12 @@ namespace menu {
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillCrossVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                     float x1, float x2, float y1, float y2) noexcept;
+      /// @brief Generate filled cross (in 11 menu control vertices)
+      ///        (expected indices: 0,1,2,2,1,3, 4,5,6,6,5,7, 8,9,10)
+      /// @param outVertexIt       Must point to an array of at least 11 control vertices
+      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
+      static void fillPencilVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                     float x1, float x2, float y1, float y2) noexcept;
 
       // -- circle generation --
 

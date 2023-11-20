@@ -79,6 +79,10 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   // vertex slot 0 - control color modifier / fragment slot 0 - icon color modifier
   MeshColorUniform colorData{ {1.f,1.f,1.f,1.f} };
   controlBuffers[(size_t)ControlBufferType::regular] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  colorData.color[0] = 1.5f;
+  colorData.color[1] = 1.5f;
+  colorData.color[2] = 1.5f;
+  controlBuffers[(size_t)ControlBufferType::selectedTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.disabledControlModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeControlModifier(), sizeof(float)*4);
@@ -99,6 +103,12 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   labelBuffers[(size_t)LabelBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.tileLabelColor(), sizeof(float)*4);
+  labelBuffers[(size_t)LabelBufferType::tile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.activeTileLabelColor(), sizeof(float)*4);
+  labelBuffers[(size_t)LabelBufferType::activeTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.selectedTileLabelColor(), sizeof(float)*4);
+  labelBuffers[(size_t)LabelBufferType::selectedTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   memcpy(colorData.color, theme.titleLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::title] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);

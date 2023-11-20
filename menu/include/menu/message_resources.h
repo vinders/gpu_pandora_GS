@@ -127,6 +127,13 @@ namespace menu {
     COUNT
   };
 
+  enum class ProfileSelectorMessages : size_t { ///< Message types for profile selector page
+    title = 0,
+    createProfile,
+    editProfile,
+    deleteProfile,
+    COUNT
+  };
   enum class ProfileSettingsMessages : size_t { ///< Message types for base profile settings page
     title = 0,
     profileIdGroup,
@@ -271,6 +278,8 @@ namespace menu {
     inline const char16_t* getMessage(OsdSettingsMessages id) const noexcept { return osdSettings[(size_t)id]; }
 
     /// @brief Message resources for base profile settings UI page
+    inline const char16_t* getMessage(ProfileSelectorMessages id) const noexcept { return profileSelector[(size_t)id]; }
+    /// @brief Message resources for base profile settings UI page
     inline const char16_t* getMessage(ProfileSettingsMessages id) const noexcept { return profileSettings[(size_t)id]; }
     /// @brief Message resources for UI tile color picker
     inline const char16_t* getMessage(TileColors id) const noexcept { return tileColors[(size_t)id]; }
@@ -304,6 +313,7 @@ namespace menu {
     Message hotkeyActionsTooltips[(size_t)HotkeyActions::COUNT];
     Message osdSettings[(size_t)OsdSettingsMessages::COUNT];
 
+    Message profileSelector[(size_t)ProfileSelectorMessages::COUNT];
     Message profileSettings[(size_t)ProfileSettingsMessages::COUNT];
     Message tileColors[(size_t)TileColors::COUNT];
     Message screenStretching[(size_t)ScreenStretchingMessages::COUNT];

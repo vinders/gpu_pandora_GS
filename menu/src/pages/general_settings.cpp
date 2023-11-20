@@ -38,7 +38,7 @@ using namespace menu;
 #define RESOLUTION_BUFFER_SIZE 14
 #define RATE_BUFFER_SIZE 12
 
-static char16_t* FormatInteger(uint32_t value, char16_t* buffer) {
+static char16_t* formatInteger(uint32_t value, char16_t* buffer) {
   const size_t offset = (value >= 1000) ? ((value < 10000) ? 3 : 4)
                                         : ((value >= 100) ? 2 : 1);
   for (char16_t* it = buffer + (intptr_t)offset; it >= buffer; --it) {
@@ -48,16 +48,16 @@ static char16_t* FormatInteger(uint32_t value, char16_t* buffer) {
   return buffer + (intptr_t)(offset + 1u);
 }
 
-static void FormatResolution(uint32_t width, uint32_t height, char16_t outFormatted[RESOLUTION_BUFFER_SIZE]) {
-  char16_t* it = FormatInteger(width, outFormatted);
+static void formatResolution(uint32_t width, uint32_t height, char16_t outFormatted[RESOLUTION_BUFFER_SIZE]) {
+  char16_t* it = formatInteger(width, outFormatted);
   *it = u' ';
   *(++it) = u'x';
   *(++it) = u' ';
-  it = FormatInteger(height, ++it);
+  it = formatInteger(height, ++it);
   *it = u'\0';
 }
 
-static void FormatRate(uint32_t value, char16_t outFormatted[RATE_BUFFER_SIZE]) {
+static void formatRate(uint32_t value, char16_t outFormatted[RATE_BUFFER_SIZE]) {
   switch (value) {
     // predefined values
     case 60000:  memcpy(outFormatted, u"60 Hz",  6*sizeof(char16_t)); break;
@@ -67,7 +67,7 @@ static void FormatRate(uint32_t value, char16_t outFormatted[RATE_BUFFER_SIZE]) 
     case 240000: memcpy(outFormatted, u"240 Hz", 7*sizeof(char16_t)); break;
     // custom values
     default: {
-      auto* it = FormatInteger(value / 1000u, outFormatted); // mHz to Hz -- integer part
+      auto* it = formatInteger(value / 1000u, outFormatted); // mHz to Hz -- integer part
       value %= 1000u;
       if (value) { // decimals
         const auto* decimalIt = it;
@@ -86,11 +86,11 @@ static void FormatRate(uint32_t value, char16_t outFormatted[RATE_BUFFER_SIZE]) 
 
 // ---
 
-static constexpr inline uint64_t ToResolutionId(uint32_t width, uint32_t height) noexcept {
+static constexpr inline uint64_t toResolutionId(uint32_t width, uint32_t height) noexcept {
   return (((uint64_t)width << 32) | (uint64_t)height);
 }
 
-static void ListFullscreenModes(const DisplayMonitor& monitor, std::vector<ScreenResolution>& outFullscreenResolutions,
+static void listFullscreenModes(const DisplayMonitor& monitor, std::vector<ScreenResolution>& outFullscreenResolutions,
                                 std::vector<std::vector<uint32_t> >& outRatesPerSize) {
   auto displayModes = monitor.listAvailableDisplayModes();
   outFullscreenResolutions.reserve(displayModes.size());
@@ -99,19 +99,19 @@ static void ListFullscreenModes(const DisplayMonitor& monitor, std::vector<Scree
   std::unordered_map<uint64_t,size_t> currentResolutions;
   if (!monitor.attributes().id.empty()) {
     auto desktopMode = monitor.getDisplayMode();
-    currentResolutions.emplace(ToResolutionId(desktopMode.width, desktopMode.height), (size_t)0);
+    currentResolutions.emplace(toResolutionId(desktopMode.width, desktopMode.height), (size_t)0);
     outFullscreenResolutions.emplace_back(desktopMode.width, desktopMode.height);
     outRatesPerSize.emplace_back(std::vector<uint32_t>{ desktopMode.refreshRate });
   }
   for (const auto& mode : displayModes) {
     if (mode.width >= 640u && mode.height >= 480u && mode.bitDepth >= 32u && mode.refreshRate >= 25u
     && (mode.width < 1100u || mode.width > 1200u)) { // remove nonsense resolutions to reduce list length
-      uint64_t resolutionId = ToResolutionId(mode.width, mode.height);
+      uint64_t resolutionId = toResolutionId(mode.width, mode.height);
 
       // resolution not yet defined -> new vector entries
       auto existing = currentResolutions.find(resolutionId);
       if (existing == currentResolutions.end()) {
-        if (resolutionId == ToResolutionId(1920, 1080) && outFullscreenResolutions.size() > (size_t)1u) {
+        if (resolutionId == toResolutionId(1920, 1080) && outFullscreenResolutions.size() > (size_t)1u) {
           // insert fullHD on top of the list (below desktop resolution)
           for (auto& it : currentResolutions) {
             if (it.second != 0)
@@ -155,7 +155,7 @@ static uint32_t GetFullscreenResolutionValues(const std::vector<ScreenResolution
   uint32_t index = 0;
   char16_t formattedResolution[RESOLUTION_BUFFER_SIZE];
   for (const auto& resolution : fullscreenResolutions) {
-    FormatResolution(resolution.width, resolution.height, formattedResolution);
+    formatResolution(resolution.width, resolution.height, formattedResolution);
     outResolutionOptions.emplace_back(formattedResolution, (ComboValue)index);
     ++index;
   }
@@ -170,7 +170,7 @@ static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, 
     if (rate == previousRate)
       selectedIndex = currentIndex;
 
-    FormatRate(rate, formattedRate);
+    formatRate(rate, formattedRate);
     fullscreenRateOptions.emplace_back(formattedRate, (ComboValue)rate);
     ++currentIndex;
   }
@@ -197,7 +197,7 @@ GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std:
     theme(theme_),
     localizedText(localizedText_),
     onThemeChange(std::move(onThemeChange_)) {
-  ListFullscreenModes(monitor, fullscreenResolutions, fullscreenRatesPerSize);
+  listFullscreenModes(monitor, fullscreenResolutions, fullscreenRatesPerSize);
   init(x, y, width);
 }
 
@@ -409,7 +409,7 @@ void GeneralSettings::onValueChange(uint32_t id, uint32_t value) {
       }
       char16_t windowWidthBuffer[14];
       memcpy(windowWidthBuffer, u"           x", 13*sizeof(char16_t));
-      FormatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
+      formatInteger(GetWindowWidth(value, enableWidescreenMode), windowWidthBuffer);
 
       auto& inputFont = context->getFont(FontType::inputText);
       int32_t windowSizeY = windowSizeInfo.y();

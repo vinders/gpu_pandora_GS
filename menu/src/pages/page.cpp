@@ -299,7 +299,7 @@ void Page::selectPreviousControlIndex() {
     int32_t controlIndex = (activeControlIndex != noControlSelection())
                          ? (activeControlIndex - 1) : static_cast<int32_t>(controlRegistry.size() - 1u);
     auto* control = &controlRegistry[controlIndex];
-    while (controlIndex >= 0 && !control->isFixed() && control->controlStatus(0,0,0) == ControlStatus::disabled) {
+    while (controlIndex >= 0 && (control->isFixed() || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
       --controlIndex;
       --control;
     }
@@ -325,7 +325,8 @@ void Page::selectNextControlIndex() {
   else { // select next entry (selected from key/pad)
     int32_t controlIndex = (activeControlIndex != noControlSelection()) ? (activeControlIndex + 1) : 0;
     auto* control = &controlRegistry[controlIndex];
-    while (controlIndex < (int32_t)controlRegistry.size() && !control->isFixed() && control->controlStatus(0,0,0) == ControlStatus::disabled) {
+    while (controlIndex < (int32_t)controlRegistry.size()
+       && (control->isFixed() || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
       ++controlIndex;
       ++control;
     }

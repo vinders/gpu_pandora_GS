@@ -22,6 +22,7 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   enum class ControlBufferType : uint32_t { ///< Control/icon buffer type, based on control status
     regular = 0, ///< neutral control
+    selectedTile,///< selected tile control
     disabled,    ///< disabled control
     active,      ///< active/hover control
     activeScroll,///< active/hover scroll arrow/thumb
@@ -34,6 +35,9 @@ namespace menu {
     regular = 0,          ///< neutral label text color
     disabled,             ///< disabled label text color
     active,               ///< active/hover label text color
+    tile,                 ///< profile tile text color
+    activeTile,           ///< active/hover tile text color
+    selectedTile,         ///< selected/current tile text color
     title,                ///< title label text color
     fieldset,             ///< fieldset group title text color
     tab,                  ///< neutral tab text color

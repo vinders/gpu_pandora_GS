@@ -109,7 +109,7 @@ namespace menu {
 
       // -- rendering --
 
-      /// @brief Draw key-binding box background/caret
+      /// @brief Draw key-binding box background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       void drawBackground(RendererContext& context, int32_t mouseX, RendererStateBuffers& buffers, bool isActive);

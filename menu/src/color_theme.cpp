@@ -43,6 +43,9 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR( 83,171,196, 1.f, regularLabel) // 105,191,222  // 84,168,192
       SET_THEME_COLOR( 57,102,123, 1.f, disabledLabel)
       SET_THEME_COLOR(134,214,242, 1.f, activeLabel)
+      SET_THEME_COLOR(  0, 14, 20, 0.75f,tileLabel)
+      SET_THEME_COLOR(  0,  0,  0, 0.675f, activeTileLabel)
+      SET_THEME_COLOR(255,255,255, 0.65f, selectedTileLabel)
 
       SET_THEME_COLOR( 13, 39, 59, 1.f, background)
       SET_THEME_COLOR( 11, 64,102, 1.f, backgroundGradient) // 12, 67,105
@@ -101,6 +104,9 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(177,235,142, 1.f, regularLabel)
       SET_THEME_COLOR( 80,130, 68, 1.f, disabledLabel)
       SET_THEME_COLOR(213,247,193, 1.f, activeLabel)
+      SET_THEME_COLOR(  0, 14, 20, 0.75f,tileLabel)
+      SET_THEME_COLOR(  0,  0,  0, 0.675f, activeTileLabel)
+      SET_THEME_COLOR(255,255,255, 0.65f, selectedTileLabel)
 
       SET_THEME_COLOR( 22, 65, 18, 1.f, background)
       SET_THEME_COLOR( 27, 87, 21, 1.f, backgroundGradient)
@@ -159,6 +165,9 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(159,254,178, 1.f, regularLabel)
       SET_THEME_COLOR( 73,143, 86, 1.f, disabledLabel)
       SET_THEME_COLOR(184,252,196, 1.f, activeLabel)
+      SET_THEME_COLOR(  0, 14, 20, 0.75f,tileLabel)
+      SET_THEME_COLOR(  0,  0,  0, 0.675f, activeTileLabel)
+      SET_THEME_COLOR(255,255,255, 0.65f, selectedTileLabel)
 
       SET_THEME_COLOR( 21, 53, 30, 1.f, background)
       SET_THEME_COLOR( 19, 75, 33, 1.f, backgroundGradient)
@@ -217,6 +226,9 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(255,217,159, 1.f, regularLabel)
       SET_THEME_COLOR(143,115, 73, 1.f, disabledLabel)
       SET_THEME_COLOR(255,231,195, 1.f, activeLabel)
+      SET_THEME_COLOR(  0, 14, 20, 0.75f,tileLabel)
+      SET_THEME_COLOR(  0,  0,  0, 0.675f, activeTileLabel)
+      SET_THEME_COLOR(255,255,255, 0.65f, selectedTileLabel)
 
       SET_THEME_COLOR( 52, 43, 21, 1.f, background) // 18, 14,  5
       SET_THEME_COLOR( 74, 54, 19, 1.f, backgroundGradient) // 76, 56, 19  // 52, 43, 21
@@ -270,15 +282,15 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
   memcpy(tileColors.colors[(uint32_t)TileColors::themeColor], comboBoxControlColors.colors[0], sizeof(float)*4u);
   SET_THEME_COLOR(161, 45, 53, 1.f, tileColors.colors[(uint32_t)TileColors::red])
   SET_THEME_COLOR(172, 89, 39, 1.f, tileColors.colors[(uint32_t)TileColors::orange])
-  SET_THEME_COLOR(183,130, 31, 1.f, tileColors.colors[(uint32_t)TileColors::yellow])
+  SET_THEME_COLOR(178,125, 30, 1.f, tileColors.colors[(uint32_t)TileColors::yellow]) // 183,130, 31
   SET_THEME_COLOR( 89,127, 20, 1.f, tileColors.colors[(uint32_t)TileColors::apple])
-  SET_THEME_COLOR( 23,105, 45, 1.f, tileColors.colors[(uint32_t)TileColors::green])
-  SET_THEME_COLOR( 30,111, 93, 1.f, tileColors.colors[(uint32_t)TileColors::teal])
+  SET_THEME_COLOR( 37,121, 59, 1.f, tileColors.colors[(uint32_t)TileColors::green]) // 23,105, 45
+  SET_THEME_COLOR( 33,117, 98, 1.f, tileColors.colors[(uint32_t)TileColors::teal]) // 30,111, 93
   SET_THEME_COLOR( 30,124,141, 1.f, tileColors.colors[(uint32_t)TileColors::cyan])
-  SET_THEME_COLOR( 31, 92,139, 1.f, tileColors.colors[(uint32_t)TileColors::blue])
-  SET_THEME_COLOR( 95, 62,156, 1.f, tileColors.colors[(uint32_t)TileColors::purple])
-  SET_THEME_COLOR(119, 51,133, 1.f, tileColors.colors[(uint32_t)TileColors::violet])
-  SET_THEME_COLOR(151, 57,117, 1.f, tileColors.colors[(uint32_t)TileColors::pink])
+  SET_THEME_COLOR( 29, 98,151, 1.f, tileColors.colors[(uint32_t)TileColors::blue])
+  SET_THEME_COLOR(102, 66,159, 1.f, tileColors.colors[(uint32_t)TileColors::purple]) // 95, 62,156
+  SET_THEME_COLOR(125, 58,142, 1.f, tileColors.colors[(uint32_t)TileColors::violet]) // 119, 51,133
+  SET_THEME_COLOR(150, 57,114, 1.f, tileColors.colors[(uint32_t)TileColors::pink]) // 151, 57,117
   SET_THEME_COLOR( 94, 94, 94, 1.f, tileColors.colors[(uint32_t)TileColors::gray])
   themeType_ = type;
 }

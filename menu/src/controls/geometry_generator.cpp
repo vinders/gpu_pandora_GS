@@ -364,6 +364,26 @@ void GeometryGenerator::fillCrossVertices(ControlVertex* outVertexIt, const floa
   fillControlVertex(*(++outVertexIt), rgba, x2 + 1.f, y1 - 1.f);
 }
 
+void GeometryGenerator::fillPencilVertices(ControlVertex* outVertexIt, const float rgba[4],
+                                           float x1, float x2, float y1, float y2) noexcept {
+  // top
+  fillControlVertex(*outVertexIt,     rgba, x2 - 2.f, y1 + 2.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 + 2.f, y1 - 2.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - 4.f, y1);
+  fillControlVertex(*(++outVertexIt), rgba, x2,       y1 - 4.f);
+
+  // body
+  fillControlVertex(*(++outVertexIt), rgba, x2 - 5.f, y1 - 1.f);
+  fillControlVertex(*(++outVertexIt), rgba, x2 - 1.f, y1 - 5.f);
+  fillControlVertex(*(++outVertexIt), rgba, x1 + 1.f, y2 + 5.f);
+  fillControlVertex(*(++outVertexIt), rgba, x1 + 5.f, y2 + 1.f);
+
+  // tip
+  fillControlVertex(*(++outVertexIt), rgba, x1,       y2 + 4.f);
+  fillControlVertex(*(++outVertexIt), rgba, x1 + 4.f, y2);
+  fillControlVertex(*(++outVertexIt), rgba, x1 - 1.f, y2 - 1.f);
+}
+
 
 // -- circle generation -- -----------------------------------------------------
 

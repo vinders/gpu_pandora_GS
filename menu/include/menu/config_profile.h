@@ -21,14 +21,14 @@ GNU General Public License for more details (LICENSE file).
 
 namespace menu {
   struct ConfigProfile final {
-    ConfigProfile(uint32_t id, const char16_t* nameValue)
-      : id(id) {
+    ConfigProfile(uint32_t id, const char16_t* nameValue, TileColors color = TileColors::themeColor)
+      : id(id), color(color) {
       size_t length = display::controls::TextMesh::getStringLength(nameValue);
       name.reset(new char16_t[length + 1]);
       memcpy(name.get(), nameValue, (length+1)*sizeof(char16_t));
     }
-    ConfigProfile(uint32_t id, std::unique_ptr<char16_t[]>&& name)
-      : id(id), name(std::move(name)) {}
+    ConfigProfile(uint32_t id, std::unique_ptr<char16_t[]>&& name, TileColors color = TileColors::themeColor)
+      : id(id), name(std::move(name)), color(color) {}
     ConfigProfile(ConfigProfile&&) noexcept = default;
     ConfigProfile& operator=(ConfigProfile&&) noexcept = default;
     ~ConfigProfile() noexcept = default;
