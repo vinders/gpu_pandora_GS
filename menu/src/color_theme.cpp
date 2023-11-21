@@ -56,6 +56,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR( 17,118,154, 1.f, titleLabel) // 35,116,145
       SET_THEME_COLOR( 23, 78,120, 1.f, fieldsetControl) // 27, 69,101
       SET_THEME_COLOR( 46,153,187, 1.f, fieldsetLabel)
+      SET_THEME_COLOR( 25, 72,108, 1.f, popupTitleBar)
       backgroundType = BackgroundStyle::radialGradient;
       fieldsetType = FieldsetStyle::gradientBox;
 
@@ -69,7 +70,8 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(100,100,100, 1.f, verticalTabLabel)
       SET_THEME_COLOR( 40, 40, 40, 1.f, verticalTabActiveLabel)
 
-      SET_THEME_COLOR( 37,110,145, 1.f, buttonControl)
+      SET_THEME_COLOR( 37,110,145, 1.f, buttonReference)
+      SET_THEME_COLOR( 30, 93,124, 1.f, buttonControl)
       SET_THEME_COLOR( 30, 93,124, 1.f, buttonBorder)
       SET_THEME_COLOR(180,223,247, 1.f, buttonLabel)
       SET_THEME_COLOR( 35, 81,108, 1.f, textBoxControl) // 170,223,247  // 119,192,208  // 135,199,213  // 88,156,180  // 21, 65, 96
@@ -117,6 +119,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(193,227,166, 1.f, titleLabel)
       SET_THEME_COLOR( 43,120, 18, 1.f, fieldsetControl)
       SET_THEME_COLOR(110,182, 82, 1.f, fieldsetLabel)
+      SET_THEME_COLOR(110,182, 82, 1.f, popupTitleBar)
       backgroundType = BackgroundStyle::radialGradient;
       fieldsetType = FieldsetStyle::gradientBox;
 
@@ -130,6 +133,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(100,100,100, 1.f, verticalTabLabel)
       SET_THEME_COLOR( 40, 40, 40, 1.f, verticalTabActiveLabel)
 
+      SET_THEME_COLOR(119,166, 12, 1.f, buttonReference)
       SET_THEME_COLOR(119,166, 12, 1.f, buttonControl)
       SET_THEME_COLOR(119,166, 12, 1.f, buttonBorder)
       SET_THEME_COLOR( 41, 72,  8, 1.f, buttonLabel)
@@ -178,6 +182,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(137,184,146, 1.f, titleLabel)
       SET_THEME_COLOR( 42,140, 70, 1.f, fieldsetControl) // 35,148, 67
       SET_THEME_COLOR( 63,200,102, 1.f, fieldsetLabel) // 60,217,105
+      SET_THEME_COLOR( 63,200,102, 1.f, popupTitleBar) // 60,217,105
       backgroundType = BackgroundStyle::radialGradient;
       fieldsetType = FieldsetStyle::gradientBox;
 
@@ -191,6 +196,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(100,100,100, 1.f, verticalTabLabel)
       SET_THEME_COLOR( 40, 40, 40, 1.f, verticalTabActiveLabel)
 
+      SET_THEME_COLOR(119,166, 12, 1.f, buttonReference)
       SET_THEME_COLOR(119,166, 12, 1.f, buttonControl)
       SET_THEME_COLOR(119,166, 12, 1.f, buttonBorder)
       SET_THEME_COLOR( 41, 72,  8, 1.f, buttonLabel)
@@ -239,6 +245,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(196,153, 84, 1.f, titleLabel)
       SET_THEME_COLOR(148,114, 35, 1.f, fieldsetControl)
       SET_THEME_COLOR(217,170, 60, 1.f, fieldsetLabel) // 241,158, 18  // 242,175, 17
+      SET_THEME_COLOR(217,170, 60, 1.f, popupTitleBar) // 241,158, 18  // 242,175, 17
       backgroundType = BackgroundStyle::radialGradient;
       fieldsetType = FieldsetStyle::gradientBox;
 
@@ -252,6 +259,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(100,100,100, 1.f, verticalTabLabel)
       SET_THEME_COLOR( 40, 40, 40, 1.f, verticalTabActiveLabel)
 
+      SET_THEME_COLOR(191,136, 33, 1.f, buttonReference)
       SET_THEME_COLOR(191,136, 33, 1.f, buttonControl)
       SET_THEME_COLOR(191,136, 33, 1.f, buttonBorder)
       SET_THEME_COLOR(255,228,176, 1.f, buttonLabel)

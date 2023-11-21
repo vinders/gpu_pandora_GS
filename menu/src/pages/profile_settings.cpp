@@ -140,6 +140,14 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
   // control registry
   Page::moveScrollbarThumb(builder.linePositionY());
   registerControls(std::move(builder.controlRegistry()));
+
+  // confirmation popup
+  const char16_t* popupButtons[]{ localizedText.getMessage(CommonMessages::ok),
+                                  localizedText.getMessage(CommonMessages::cancel) };
+  confirmationPopup = Popup(*context, *theme, localizedText.getMessage(ProfileSettingsMessages::applyPopupTitle),
+                            localizedText.getMessage(ProfileSettingsMessages::applyPopupMessage),
+                            nullptr, popupButtons, sizeof(popupButtons)/sizeof(*popupButtons));
+  confirmationPopup.close();
 }
 
 ProfileSettings::~ProfileSettings() noexcept {
@@ -181,6 +189,7 @@ void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveComboBoxWithButton(profileToCopy, copyProfile);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  confirmationPopup.move(*context);
 }
 
 void ProfileSettings::onChange(uint32_t id) {
@@ -194,9 +203,17 @@ void ProfileSettings::onChange(uint32_t id) {
       break;
     }
     case APPLY_PRESET_ID: {
+      setActivePopup(confirmationPopup, [this](uint32_t action) {
+        if (action == 0)
+          ;//TODO
+      });
       break;
     }
     case COPY_PROFILE_ID: {
+      setActivePopup(confirmationPopup, [this](uint32_t action) {
+        if (action == 0)
+          ;//TODO
+      });
       break;
     }
     default: assert(false); break;

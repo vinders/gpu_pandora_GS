@@ -20,6 +20,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/ruler.h"
 #include "menu/controls/slider.h"
 #include "menu/controls/key_binding.h"
+#include "menu/controls/popup.h"
 #include "menu/controls/geometry_generator.h"
 #include "menu/pages/page.h"
 
@@ -161,6 +162,20 @@ void Page::updateColors(const ColorTheme& theme) {
       memcpy(vertex.color, theme.lineSelectorControlColor(), sizeof(float) * 4u);
     controlHoverMesh.update(context->renderer(), std::move(vertices), context->pixelSizeX(), context->pixelSizeY(),
                             controlHoverMesh.x(), controlHoverMesh.y(), controlHoverMesh.width(), controlHoverMesh.height());
+  }
+}
+
+void Page::setActivePopup(Popup& popup, std::function<void(uint32_t)> handler) {
+  if (openControl != nullptr) {
+    openControl->control()->close();
+    openControl = nullptr;
+  }
+  activeControlIndex = noControlSelection();
+
+  popup.open(std::move(handler));
+  if (popup.isOpen()) {
+    popup.selectIndex(0);
+    openPopup = &popup;
   }
 }
 
@@ -370,6 +385,11 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
     if (scrollbar.isEnabled() && scrollbar.isHover(mouseX, mouseY))
       scrollbar.click(*context, mouseY, true);
   }
+  // click on open popup -> click/close it
+  else if (openPopup != nullptr) {
+    if (!openPopup->click(*context, mouseX, mouseY))
+      openPopup = nullptr;
+  }
   // click with an open control -> verify and click/close it
   else if (openControl != nullptr) {
     auto status = openControl->controlStatus(mouseX, mouseY, scrollY);
@@ -399,19 +419,19 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   }
   // click on page control
   else {
-    int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
-    if (controlIndex != noControlSelection()) {
-      auto* activeControl = &controlRegistry[controlIndex];
-      if (activeControl->control()->click(*context, mouseX, mouseY)) {
-        openControl = activeControl;
+  int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
+  if (controlIndex != noControlSelection()) {
+    auto* activeControl = &controlRegistry[controlIndex];
+    if (activeControl->control()->click(*context, mouseX, mouseY)) {
+      openControl = activeControl;
 
-        // adjust visibility if combo-box longer than page size
-        if (openControl->control()->type() == ControlType::comboBox) {
-          const auto* target = reinterpret_cast<const ComboBox*>(openControl->control());
-          expandScrollArea(target->y() + (int32_t)target->height());
-        }
+      // adjust visibility if combo-box longer than page size
+      if (openControl->control()->type() == ControlType::comboBox) {
+        const auto* target = reinterpret_cast<const ComboBox*>(openControl->control());
+        expandScrollArea(target->y() + (int32_t)target->height());
       }
     }
+  }
   }
 }
 
@@ -434,6 +454,10 @@ void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
   if (scrollbar.isDragged()) {
     scrollbar.mouseMove(*context, mouseY);
     onHover(noControlSelection());
+  }
+  // moving with an open popup -> update it
+  else if (openPopup != nullptr) {
+    openPopup->mouseMove(mouseX, mouseY);
   }
   // moving with an open control -> update it
   else if (openControl != nullptr) {
@@ -489,7 +513,26 @@ void Page::keyDown(char32_t keyCode) {
 }
 
 bool Page::vkeyDown(uint32_t virtualKeyCode) {
-  if (openControl != nullptr) {
+  if (openPopup != nullptr) {
+    switch (virtualKeyCode) {
+      case _P_VK_ARROW_UP:
+      case _P_VK_ARROW_LEFT: openPopup->selectPrevious(); break;
+      case _P_VK_ARROW_DOWN:
+      case _P_VK_ARROW_RIGHT: openPopup->selectNext(); break;
+      case _P_VK_ESC:
+      case _P_VK_DELETE:
+        openPopup->close();
+        openPopup = nullptr;
+        break;
+      case _P_VK_ENTER:
+      case _P_VK_ENTER_PAD:
+        if (!openPopup->clickSelectedIndex())
+          openPopup = nullptr;
+        break;
+      default: break;
+    }
+  }
+  else if (openControl != nullptr) {
     auto controlType = openControl->control()->type();
 
     // control edit - text-box
@@ -622,7 +665,7 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
 }
 
 void Page::padButtonDown(uint32_t virtualKeyCode) {
-  if (openControl != nullptr) {
+  if (openControl != nullptr && openPopup == nullptr) {
     auto controlType = openControl->control()->type();
     if (controlType == ControlType::textBox) {
       switch (virtualKeyCode) {
@@ -680,7 +723,7 @@ bool Page::drawBackgrounds() {
   }
 
   drawPageBackgrounds(mouseX_, mouseY_);
-  return (openControl != nullptr && openControl->control()->type() == ControlType::comboBox);
+  return ((openControl != nullptr && openControl->control()->type() == ControlType::comboBox) || openPopup != nullptr);
 }
 
 void Page::drawLabels() {
@@ -695,7 +738,11 @@ void Page::drawLabels() {
 }
 
 void Page::drawForegrounds() {
-  if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
+  if (openPopup != nullptr) {
+    buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
+    openPopup->drawBackground(*context, *buffers);
+  }
+  else if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
     auto& renderer = context->renderer();
     ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight()); // visible outside of scroll area -> full window
     if (openControl->isFixed())
@@ -708,7 +755,11 @@ void Page::drawForegrounds() {
 }
 
 void Page::drawForegroundLabels() {
-  if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
+  if (openPopup != nullptr) {
+    buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
+    openPopup->drawLabels(*context, *buffers);
+  }
+  else if (openControl != nullptr && openControl->control()->type() == ControlType::comboBox) {
     auto& renderer = context->renderer();
     ScissorRectangle fullWindowArea(0, 0, context->clientWidth(), context->clientHeight()); // visible outside of scroll area -> full window
     if (openControl->isFixed())

@@ -123,10 +123,10 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::button] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  toSpecialLabelColor(colorData.color, theme.buttonControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
+  toSpecialLabelColor(colorData.color, theme.buttonReferenceColor(), theme.regularLabelColor(), theme.disabledLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
-  toSpecialLabelColor(colorData.color, theme.buttonControlColor(), theme.regularLabelColor(), theme.activeLabelColor());
+  toSpecialLabelColor(colorData.color, theme.buttonReferenceColor(), theme.regularLabelColor(), theme.activeLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
 
   memcpy(colorData.color, theme.textBoxLabelColor(), sizeof(float)*4);

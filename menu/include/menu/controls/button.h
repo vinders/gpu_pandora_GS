@@ -88,6 +88,10 @@ namespace menu {
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
       void drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isMouseDown);
+      /// @brief Draw button background - popup version
+      /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
+      ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
+      void drawPopupBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isSelected);
       /// @brief Draw button icon (if any)
       /// @remarks - Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.

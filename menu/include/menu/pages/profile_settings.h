@@ -25,6 +25,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/combo_box.h"
 #include "menu/controls/fieldset.h"
 #include "menu/controls/text_box.h"
+#include "menu/controls/popup.h"
 #include "menu/pages/page.h"
 
 namespace menu {
@@ -74,6 +75,9 @@ namespace menu {
       controls::Button applyPreset;
       controls::Button copyProfile;
       bool hasOtherProfiles = false;
+
+      controls::Popup confirmationPopup;
+      uint32_t pendingAction = 0;
     };
   }
 }

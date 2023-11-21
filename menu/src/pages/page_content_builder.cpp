@@ -202,7 +202,7 @@ void PageContentBuilder::addComboBoxWithButton(uint32_t controlId, const char16_
                          options, optionCount, 0, enabler);
 
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none,
-                                    theme->buttonControlColor(), theme->buttonBorderColor(), 1, 0,
+                                    theme->buttonBorderColor(), theme->buttonBorderColor(), 0, 0,
                                     Control::buttonPaddingX(), Control::comboBoxPaddingY());
   outButton = Button(*context, buttonLabel,
                      outComboBox.x() + (int32_t)outComboBox.width() + (int32_t)Control::controlSideMargin(),

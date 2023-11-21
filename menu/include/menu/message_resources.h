@@ -36,6 +36,8 @@ namespace menu {
   
   enum class CommonMessages : size_t { ///< Message types common to all pages
     disabled = 0,
+    ok,
+    cancel,
     apply,
     maximum,
     fps,
@@ -132,6 +134,8 @@ namespace menu {
     createProfile,
     editProfile,
     deleteProfile,
+    removePopupTitle,
+    removePopupMessage,
     COUNT
   };
   enum class ProfileSettingsMessages : size_t { ///< Message types for base profile settings page
@@ -142,6 +146,8 @@ namespace menu {
     presetGroup,
     predefinedPreset,
     existingProfile,
+    applyPopupTitle,
+    applyPopupMessage,
     COUNT
   };
   enum class ScreenStretchingMessages : size_t { ///< Message types for screen stretching page

@@ -78,7 +78,7 @@ static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHe
 #define EDIT_PROFILE_ID   2
 #define DELETE_PROFILE_ID 3
 
-#define BUTTON_BAR_HEIGHT 30
+#define BUTTON_BAR_HEIGHT 31
 
 void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
   const uint32_t marginX = Control::fieldsetMarginX(width);
@@ -120,7 +120,7 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
 
   // create action buttons
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none,
-                                    theme->buttonControlColor(), theme->buttonBorderColor(), 1, 0,
+                                    theme->buttonControlColor(), theme->buttonBorderColor(), 0, 0,
                                     Control::buttonPaddingX(), Control::comboBoxPaddingY());
   int32_t buttonLabelY = y + (int32_t)height() - (int32_t)BUTTON_BAR_HEIGHT + (int32_t)Control::comboBoxPaddingY() + 4u;
   if (buttonLabelY > currentLineY + (int32_t)Control::controlSideMargin())
@@ -149,6 +149,14 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
   // control registry
   Page::moveScrollbarThumb(currentLineY);
   registerControls(std::move(registry));
+
+  // confirmation popup
+  const char16_t* popupButtons[]{ localizedText.getMessage(CommonMessages::ok),
+                                  localizedText.getMessage(CommonMessages::cancel) };
+  confirmationPopup = Popup(*context, *theme, localizedText.getMessage(ProfileSelectorMessages::removePopupTitle),
+                            localizedText.getMessage(ProfileSelectorMessages::removePopupMessage),
+                            nullptr, popupButtons, sizeof(popupButtons)/sizeof(*popupButtons));
+  confirmationPopup.close();
 }
 
 ProfileSelector::~ProfileSelector() noexcept {
@@ -208,6 +216,7 @@ void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
   registerControls(std::move(registry));
+  confirmationPopup.move(*context);
 }
 
 // ---
@@ -228,16 +237,10 @@ void ProfileSelector::onButtonAction(uint32_t id) {
     case EDIT_PROFILE_ID: break;
     case DELETE_PROFILE_ID: {
       if (profileTiles.size() > (size_t)1u) {
-        auto index = getProfileIndex(activeProfileId);
-        if (index == notFound())
-          return;
-
-        registerControls(std::vector<ControlRegistration>{}); // unregister before removal
-        profiles->erase(profiles->begin() + (intptr_t)index);
-        profileTiles.erase(profileTiles.begin() + (intptr_t)index);
-        activeProfileId = profileTiles[(index != 0u) ? (index - 1u) : 0u].id();
-        isDeleteEnabled = (profileTiles.size() > (size_t)1u);
-        move(x(), y(), width(), height());
+        setActivePopup(confirmationPopup, [this](uint32_t action) {
+          if (action == 0)
+            this->onProfileRemoved(this->activeProfileId);
+        });
       }
       break;
     }
@@ -254,22 +257,30 @@ void ProfileSelector::onTileAction(uint32_t id, TileAction type) {
       break;
     case TileAction::remove: {
       if (profileTiles.size() > (size_t)1u) {
-        auto index = getProfileIndex(id);
-        if (index == notFound())
-          return;
-
-        registerControls(std::vector<ControlRegistration>{}); // unregister before removal
-        profiles->erase(profiles->begin() + (intptr_t)index);
-        profileTiles.erase(profileTiles.begin() + (intptr_t)index);
-        if (activeProfileId == id)
-          activeProfileId = profileTiles[(index != 0u) ? (index - 1u) : 0u].id();
-        isDeleteEnabled = (profileTiles.size() > (size_t)1u);
-        move(x(), y(), width(), height());
+        setActivePopup(confirmationPopup, [this, id](uint32_t action) {
+          if (action == 0)
+            this->onProfileRemoved(id);
+        });
       }
       break;
     }
     default: break;
   }
+}
+
+void ProfileSelector::onProfileRemoved(uint32_t id) {
+  auto index = getProfileIndex(id);
+  if (index == notFound())
+    return;
+
+  registerControls(std::vector<ControlRegistration>{}); // unregister before removal
+  profiles->erase(profiles->begin() + (intptr_t)index);
+  profileTiles.erase(profileTiles.begin() + (intptr_t)index);
+  if (activeProfileId == id)
+    activeProfileId = profileTiles[(index != 0u) ? (index - 1u) : 0u].id();
+
+  isDeleteEnabled = (profileTiles.size() > (size_t)1u);
+  move(x(), y(), width(), height());
 }
 
 

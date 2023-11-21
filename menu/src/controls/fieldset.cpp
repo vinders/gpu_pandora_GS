@@ -33,12 +33,9 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyl
   const uint32_t totalHeight = barHeight + contentHeight;
   ++labelY;
 
-  uint32_t paddingX;
   std::vector<ControlVertex> vertices;
   std::vector<uint32_t> indices;
   float backColor[4]{ color[0], color[1], color[2], 0.3f*color[3] };
-
-  paddingX = Control::fieldsetTitleShortPaddingX();
   float transparentColor[4]{ color[0], color[1], color[2], 0.f };
 
   ControlVertex* vertexIt;
@@ -82,7 +79,7 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyl
   
   // create fieldset title
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(),
-                       x + (int32_t)paddingX, labelY);
+                       x + (int32_t)Control::fieldsetTitleShortPaddingX(), labelY);
 }
 
 // ---

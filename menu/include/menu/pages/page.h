@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstdint>
 #include <vector>
+#include <functional>
 #include <type_traits>
 #include <video/window_events.h>
 #include <display/controls/control_mesh.h>
@@ -27,7 +28,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/tooltip.h"
 
 namespace menu {
-  namespace controls { class KeyBinding; }
+  namespace controls { class KeyBinding; class Popup; }
   namespace pages {
     class ControlRegistration final { ///< Interactive control registration (to allow hover/click/drag/select)
     public:
@@ -117,6 +118,7 @@ namespace menu {
       inline uint32_t contentHeight() const noexcept {
         return tooltip.width() ? static_cast<uint32_t>(tooltip.y() - scrollbar.y()) : scrollbar.height();
       }
+      inline bool isPopupOpen() const noexcept { return (openPopup != nullptr); }
 
       // -- window event --
       
@@ -192,6 +194,7 @@ namespace menu {
         return false;
       }
       void updateColors(const ColorTheme& theme);
+      void setActivePopup(controls::Popup& popup, std::function<void(uint32_t)> handler);
 
       void mouseClick(int32_t mouseX, int32_t mouseY);
       void mouseButton(int32_t mouseX, int32_t mouseY, pandora::video::MouseButton button);
@@ -242,6 +245,7 @@ namespace menu {
       int32_t mouseX_ = -1;
       int32_t mouseY_ = -1;
       bool isMouseDown_ = false;
+      controls::Popup* openPopup = nullptr;
       controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
     };
   }

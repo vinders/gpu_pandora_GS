@@ -23,6 +23,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/renderer_state_buffers.h"
 #include "menu/controls/button.h"
 #include "menu/controls/tile.h"
+#include "menu/controls/popup.h"
 #include "menu/pages/page.h"
 
 namespace menu {
@@ -56,6 +57,7 @@ namespace menu {
       void init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width);
       void onButtonAction(uint32_t id);
       void onTileAction(uint32_t id, controls::TileAction type);
+      void onProfileRemoved(uint32_t popupAction);
       void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
 
@@ -77,7 +79,7 @@ namespace menu {
       controls::Button deleteProfile;
       bool isDeleteEnabled = true;
 
-      //controls::Popup confirmationPopup;
+      controls::Popup confirmationPopup;
     };
   }
 }

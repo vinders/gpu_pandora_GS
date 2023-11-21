@@ -67,6 +67,7 @@ namespace menu {
     inline const float* titleLabelColor() const noexcept { return titleLabel; }          ///< Page title label color
     inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
     inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
+    inline const float* popupTitleBarColor() const noexcept { return popupTitleBar; }    ///< Popup title bar control color
     inline controls::BackgroundStyle backgroundStyle() const noexcept{ return backgroundType; }///< Page background visual style
     inline controls::FieldsetStyle fieldsetStyle() const noexcept{ return fieldsetType; }///< Fieldset visual style
 
@@ -81,8 +82,9 @@ namespace menu {
     inline const float* verticalTabLabelColor() const noexcept { return verticalTabLabel; }    ///< Vertical tab text color
     inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; }///< Vertical active/hover tab text color
 
+    inline const float* buttonReferenceColor() const noexcept { return buttonReference; }///< Regular button color
     inline const float* buttonControlColor() const noexcept { return buttonControl; }    ///< Regular button background color
-    inline const float* buttonBorderColor() const noexcept { return buttonBorder; }    ///< Regular button border color
+    inline const float* buttonBorderColor() const noexcept { return buttonBorder; }      ///< Regular button border color
     inline const float* buttonLabelColor() const noexcept { return buttonLabel; }        ///< Regular button text color
     inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
     inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
@@ -125,6 +127,7 @@ namespace menu {
     float titleLabel[4];
     float fieldsetControl[4];
     float fieldsetLabel[4];
+    float popupTitleBar[4];
     controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
     controls::FieldsetStyle fieldsetType = controls::FieldsetStyle::classic;
 
@@ -136,6 +139,7 @@ namespace menu {
     float verticalTabLabel[4];
     float verticalTabActiveLabel[4];
 
+    float buttonReference[4];
     float buttonControl[4];
     float buttonBorder[4];
     float buttonLabel[4];

@@ -60,14 +60,14 @@ void Button::init(RendererContext& context, const char16_t* label, int32_t x, in
     if (style.style == ButtonStyle::fromBottomLeft) {
       GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data(), style.borderColor, // button borders
                                                       0.f, (float)width, 0.f, -(float)height, cornerSize);
-      GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data() + 6, style.borderColor, // button background
+      GeometryGenerator::fillTLBRCutRectangleVertices(vertices.data() + 6, style.backgroundColor, // button background
                                                       (float)style.borderSize, (float)(width - style.borderSize),
                                                       -(float)style.borderSize, -(float)(height - style.borderSize), cornerSize);
     }
     else if (style.style == ButtonStyle::fromTopLeft) {
       GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data(), style.borderColor, // button borders
                                                       0.f, (float)width, 0.f, -(float)height, cornerSize);
-      GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data() + 6, style.borderColor, // button background
+      GeometryGenerator::fillBLTRCutRectangleVertices(vertices.data() + 6, style.backgroundColor, // button background
                                                       (float)style.borderSize, (float)(width - style.borderSize),
                                                       -(float)style.borderSize, -(float)(height - style.borderSize), cornerSize);
     }
@@ -132,6 +132,14 @@ bool Button::click(RendererContext&, int32_t, int32_t) {
 
 void Button::drawBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isMouseDown) {
   buffers.bindControlBuffer(context.renderer(), isEnabled() ? ((isActive && !isMouseDown) ? ControlBufferType::active : ControlBufferType::regular)
+                                                            : ControlBufferType::disabled);
+  controlMesh.draw(context.renderer());
+}
+
+void Button::drawPopupBackground(RendererContext& context, RendererStateBuffers& buffers, bool isActive, bool isSelected) {
+  buffers.bindControlBuffer(context.renderer(), isEnabled() ? (isActive
+                                                               ? ControlBufferType::active
+                                                               : (isSelected ? ControlBufferType::activeScroll : ControlBufferType::regular) )
                                                             : ControlBufferType::disabled);
   controlMesh.draw(context.renderer());
 }

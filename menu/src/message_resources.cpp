@@ -41,6 +41,8 @@ const char16_t* LocalizationTypeHelper::toLanguageName(LocalizationType type) no
 
 void MessageResources::fillMessagesEN() {
   common[(size_t)CommonMessages::disabled] = u"Disabled";
+  common[(size_t)CommonMessages::ok] = u"OK";
+  common[(size_t)CommonMessages::cancel] = u"Cancel";
   common[(size_t)CommonMessages::apply] = u"Apply";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
@@ -155,6 +157,8 @@ void MessageResources::fillMessagesEN() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
@@ -163,6 +167,8 @@ void MessageResources::fillMessagesEN() {
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
   tileColors[(size_t)TileColors::red] = u"Red";
   tileColors[(size_t)TileColors::orange] = u"Orange";
@@ -299,6 +305,8 @@ void MessageResources::fillMessagesEN() {
 
 void MessageResources::fillMessagesFR() {
   common[(size_t)CommonMessages::disabled] = u"Désactiver";
+  common[(size_t)CommonMessages::ok] = u"OK";
+  common[(size_t)CommonMessages::cancel] = u"Annuler";
   common[(size_t)CommonMessages::apply] = u"Appliquer";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
@@ -413,6 +421,8 @@ void MessageResources::fillMessagesFR() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
@@ -421,6 +431,8 @@ void MessageResources::fillMessagesFR() {
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
   tileColors[(size_t)TileColors::red] = u"Red";
   tileColors[(size_t)TileColors::orange] = u"Orange";
@@ -557,6 +569,8 @@ void MessageResources::fillMessagesFR() {
 
 void MessageResources::fillMessagesDE() {
   common[(size_t)CommonMessages::disabled] = u"Deaktiviert";
+  common[(size_t)CommonMessages::ok] = u"OK";
+  common[(size_t)CommonMessages::cancel] = u"Abbrechen";
   common[(size_t)CommonMessages::apply] = u"Anwenden";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"BpS";
@@ -671,6 +685,8 @@ void MessageResources::fillMessagesDE() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
@@ -679,6 +695,8 @@ void MessageResources::fillMessagesDE() {
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
   tileColors[(size_t)TileColors::red] = u"Red";
   tileColors[(size_t)TileColors::orange] = u"Orange";
@@ -815,6 +833,8 @@ void MessageResources::fillMessagesDE() {
 
 void MessageResources::fillMessagesES() {
   common[(size_t)CommonMessages::disabled] = u"Desactivado";
+  common[(size_t)CommonMessages::ok] = u"Aceptar";
+  common[(size_t)CommonMessages::cancel] = u"Cancelar";
   common[(size_t)CommonMessages::apply] = u"Aplicar";
   common[(size_t)CommonMessages::maximum] = u"máximo";
   common[(size_t)CommonMessages::fps] = u"fps";
@@ -929,6 +949,8 @@ void MessageResources::fillMessagesES() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
+  profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
@@ -937,6 +959,8 @@ void MessageResources::fillMessagesES() {
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
+  profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
   tileColors[(size_t)TileColors::red] = u"Red";
   tileColors[(size_t)TileColors::orange] = u"Orange";
