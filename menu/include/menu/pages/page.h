@@ -118,7 +118,10 @@ namespace menu {
       inline uint32_t contentHeight() const noexcept {
         return tooltip.width() ? static_cast<uint32_t>(tooltip.y() - scrollbar.y()) : scrollbar.height();
       }
+
       inline bool isPopupOpen() const noexcept { return (openPopup != nullptr); }
+      inline bool isControllerUsed() const noexcept { return isControllerUsed_; }
+      inline void setControllerUsed(bool isUsed) noexcept { isControllerUsed_ = isUsed; }
 
       // -- window event --
       
@@ -175,7 +178,7 @@ namespace menu {
     protected:
       Page(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
            const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
-           bool enableTooltip, bool enableHoverMesh);
+           bool enableTooltip, bool enableHoverMesh, uint32_t bottomBarHeight = 0);
 
       void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
       inline void moveScrollbarThumb(int32_t bottomY) {
@@ -219,8 +222,10 @@ namespace menu {
 
       int32_t findActiveControlIndex(int32_t mouseX, int32_t mouseY) const noexcept;
       void selectControlIndex(uint32_t controlIndex);
-      void selectPreviousControlIndex();
-      void selectNextControlIndex();
+      void selectPreviousLineControl();
+      void selectPreviousSameLineControl();
+      void selectNextLineControl();
+      void selectNextSameLineControl();
       void adaptControlSelection(int32_t controlIndex, ControlRegistration* control);
       static constexpr inline int32_t noControlSelection() noexcept { return -1; }
 
@@ -236,6 +241,7 @@ namespace menu {
       controls::Tooltip tooltip;
       int32_t scrollY = 0;
       uint32_t pageHeight = 0;
+      uint32_t bottomBarHeight = 0;
 
       display::controls::ControlMesh backgroundMesh;
       display::controls::ControlMesh controlHoverMesh;
@@ -245,6 +251,8 @@ namespace menu {
       int32_t mouseX_ = -1;
       int32_t mouseY_ = -1;
       bool isMouseDown_ = false;
+      bool isControllerUsed_ = false;
+
       controls::Popup* openPopup = nullptr;
       controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
     };

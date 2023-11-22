@@ -134,6 +134,8 @@ namespace menu {
     createProfile,
     editProfile,
     deleteProfile,
+    select,
+    create,
     removePopupTitle,
     removePopupMessage,
     COUNT

@@ -36,7 +36,7 @@ void Label::init(RendererContext& context, const char16_t* label, int32_t x, int
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), labelX, labelY, align);
 
   // create icon
-  if (iconData.texture() == nullptr) {
+  if (iconData.texture() != nullptr) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconData.width() - (int32_t)Control::labelMargin();
     const int32_t iconY = labelY - ((int32_t)iconData.height() - (int32_t)labelFont.XHeight())/2;
     iconMesh = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),

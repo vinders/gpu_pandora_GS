@@ -20,6 +20,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/controls/ruler.h"
 #include "menu/controls/slider.h"
 #include "menu/controls/key_binding.h"
+#include "menu/controls/tile.h"
 #include "menu/controls/popup.h"
 #include "menu/controls/geometry_generator.h"
 #include "menu/pages/page.h"
@@ -61,10 +62,11 @@ static ControlMesh generateBackground(RendererContext& context, const ColorTheme
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
            const ColorTheme& theme, int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight,
-           bool enableTooltip, bool enableHoverMesh)
+           bool enableTooltip, bool enableHoverMesh, uint32_t bottomBarHeight)
   : context(std::move(context_)),
     buffers(std::move(buffers_)),
     scrollY(0),
+    bottomBarHeight(bottomBarHeight),
     activeControlIndex(noControlSelection()),
     backgroundType(theme.backgroundStyle()) {
   assert(this->context != nullptr && this->buffers != nullptr);
@@ -81,6 +83,8 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
     tooltip = Tooltip(*context, u" ", FontType::inputText, LabelBufferType::regular,
                       x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(),
                       width, Control::tooltipBarHeight(), theme.tooltipControlColor(), display::ControlIconType::none);
+    if (tooltip.height() > this->bottomBarHeight)
+      this->bottomBarHeight = tooltip.height();
   }
 
   // create page background
@@ -286,6 +290,8 @@ int32_t Page::findActiveControlIndex(int32_t mouseX, int32_t mouseY) const noexc
   return (controlRegistry[low].compareLocation(mouseX, mouseY, scrollY) == 0) ? low : noControlSelection();
 }
 
+// ---
+
 void Page::selectControlIndex(uint32_t controlIndex) {
   if (controlIndex >= (uint32_t)controlRegistry.size()
   || controlRegistry[controlIndex].controlStatus(0,0,0) == ControlStatus::disabled)
@@ -299,59 +305,166 @@ void Page::selectControlIndex(uint32_t controlIndex) {
   adaptControlSelection((int32_t)controlIndex, &controlRegistry[controlIndex]);
 }
 
-void Page::selectPreviousControlIndex() {
+void Page::selectPreviousLineControl() {
   if (controlRegistry.empty())
     return;
   if (openControl != nullptr) {
     openControl->control()->close();
     openControl = nullptr;
   }
-
   if (activeControlIndex == 0) { // top entry -> no previous -> deselect
     onHover(noControlSelection());
+    return;
   }
-  else { // select previous entry (selected from key/pad)
-    int32_t controlIndex = (activeControlIndex != noControlSelection())
-                         ? (activeControlIndex - 1) : static_cast<int32_t>(controlRegistry.size() - 1u);
-    auto* control = &controlRegistry[controlIndex];
-    while (controlIndex >= 0 && (control->isFixed() || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
-      --controlIndex;
-      --control;
-    }
-    if (controlIndex < 0)
-      controlIndex = noControlSelection();
-    onHover(controlIndex);
+  
+  // select previous entry (selected from keyboard/pad)
+  int32_t controlIndex, maxAlignedX, limitY;
+  if (activeControlIndex != noControlSelection()) {
+    controlIndex = activeControlIndex - 1;
+    auto* currentControl = &controlRegistry[activeControlIndex];
+    maxAlignedX = currentControl->x() - (int32_t)(Control::lineHoverPaddingX()); // horizontal limit (same row)
+    limitY = currentControl->y() - (int32_t)(Control::pageLineHeight() >> 1); // vertical limit (same line)
+  }
+  else { // no current selection -> select last
+    controlIndex = static_cast<int32_t>(controlRegistry.size() - 1u);
+    maxAlignedX = controlRegistry[0].x() - (int32_t)(controlRegistry[0].width() >> 1);
+    limitY = 0x7FFFFFFF; // no limit (max positive value)
+  }
 
-    adaptControlSelection(controlIndex, control);
+  // search for any allowed control in a previous line
+  auto* control = &controlRegistry[controlIndex];
+  while (controlIndex >= 0 && (control->isFixed()
+                            || control->y() > limitY
+                            || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
+    --controlIndex;
+    --control;
   }
+  if (controlIndex < 0) { // not found -> deselect
+    onHover(noControlSelection());
+    return;
+  }
+
+  // if multiple controls are on previous line, try to find the one with the best alignment
+  limitY = control->y() - (int32_t)(Control::pageLineHeight() >> 1);
+  auto* prevControl = control - 1;
+  while (controlIndex > 0 && prevControl->y() > limitY && prevControl->x() > maxAlignedX
+          && !prevControl->isFixed() && prevControl->controlStatus(0,0,0) != ControlStatus::disabled) {
+    --controlIndex;
+    --control;
+    --prevControl;
+  }
+
+  onHover(controlIndex);
+  adaptControlSelection(controlIndex, control);
 }
 
-void Page::selectNextControlIndex() {
+void Page::selectPreviousSameLineControl() {
+  // no controls -or- no selection -> exit
+  if (controlRegistry.empty() || activeControlIndex == noControlSelection())
+    return;
+  if (openControl != nullptr) {
+    openControl->control()->close();
+    openControl = nullptr;
+  }
+  if (activeControlIndex == 0) // top entry -> no previous -> exit
+    return;
+
+  int32_t controlIndex = activeControlIndex - 1;
+  auto* control = &controlRegistry[controlIndex];
+  const int32_t limitY = (control + 1)->y() - (int32_t)(Control::pageLineHeight() >> 1); // vertical limit (same line)
+
+  while (controlIndex >= 0 && control->y() > limitY // search for any allowed control in the same line
+      && (control->isFixed() || control->controlStatus(0, 0, 0) == ControlStatus::disabled)) {
+    --controlIndex;
+    --control;
+  }
+  if (controlIndex < 0 || control->y() <= limitY) // not found -or- previous line -> exit
+    return;
+
+  onHover(controlIndex);
+  adaptControlSelection(controlIndex, control);
+}
+
+void Page::selectNextLineControl() {
   if (controlRegistry.empty())
     return;
   if (openControl != nullptr) {
     openControl->control()->close();
     openControl = nullptr;
   }
-
   if (activeControlIndex >= static_cast<int32_t>(controlRegistry.size() - 1u)) { // bottom entry -> no next -> deselect
     onHover(noControlSelection());
+    return;
   }
-  else { // select next entry (selected from key/pad)
-    int32_t controlIndex = (activeControlIndex != noControlSelection()) ? (activeControlIndex + 1) : 0;
-    auto* control = &controlRegistry[controlIndex];
-    while (controlIndex < (int32_t)controlRegistry.size()
-       && (control->isFixed() || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
-      ++controlIndex;
-      ++control;
-    }
-    if (controlIndex >= (int32_t)controlRegistry.size())
-      controlIndex = noControlSelection();
-    onHover(controlIndex);
+  
+  // select next entry (selected from keyboard/pad)
+  int32_t controlIndex, maxAlignedX, limitY;
+  if (activeControlIndex != noControlSelection()) {
+    controlIndex = activeControlIndex + 1;
+    auto* currentControl = &controlRegistry[activeControlIndex];
+    maxAlignedX = currentControl->x() + (int32_t)(Control::lineHoverPaddingX()); // horizontal limit (same row)
+    limitY = currentControl->y() + (int32_t)(Control::pageLineHeight() >> 1); // vertical limit (same line)
+  }
+  else { // no current selection -> select first
+    controlIndex = 0;
+    maxAlignedX = controlRegistry[0].x() + (int32_t)(Control::lineHoverPaddingX());
+    limitY = 0X80000000; // no limit (min negative value)
+  }
 
-    adaptControlSelection(controlIndex, control);
+  // search for any allowed control in a next line
+  auto* control = &controlRegistry[controlIndex];
+  while (controlIndex < (int32_t)controlRegistry.size()
+      && (control->isFixed() || control->y() <= limitY || control->controlStatus(0,0,0) == ControlStatus::disabled)) {
+    ++controlIndex;
+    ++control;
   }
+  if (controlIndex >= (int32_t)controlRegistry.size()) { // not found -> deselect
+    onHover(noControlSelection());
+    return;
+  }
+
+  // if multiple controls are on next line, try to find the one with the best alignment
+  limitY = control->y() + (int32_t)(Control::pageLineHeight() >> 1);
+  auto* nextControl = control + 1;
+  while (controlIndex < (int32_t)controlRegistry.size() - 1 && nextControl->y() <= limitY && nextControl->x() <= maxAlignedX
+          && !nextControl->isFixed() && nextControl->controlStatus(0,0,0) != ControlStatus::disabled) {
+    ++controlIndex;
+    ++control;
+    ++nextControl;
+  }
+
+  onHover(controlIndex);
+  adaptControlSelection(controlIndex, control);
 }
+
+void Page::selectNextSameLineControl() {
+  // no controls -or- no selection -or- selection is last item -> exit
+  if (controlRegistry.empty() || activeControlIndex == noControlSelection())
+    return;
+  if (openControl != nullptr) {
+    openControl->control()->close();
+    openControl = nullptr;
+  }
+  if (activeControlIndex == static_cast<int32_t>(controlRegistry.size() - 1u)) // bottom entry -> no next -> exit
+    return;
+
+  int32_t controlIndex = activeControlIndex + 1;
+  auto* control = &controlRegistry[controlIndex];
+  const int32_t limitY = (control - 1)->y() + (int32_t)(Control::pageLineHeight() >> 1); // vertical limit (same line)
+
+  while (controlIndex < (int32_t)controlRegistry.size() && control->y() <= limitY
+      && control->isFixed() && control->controlStatus(0, 0, 0) == ControlStatus::disabled) {
+    ++controlIndex;
+    ++control;
+  }
+  if (controlIndex >= (int32_t)controlRegistry.size() || control->y() > limitY) // not found -or- next line -> exit
+    return;
+
+  onHover(controlIndex);
+  adaptControlSelection(controlIndex, control);
+}
+
+// ---
 
 void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* control) {
   if (controlIndex != noControlSelection()) {
@@ -362,15 +475,10 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
                                            ? controlTopLevel - Control::autoScrollPaddingY() : 0);
       }
       else {
-        const uint32_t tooltipHeight = tooltip.width() ? tooltip.height() : 0;
         const uint32_t controlBottomLevel = static_cast<uint32_t>(control->bottomY() - scrollbar.y());
-        if (controlBottomLevel >= scrollbar.visibleBottom() - tooltipHeight)
-          scrollbar.setBottomPosition(*context, controlBottomLevel + Control::autoScrollPaddingY() + tooltipHeight);
+        if (controlBottomLevel >= scrollbar.visibleBottom() - bottomBarHeight)
+          scrollbar.setBottomPosition(*context, controlBottomLevel + Control::autoScrollPaddingY() + bottomBarHeight);
       }
-    }
-    if (control->control()->type() == ControlType::textBox) { // automatic focus if text-box
-      if (control->control()->click(*context, TextBox::noMouseCoord(), TextBox::noMouseCoord()))
-        openControl = control;
     }
   }
 }
@@ -379,6 +487,7 @@ void Page::adaptControlSelection(int32_t controlIndex, ControlRegistration* cont
 
 void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   isMouseDown_ = true;
+  isControllerUsed_ = false;
 
   // click on scrollbar
   if (scrollbar.isEnabled() && mouseX >= scrollbar.x()) {
@@ -419,19 +528,19 @@ void Page::mouseClick(int32_t mouseX, int32_t mouseY) {
   }
   // click on page control
   else {
-  int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
-  if (controlIndex != noControlSelection()) {
-    auto* activeControl = &controlRegistry[controlIndex];
-    if (activeControl->control()->click(*context, mouseX, mouseY)) {
-      openControl = activeControl;
+    int32_t controlIndex = findActiveControlIndex(mouseX, mouseY);
+    if (controlIndex != noControlSelection()) {
+      auto* activeControl = &controlRegistry[controlIndex];
+      if (activeControl->control()->click(*context, mouseX, mouseY)) {
+        openControl = activeControl;
 
-      // adjust visibility if combo-box longer than page size
-      if (openControl->control()->type() == ControlType::comboBox) {
-        const auto* target = reinterpret_cast<const ComboBox*>(openControl->control());
-        expandScrollArea(target->y() + (int32_t)target->height());
+        // adjust visibility if combo-box longer than page size
+        if (openControl->control()->type() == ControlType::comboBox) {
+          const auto* target = reinterpret_cast<const ComboBox*>(openControl->control());
+          expandScrollArea(target->y() + (int32_t)target->height());
+        }
       }
     }
-  }
   }
 }
 
@@ -449,6 +558,7 @@ void Page::mouseButton(int32_t, int32_t, MouseButton button) {
 void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
   this->mouseX_ = mouseX;
   this->mouseY_ = mouseY;
+  isControllerUsed_ = false;
 
   // moving while dragging scrollbar
   if (scrollbar.isDragged()) {
@@ -513,6 +623,7 @@ void Page::keyDown(char32_t keyCode) {
 }
 
 bool Page::vkeyDown(uint32_t virtualKeyCode) {
+  isControllerUsed_ = false;
   if (openPopup != nullptr) {
     switch (virtualKeyCode) {
       case _P_VK_ARROW_UP:
@@ -555,8 +666,8 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
               target->click(*context, TextBox::noMouseCoord(), TextBox::noMouseCoord()); // keep focus
             break;
           case _P_VK_TAB:
-          case _P_VK_ARROW_DOWN: selectNextControlIndex(); break;        // move to next control
-          case _P_VK_ARROW_UP: selectPreviousControlIndex(); break;      // move to previous control
+          case _P_VK_ARROW_DOWN: selectNextLineControl(); break;    // move to next control line
+          case _P_VK_ARROW_UP: selectPreviousLineControl(); break;  // move to previous control line
           default: break;
         }
       }
@@ -613,9 +724,8 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
           auto controlType = control->control()->type();
-          if (controlType == ControlType::button || controlType == ControlType::checkBox
-           || controlType == ControlType::comboBox || controlType == ControlType::keyBinding) {
-            if (control->control()->click(*context, control->rightX() - control->height() - 10, control->y())) {
+          if (controlType != ControlType::textBox && controlType != ControlType::ruler && controlType != ControlType::slider) {
+            if (control->control()->click(*context, control->rightX() - (int32_t)(control->width() >> 1), control->y())) {
               if (control->control()->type() == ControlType::comboBox) {
                 const auto* target = reinterpret_cast<const ComboBox*>(control->control());
                 expandScrollArea(target->y() + (int32_t)target->height());
@@ -626,8 +736,8 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
         }
         break;
       case _P_VK_TAB:
-      case _P_VK_ARROW_DOWN: selectNextControlIndex(); break;   // move to next control
-      case _P_VK_ARROW_UP: selectPreviousControlIndex(); break; // move to previous control
+      case _P_VK_ARROW_DOWN: selectNextLineControl(); break;   // move to next control line
+      case _P_VK_ARROW_UP: selectPreviousLineControl(); break; // move to previous control line
       case _P_VK_ARROW_LEFT:
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
@@ -636,7 +746,10 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
             reinterpret_cast<Ruler*>(control->control())->selectPrevious(*context);
           else if (controlType == ControlType::slider)
             reinterpret_cast<Slider*>(control->control())->selectPrevious();
+          else
+            selectPreviousSameLineControl(); // move to previous control on same line (if any)
         }
+        else selectPreviousSameLineControl(); // move to previous control on same line (if any)
         break;
       case _P_VK_ARROW_RIGHT:
         if (activeControlIndex != noControlSelection()) {
@@ -646,15 +759,29 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
             reinterpret_cast<Ruler*>(control->control())->selectNext(*context);
           else if (controlType == ControlType::slider)
             reinterpret_cast<Slider*>(control->control())->selectNext();
+          else
+            selectNextSameLineControl(); // move to next control on same line (if any)
         }
+        else selectNextSameLineControl(); // move to next control on same line (if any)
         break;
       case _P_VK_DELETE:
-      case _P_VK_BACKSPACE:
         if (activeControlIndex != noControlSelection()) {
           auto* control = &controlRegistry[activeControlIndex];
-          if (control->control()->type() == ControlType::keyBinding) { // clear binding
+          auto controlType = control->control()->type();
+          if (controlType == ControlType::keyBinding) { // clear binding
             reinterpret_cast<KeyBinding*>(control->control())->setKeyboardValue(*context, KeyBinding::emptyKeyValue());
             reinterpret_cast<KeyBinding*>(control->control())->setControllerValue(*context, KeyBinding::emptyKeyValue());
+          }
+          else if (controlType == ControlType::tile) {
+            reinterpret_cast<Tile*>(control->control())->remove();
+          }
+        }
+        break;
+      case _P_VK_SPACE:
+        if (activeControlIndex != noControlSelection()) {
+          auto* control = &controlRegistry[activeControlIndex];
+          if (control->control()->type() == ControlType::tile) {
+            reinterpret_cast<Tile*>(control->control())->edit();
           }
         }
         break;
@@ -665,6 +792,7 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
 }
 
 void Page::padButtonDown(uint32_t virtualKeyCode) {
+  isControllerUsed_ = true;
   if (openControl != nullptr && openPopup == nullptr) {
     auto controlType = openControl->control()->type();
     if (controlType == ControlType::textBox) {
@@ -691,10 +819,9 @@ void Page::padButtonDown(uint32_t virtualKeyCode) {
     case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008: vkeyDown(_P_VK_ARROW_RIGHT); break;
     case /*XINPUT_GAMEPAD_BACK*/0x0020: vkeyDown(_P_VK_BACKSPACE); break;
     case /*XINPUT_GAMEPAD_START*/0x0010:
-    case /*XINPUT_GAMEPAD_A*/0x1000:
-    case /*XINPUT_GAMEPAD_X*/0x4000: vkeyDown(_P_VK_ENTER); break;
-    case /*XINPUT_GAMEPAD_B*/0x2000:
-    case /*XINPUT_GAMEPAD_Y*/0x8000: vkeyDown(_P_VK_DELETE); break;
+    case /*XINPUT_GAMEPAD_A*/0x1000: vkeyDown(_P_VK_ENTER); break;
+    case /*XINPUT_GAMEPAD_B*/0x2000: vkeyDown(_P_VK_DELETE); break;
+    case /*XINPUT_GAMEPAD_Y*/0x8000: vkeyDown(_P_VK_SPACE); break;
     default: break;
   }
 }

@@ -157,6 +157,8 @@ void MessageResources::fillMessagesEN() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
+  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -421,6 +423,8 @@ void MessageResources::fillMessagesFR() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
+  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -685,6 +689,8 @@ void MessageResources::fillMessagesDE() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
+  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -949,6 +955,8 @@ void MessageResources::fillMessagesES() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
+  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
+  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   

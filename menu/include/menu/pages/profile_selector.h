@@ -22,6 +22,7 @@ GNU General Public License for more details (LICENSE file).
 #include "menu/message_resources.h"
 #include "menu/renderer_state_buffers.h"
 #include "menu/controls/button.h"
+#include "menu/controls/label.h"
 #include "menu/controls/tile.h"
 #include "menu/controls/popup.h"
 #include "menu/pages/page.h"
@@ -34,7 +35,7 @@ namespace menu {
                       const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
                       int32_t x, int32_t y, uint32_t width, uint32_t height,
                       uint32_t activeProfileId, std::vector<ConfigProfile>& profiles)
-        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false),
+        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false, buttonBarHeight()),
         theme(theme),
         profiles(&profiles),
         activeProfileId(activeProfileId) {
@@ -60,6 +61,7 @@ namespace menu {
       void onProfileRemoved(uint32_t popupAction);
       void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
+      static constexpr inline uint32_t buttonBarHeight() noexcept { return 33; }
 
       uint32_t getProfileIndex(uint32_t id) const noexcept;
       static constexpr inline uint32_t notFound() noexcept { return 0xFFFFFFFFu; }
@@ -78,6 +80,11 @@ namespace menu {
       controls::Button editProfile;
       controls::Button deleteProfile;
       bool isDeleteEnabled = true;
+
+      controls::Label selectProfileControllerInfo;
+      controls::Label createProfileControllerInfo;
+      controls::Label editProfileControllerInfo;
+      controls::Label deleteProfileControllerInfo;
 
       controls::Popup confirmationPopup;
     };

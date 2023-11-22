@@ -237,7 +237,7 @@ void Tile::drawBackground(RendererContext& context, int32_t mouseX, int32_t mous
   if (isActive) {
     ControlBufferType deleteType = ControlBufferType::regular;
     ControlBufferType editType = ControlBufferType::regular;
-    if (mouseX >= deleteMesh.x()) {
+    if (mouseX >= deleteMesh.x() && mouseY >= controlMesh.y() && mouseY < controlMesh.y() + (int32_t)controlMesh.height()) {
       if (mouseY < editMesh.y()) // delete hover
         deleteType =  ControlBufferType::active;
       else // edit hover

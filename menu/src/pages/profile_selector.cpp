@@ -78,8 +78,6 @@ static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHe
 #define EDIT_PROFILE_ID   2
 #define DELETE_PROFILE_ID 3
 
-#define BUTTON_BAR_HEIGHT 31
-
 void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width) {
   const uint32_t marginX = Control::fieldsetMarginX(width);
   const uint32_t controlX = x + (int32_t)marginX;
@@ -88,7 +86,7 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
   int32_t currentLineY = title.y() + (int32_t)title.height() + (int32_t)Control::pageLineHeight();
 
   // create tiles
-  auto grid = computeTileGrid(width - (marginX << 1), height() - (uint32_t)(currentLineY - y) - (uint32_t)BUTTON_BAR_HEIGHT,
+  auto grid = computeTileGrid(width - (marginX << 1), height() - (uint32_t)(currentLineY - y) - buttonBarHeight(),
                               context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
   std::vector<ControlRegistration> registry;
   registry.reserve(profiles->size() + 3u);
@@ -122,7 +120,7 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none,
                                     theme->buttonControlColor(), theme->buttonBorderColor(), 0, 0,
                                     Control::buttonPaddingX(), Control::comboBoxPaddingY());
-  int32_t buttonLabelY = y + (int32_t)height() - (int32_t)BUTTON_BAR_HEIGHT + (int32_t)Control::comboBoxPaddingY() + 4u;
+  int32_t buttonLabelY = y + (int32_t)height() - (int32_t)buttonBarHeight() + (int32_t)Control::comboBoxPaddingY() + 4u;
   if (buttonLabelY > currentLineY + (int32_t)Control::controlSideMargin())
     buttonLabelY = currentLineY + (int32_t)Control::controlSideMargin();
   auto buttonActionHandler = std::bind(&ProfileSelector::onButtonAction,this,std::placeholders::_1);
@@ -144,7 +142,20 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
   registry.emplace_back(createProfile, false);
   registry.emplace_back(editProfile, false);
   registry.emplace_back(deleteProfile, false);
-  currentLineY += (int32_t)BUTTON_BAR_HEIGHT;
+  currentLineY += (int32_t)buttonBarHeight();
+
+  // controller action info
+  selectProfileControllerInfo = Label(*context, localizedText.getMessage(ProfileSelectorMessages::select),
+                                      controlX, buttonLabelY, TextAlignment::left, ControlIconType::buttonCross);
+  createProfileControllerInfo = Label(*context, localizedText.getMessage(ProfileSelectorMessages::create),
+                                      selectProfileControllerInfo.x() + (int32_t)selectProfileControllerInfo.width()
+                                      + (int32_t)Control::controlSideMargin() + (int32_t)Control::buttonPaddingX(),
+                                      buttonLabelY, TextAlignment::left, ControlIconType::buttonSquare);
+  deleteProfileControllerInfo = Label(*context, localizedText.getMessage(ProfileSelectorMessages::deleteProfile),
+                                      controlX + (int32_t)grid.gridWidth, buttonLabelY, TextAlignment::right, ControlIconType::buttonCircle);
+  editProfileControllerInfo = Label(*context, localizedText.getMessage(ProfileSelectorMessages::editProfile),
+                                    deleteProfileControllerInfo.x() - (int32_t)Control::controlSideMargin() - (int32_t)Control::buttonPaddingX(),
+                                    buttonLabelY, TextAlignment::right, ControlIconType::buttonTriangle);
 
   // control registry
   Page::moveScrollbarThumb(currentLineY);
@@ -165,6 +176,11 @@ ProfileSelector::~ProfileSelector() noexcept {
   createProfile.release();
   editProfile.release();
   deleteProfile.release();
+
+  selectProfileControllerInfo.release();
+  createProfileControllerInfo.release();
+  editProfileControllerInfo.release();
+  deleteProfileControllerInfo.release();
 }
 
 
@@ -179,7 +195,7 @@ void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   int32_t currentLineY = title.y() + (int32_t)title.height() + (int32_t)Control::pageLineHeight();
 
   // tiles
-  auto grid = computeTileGrid(width - (marginX << 1), height - (uint32_t)(currentLineY - y) - (uint32_t)BUTTON_BAR_HEIGHT,
+  auto grid = computeTileGrid(width - (marginX << 1), height - (uint32_t)(currentLineY - y) - buttonBarHeight(),
                               context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
   std::vector<ControlRegistration> registry;
   registry.reserve(profiles->size() + 3u);
@@ -203,7 +219,7 @@ void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height
     currentLineY += (int32_t)grid.tileHeight + 1;
 
   // action buttons
-  int32_t buttonLabelY = y + (int32_t)height - (int32_t)BUTTON_BAR_HEIGHT + (int32_t)Control::comboBoxPaddingY() + 4u;
+  int32_t buttonLabelY = y + (int32_t)height - (int32_t)buttonBarHeight() + (int32_t)Control::comboBoxPaddingY() + 4u;
   if (buttonLabelY > currentLineY + (int32_t)Control::controlSideMargin())
     buttonLabelY = currentLineY + (int32_t)Control::controlSideMargin();
   createProfile.move(*context, controlX, buttonLabelY);
@@ -212,7 +228,14 @@ void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   registry.emplace_back(createProfile, false);
   registry.emplace_back(editProfile, false);
   registry.emplace_back(deleteProfile, false);
-  currentLineY += (int32_t)BUTTON_BAR_HEIGHT;
+  currentLineY += (int32_t)buttonBarHeight();
+
+  selectProfileControllerInfo.move(*context, controlX, buttonLabelY);
+  createProfileControllerInfo.move(*context, selectProfileControllerInfo.x() + (int32_t)selectProfileControllerInfo.width()
+                                   + (int32_t)Control::controlSideMargin() + (int32_t)Control::buttonPaddingX(), buttonLabelY);
+  deleteProfileControllerInfo.move(*context, controlX + (int32_t)grid.gridWidth - (int32_t)deleteProfileControllerInfo.width(), buttonLabelY);
+  editProfileControllerInfo.move(*context, deleteProfileControllerInfo.x() - editProfileControllerInfo.width()
+                                 - (int32_t)Control::controlSideMargin() - (int32_t)Control::buttonPaddingX(), buttonLabelY);
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
   registerControls(std::move(registry));
@@ -290,32 +313,42 @@ void ProfileSelector::drawIcons() {
   if (!buffers->isFixedLocationBuffer())
     buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), height()));
 
-  auto* hoverControl = getActiveControl();
-  createProfile.drawIcon(*context, *buffers, (hoverControl == &createProfile));
-  editProfile.drawIcon(*context, *buffers, (hoverControl == &editProfile));
-  deleteProfile.drawIcon(*context, *buffers, (hoverControl == &deleteProfile));
+  if (isControllerUsed()) {
+    selectProfileControllerInfo.drawIcon(*context, *buffers);
+    createProfileControllerInfo.drawIcon(*context, *buffers);
+    editProfileControllerInfo.drawIcon(*context, *buffers);
+    deleteProfileControllerInfo.drawIcon(*context, *buffers);
+  }
+  else {
+    auto* hoverControl = getActiveControl();
+    createProfile.drawIcon(*context, *buffers, (hoverControl == &createProfile));
+    editProfile.drawIcon(*context, *buffers, (hoverControl == &editProfile));
+    deleteProfile.drawIcon(*context, *buffers, (hoverControl == &deleteProfile));
+  }
 }
 
 void ProfileSelector::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   // scrollable geometry
   if (buffers->isFixedLocationBuffer())
-    buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight() - BUTTON_BAR_HEIGHT));
+    buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight() - buttonBarHeight()));
 
   auto* hoverControl = getActiveControl();
   for (auto& tile : profileTiles)
     tile.drawBackground(*context, mouseX, mouseY, *buffers, (activeProfileId == tile.id()), (hoverControl == &tile));
 
-  buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), height()));
-  createProfile.drawBackground(*context, *buffers, (hoverControl == &createProfile), isMouseDown());
-  editProfile.drawBackground(*context, *buffers, (hoverControl == &editProfile), isMouseDown());
-  deleteProfile.drawBackground(*context, *buffers, (hoverControl == &deleteProfile), isMouseDown());
+  if (!isControllerUsed()) {
+    buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), height()));
+    createProfile.drawBackground(*context, *buffers, (hoverControl == &createProfile), isMouseDown());
+    editProfile.drawBackground(*context, *buffers, (hoverControl == &editProfile), isMouseDown());
+    deleteProfile.drawBackground(*context, *buffers, (hoverControl == &deleteProfile), isMouseDown());
+  }
 }
 
 void ProfileSelector::drawPageLabels() {
   // scrollable geometry
   auto& renderer = context->renderer();
   if (buffers->isFixedLocationBuffer())
-    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(x(), y(), width(), contentHeight() - BUTTON_BAR_HEIGHT));
+    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(x(), y(), width(), contentHeight() - buttonBarHeight()));
 
   buffers->bindLabelBuffer(renderer, LabelBufferType::title);
   title.draw(renderer);
@@ -325,7 +358,15 @@ void ProfileSelector::drawPageLabels() {
     tile.drawLabel(*context, *buffers, (activeProfileId == tile.id()), (hoverControl == &tile));
 
   buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), height()));
-  createProfile.drawLabel(*context, *buffers, (hoverControl == &createProfile));
-  editProfile.drawLabel(*context, *buffers, (hoverControl == &editProfile));
-  deleteProfile.drawLabel(*context, *buffers, (hoverControl == &deleteProfile));
+  if (isControllerUsed()) {
+    selectProfileControllerInfo.drawLabel(*context, *buffers);
+    createProfileControllerInfo.drawLabel(*context, *buffers);
+    editProfileControllerInfo.drawLabel(*context, *buffers);
+    deleteProfileControllerInfo.drawLabel(*context, *buffers);
+  }
+  else {
+    createProfile.drawLabel(*context, *buffers, (hoverControl == &createProfile));
+    editProfile.drawLabel(*context, *buffers, (hoverControl == &editProfile));
+    deleteProfile.drawLabel(*context, *buffers, (hoverControl == &deleteProfile));
+  }
 }
