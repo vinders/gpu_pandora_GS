@@ -313,14 +313,16 @@ void ProfileSelector::drawIcons() {
   if (!buffers->isFixedLocationBuffer())
     buffers->bindFixedLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), height()));
 
+  auto* hoverControl = getActiveControl();
   if (isControllerUsed()) {
     selectProfileControllerInfo.drawIcon(*context, *buffers);
     createProfileControllerInfo.drawIcon(*context, *buffers);
-    editProfileControllerInfo.drawIcon(*context, *buffers);
-    deleteProfileControllerInfo.drawIcon(*context, *buffers);
+    if (hoverControl != nullptr) {
+      editProfileControllerInfo.drawIcon(*context, *buffers);
+      deleteProfileControllerInfo.drawIcon(*context, *buffers);
+    }
   }
   else {
-    auto* hoverControl = getActiveControl();
     createProfile.drawIcon(*context, *buffers, (hoverControl == &createProfile));
     editProfile.drawIcon(*context, *buffers, (hoverControl == &editProfile));
     deleteProfile.drawIcon(*context, *buffers, (hoverControl == &deleteProfile));
@@ -361,8 +363,10 @@ void ProfileSelector::drawPageLabels() {
   if (isControllerUsed()) {
     selectProfileControllerInfo.drawLabel(*context, *buffers);
     createProfileControllerInfo.drawLabel(*context, *buffers);
-    editProfileControllerInfo.drawLabel(*context, *buffers);
-    deleteProfileControllerInfo.drawLabel(*context, *buffers);
+    if (hoverControl != nullptr) {
+      editProfileControllerInfo.drawLabel(*context, *buffers);
+      deleteProfileControllerInfo.drawLabel(*context, *buffers);
+    }
   }
   else {
     createProfile.drawLabel(*context, *buffers, (hoverControl == &createProfile));
