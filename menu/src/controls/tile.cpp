@@ -82,9 +82,9 @@ static bool formatLabel(const char16_t* label, char16_t topLine[MAX_NAME_LENGTH]
 }
 
 void Tile::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
-                uint32_t fixedWidth, uint32_t paddingY, const float backgroundColor[4]) {
-  auto& labelFont = context.getFont(FontType::labels);
-  const uint32_t height = labelFont.XHeight() + ((labelFont.XHeight() + paddingY) << 1);
+                uint32_t fixedWidth, const float backgroundColor[4], bool addButtons) {
+  auto& labelFont = context.getFont((fixedWidth >= Control::tileContentWidth()) ? FontType::labels : FontType::inputText);
+  const uint32_t height = labelFont.XHeight() + ((labelFont.XHeight() + Control::tilePaddingY()) << 1);
 
   // create label
   char16_t topLine[MAX_NAME_LENGTH];
@@ -127,42 +127,44 @@ void Tile::init(RendererContext& context, const char16_t* label, int32_t x, int3
   std::vector<uint32_t> indices = { 0,1,2,2,1,3,       2,3,4,4,3,5,       6,7,8,8,7,9,
                                     10,11,12,12,11,13, 14,15,16,16,15,17, 18,19,20,20,19,21 };
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                            x, labelY - (int32_t)paddingY, fixedWidth, height);
+                            x, labelY - (int32_t)Control::tilePaddingY(), fixedWidth, height);
   
-  // create delete button
-  constexpr const float buttonBorderFactor = borderFactor*1.2f;
-  float buttonBorderColor[4]{ backgroundColor[0]*buttonBorderFactor, backgroundColor[1]*buttonBorderFactor, backgroundColor[2]*buttonBorderFactor, 1.f };
-  const uint32_t buttonHeight = (height >> 1);
-  vertices = std::vector<ControlVertex>(static_cast<size_t>(8 + 8));
-  vertexIt = vertices.data();
-  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 1.f, (float)(buttonHeight - 1u), -1.f, -(float)buttonHeight); // background
-  vertexIt += 4;
-  GeometryGenerator::fillRectangleVertices(vertexIt, buttonBorderColor, 0.f, 1.f, -1.f, -(float)buttonHeight); // border left
-  vertexIt += 4;
-  constexpr const float iconFactor = borderFactor*borderFactor*borderFactor;
-  float iconColor[4]{ backgroundColor[0]*iconFactor, backgroundColor[1]*iconFactor, backgroundColor[2]*iconFactor, 1.f };
-  const uint32_t iconOffset = (buttonHeight >> 2) + 2u;
-  GeometryGenerator::fillCrossVertices(vertexIt, iconColor, (float)(iconOffset + 1u), (float)(buttonHeight - iconOffset + 1u),
-                                       -(float)iconOffset, -(float)(buttonHeight - iconOffset));
+  if (addButtons) {
+    // create delete button
+    constexpr const float buttonBorderFactor = borderFactor*1.2f;
+    float buttonBorderColor[4]{ backgroundColor[0]*buttonBorderFactor, backgroundColor[1]*buttonBorderFactor, backgroundColor[2]*buttonBorderFactor, 1.f };
+    const uint32_t buttonHeight = (height >> 1);
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(8 + 8));
+    vertexIt = vertices.data();
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 1.f, (float)(buttonHeight - 1u), -1.f, -(float)buttonHeight); // background
+    vertexIt += 4;
+    GeometryGenerator::fillRectangleVertices(vertexIt, buttonBorderColor, 0.f, 1.f, -1.f, -(float)buttonHeight); // border left
+    vertexIt += 4;
+    constexpr const float iconFactor = borderFactor*borderFactor*borderFactor;
+    float iconColor[4]{ backgroundColor[0]*iconFactor, backgroundColor[1]*iconFactor, backgroundColor[2]*iconFactor, 1.f };
+    const uint32_t iconOffset = (buttonHeight >> 2) + 2u;
+    GeometryGenerator::fillCrossVertices(vertexIt, iconColor, (float)(iconOffset + 1u), (float)(buttonHeight - iconOffset + 1u),
+                                         -(float)iconOffset, -(float)(buttonHeight - iconOffset));
 
-  indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11,  12,13,14,14,13,15 };
-  deleteMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                           x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y(), buttonHeight - 1u, buttonHeight - 1u);
+    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11,  12,13,14,14,13,15 };
+    deleteMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                             x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y(), buttonHeight - 1u, buttonHeight - 1u);
 
-  // create edit button
-  vertices = std::vector<ControlVertex>(static_cast<size_t>(11 + 8));
-  vertexIt = vertices.data();
-  GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 1.f, (float)(buttonHeight - 1u), 0.f, -(float)(buttonHeight - 1u)); // background
-  vertexIt += 4;
-  GeometryGenerator::fillRectangleVertices(vertexIt, buttonBorderColor, 0.f, 1.f, 0.f, -(float)(buttonHeight - 1u)); // border left
-  vertexIt += 4;
-  GeometryGenerator::fillPencilVertices(vertexIt, iconColor, (float)(iconOffset - 1u), (float)(buttonHeight - iconOffset + 2u),
-                                        -(float)(iconOffset - 2u), -(float)(buttonHeight - iconOffset + 1u));
+    // create edit button
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(11 + 8));
+    vertexIt = vertices.data();
+    GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 1.f, (float)(buttonHeight - 1u), 0.f, -(float)(buttonHeight - 1u)); // background
+    vertexIt += 4;
+    GeometryGenerator::fillRectangleVertices(vertexIt, buttonBorderColor, 0.f, 1.f, 0.f, -(float)(buttonHeight - 1u)); // border left
+    vertexIt += 4;
+    GeometryGenerator::fillPencilVertices(vertexIt, iconColor, (float)(iconOffset - 1u), (float)(buttonHeight - iconOffset + 2u),
+                                          -(float)(iconOffset - 2u), -(float)(buttonHeight - iconOffset + 1u));
 
-  indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11, 12,13,14,14,13,15, 16,17,18 };
-  editMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                         x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y() + (int32_t)buttonHeight,
-                         buttonHeight - 1u, buttonHeight - 1u);
+    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11, 12,13,14,14,13,15, 16,17,18 };
+    editMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                           x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y() + (int32_t)buttonHeight,
+                           buttonHeight - 1u, buttonHeight - 1u);
+  }
 }
 
 // ---
@@ -178,7 +180,6 @@ void Tile::move(RendererContext& context, int32_t x, int32_t labelY, uint32_t fi
     labelTopMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                       x + ((int32_t)fixedWidth - (int32_t)labelTopMesh.width())/2, labelY + 1u + (int32_t)labelTopMesh.height());
   
-  const uint32_t paddingY = (controlMesh.height() - labelTopMesh.height()*3u) >> 1;
   if (fixedWidth != controlMesh.width()) {
     std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
     ControlVertex* vertexIt = vertices.data() + 1;
@@ -192,16 +193,18 @@ void Tile::move(RendererContext& context, int32_t x, int32_t labelY, uint32_t fi
     GeometryGenerator::moveRectangleVerticesX(vertexIt, (float)(fixedWidth - 1), (float)fixedWidth);
 
     controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
-                       x, labelY - (int32_t)paddingY, fixedWidth, controlMesh.height());
+                       x, labelY - (int32_t)Control::tilePaddingY(), fixedWidth, controlMesh.height());
   }
   else
-    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - (int32_t)paddingY);
+    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - (int32_t)Control::tilePaddingY());
 
-  const uint32_t buttonHeight = (controlMesh.height() >> 1);
-  deleteMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                  x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y());
-  editMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y() + (int32_t)buttonHeight);
+  if (deleteMesh.width()) {
+    const uint32_t buttonHeight = (controlMesh.height() >> 1);
+    deleteMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                    x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y());
+    editMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                  x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y() + (int32_t)buttonHeight);
+  }
 }
 
 
@@ -213,7 +216,7 @@ ControlStatus Tile::getStatus(int32_t mouseX, int32_t mouseY) const noexcept {
 
 bool Tile::click(RendererContext&, int32_t mouseX, int32_t mouseY) {
   if (onChange != nullptr) {
-    if (mouseX >= deleteMesh.x()) {
+    if (deleteMesh.width() && mouseX >= deleteMesh.x()) {
       if (mouseY < editMesh.y()) // delete hover
         onChange(tileId, TileAction::remove);
       else // edit hover
@@ -234,7 +237,7 @@ void Tile::drawBackground(RendererContext& context, int32_t mouseX, int32_t mous
                                                          : (isSelected ? ControlBufferType::selectedTile : ControlBufferType::regular));
   controlMesh.draw(context.renderer());
   
-  if (isActive) {
+  if (isActive && deleteMesh.width()) {
     ControlBufferType deleteType = ControlBufferType::regular;
     ControlBufferType editType = ControlBufferType::regular;
     if (mouseX >= deleteMesh.x() && mouseY >= controlMesh.y() && mouseY < controlMesh.y() + (int32_t)controlMesh.height()) {

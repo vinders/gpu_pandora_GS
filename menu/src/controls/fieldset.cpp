@@ -84,6 +84,16 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyl
 
 // ---
 
+void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY) {
+  if (controlMesh.width() == 0)
+    return;
+  const int32_t paddingX = labelMesh.x() - controlMesh.x();
+  ++labelY;
+
+  controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - Control::fieldsetTitlePaddingY() - 1);
+  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + paddingX, labelY);
+}
+
 void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight) {
   if (controlMesh.width() == 0)
     return;

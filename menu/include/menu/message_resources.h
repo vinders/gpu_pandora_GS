@@ -39,6 +39,9 @@ namespace menu {
     ok,
     cancel,
     apply,
+    navigate,
+    select,
+    create,
     maximum,
     fps,
     left,
@@ -50,6 +53,20 @@ namespace menu {
     COUNT
   };
 
+  enum class MainMenuMessages : size_t { ///< Message types for main menu page
+    title = 0,
+    resume,
+    loadState,
+    saveState,
+    resetGame,
+    exitGame,
+    activeProfile,
+    activeSaveSlot,
+    recentProfiles,
+    resetPopupTitle,
+    resetPopupMessage,
+    COUNT
+  };
   enum class GeneralSettingsMessages : size_t { ///< Message types for general settings page
     title = 0,
     windowGroup, // window/display group
@@ -87,7 +104,7 @@ namespace menu {
     theme_blue,
     theme_green,
     theme_scifi,
-    theme_yellow,
+    theme_gold,
     theme_tooltip,
     language,
     language_tooltip,
@@ -134,8 +151,6 @@ namespace menu {
     createProfile,
     editProfile,
     deleteProfile,
-    select,
-    create,
     removePopupTitle,
     removePopupMessage,
     COUNT
@@ -274,6 +289,8 @@ namespace menu {
     /// @brief Message resources common to all UI pages
     inline const char16_t* getMessage(CommonMessages id) const noexcept { return common[(size_t)id]; }
 
+    /// @brief Message resources for main menu UI page
+    inline const char16_t* getMessage(MainMenuMessages id) const noexcept { return mainMenu[(size_t)id]; }
     /// @brief Message resources for general settings UI page
     inline const char16_t* getMessage(GeneralSettingsMessages id) const noexcept { return generalSettings[(size_t)id]; }
     /// @brief Message resources for hotkey bindings UI page - general
@@ -315,6 +332,7 @@ namespace menu {
   private:
     Message common[(size_t)CommonMessages::COUNT];
 
+    Message mainMenu[(size_t)MainMenuMessages::COUNT];
     Message generalSettings[(size_t)GeneralSettingsMessages::COUNT];
     Message hotkeyBindings[(size_t)HotkeyBindingsMessages::COUNT];
     Message hotkeyActions[(size_t)HotkeyActions::COUNT];

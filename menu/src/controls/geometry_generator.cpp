@@ -338,6 +338,24 @@ void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt,
   }
 }
 
+void GeometryGenerator::resizeTLBRCutRectangleVerticesX(ControlVertex* vertexIt, float x2) noexcept {
+  const float cornerSize = (float)static_cast<int32_t>(vertexIt[1].position[0] - vertexIt[0].position[0] + 0.5f);
+  vertexIt += 3;
+  vertexIt->position[0] = x2;
+  (++vertexIt)->position[0] = x2 - cornerSize;
+  (++vertexIt)->position[0] = x2;
+}
+
+void GeometryGenerator::resizeBLTRCutRectangleVerticesX(ControlVertex* vertexIt, float x2) noexcept {
+  const float cornerSize = (float)static_cast<int32_t>(vertexIt[4].position[0] - vertexIt[0].position[0] + 0.5f);
+  ++vertexIt;
+  vertexIt->position[0] = x2 - cornerSize;
+  vertexIt += 2;
+  vertexIt->position[0] = x2;
+  vertexIt += 2;
+  vertexIt->position[0] = x2;
+}
+
 
 // -- other shape generation -- ------------------------------------------------------
 

@@ -72,7 +72,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
 
       SET_THEME_COLOR( 37,110,145, 1.f, buttonReference)
       SET_THEME_COLOR( 30, 93,124, 1.f, buttonControl)
-      SET_THEME_COLOR( 30, 93,124, 1.f, buttonBorder)
+      SET_THEME_COLOR( 34,114,153, 1.f, buttonBorder)
       SET_THEME_COLOR(180,223,247, 1.f, buttonLabel)
       SET_THEME_COLOR( 35, 81,108, 1.f, textBoxControl) // 170,223,247  // 119,192,208  // 135,199,213  // 88,156,180  // 21, 65, 96
       SET_THEME_COLOR( 96,178,203, 1.f, textBoxLabel)  // 53, 77, 93  // 41, 72, 84

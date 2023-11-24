@@ -44,6 +44,9 @@ void MessageResources::fillMessagesEN() {
   common[(size_t)CommonMessages::ok] = u"OK";
   common[(size_t)CommonMessages::cancel] = u"Cancel";
   common[(size_t)CommonMessages::apply] = u"Apply";
+  common[(size_t)CommonMessages::navigate] = u"Navigate";
+  common[(size_t)CommonMessages::select] = u"Select";
+  common[(size_t)CommonMessages::create] = u"Create";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Left";
@@ -52,6 +55,18 @@ void MessageResources::fillMessagesEN() {
   common[(size_t)CommonMessages::top] = u"Top";
   common[(size_t)CommonMessages::bottom] = u"Bottom";
   common[(size_t)CommonMessages::to] = u" to ";
+  
+  mainMenu[(size_t)MainMenuMessages::title] = u"Main menu";
+  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUE";
+  mainMenu[(size_t)MainMenuMessages::loadState] = u"LOAD STATE";
+  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
+  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
+  mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
+  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Profile";
+  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Save slot";
+  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
+  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
   generalSettings[(size_t)GeneralSettingsMessages::title] = u"General settings";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Window settings"; // ---
@@ -89,7 +104,7 @@ void MessageResources::fillMessagesEN() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Blue theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Green theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-fi theme";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_yellow] = u"Yellow theme";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Golden theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choose color theme for the user interface";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Language";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Choose language for the user interface";
@@ -157,8 +172,6 @@ void MessageResources::fillMessagesEN() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
-  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
-  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -310,6 +323,9 @@ void MessageResources::fillMessagesFR() {
   common[(size_t)CommonMessages::ok] = u"OK";
   common[(size_t)CommonMessages::cancel] = u"Annuler";
   common[(size_t)CommonMessages::apply] = u"Appliquer";
+  common[(size_t)CommonMessages::navigate] = u"Navigate";
+  common[(size_t)CommonMessages::select] = u"Select";
+  common[(size_t)CommonMessages::create] = u"Create";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Gauche";
@@ -318,6 +334,18 @@ void MessageResources::fillMessagesFR() {
   common[(size_t)CommonMessages::top] = u"Haut";
   common[(size_t)CommonMessages::bottom] = u"Bas";
   common[(size_t)CommonMessages::to] = u" à ";
+  
+  mainMenu[(size_t)MainMenuMessages::title] = u"Main menu";
+  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUE";
+  mainMenu[(size_t)MainMenuMessages::loadState] = u"LOAD STATE";
+  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
+  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
+  mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
+  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Profile";
+  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Save slot";
+  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
+  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
   generalSettings[(size_t)GeneralSettingsMessages::title] = u"Options générales";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Paramètres de fenêtre"; // ---
@@ -355,7 +383,7 @@ void MessageResources::fillMessagesFR() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Thème bleu";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Thème vert";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Thème sci-fi";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_yellow] = u"Thème jaune";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Thème doré";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choisir le thème de couleurs de l'interface graphique";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Langue";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Choisir la langue de l'interface graphique";
@@ -423,8 +451,6 @@ void MessageResources::fillMessagesFR() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
-  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
-  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -576,6 +602,9 @@ void MessageResources::fillMessagesDE() {
   common[(size_t)CommonMessages::ok] = u"OK";
   common[(size_t)CommonMessages::cancel] = u"Abbrechen";
   common[(size_t)CommonMessages::apply] = u"Anwenden";
+  common[(size_t)CommonMessages::navigate] = u"Navigate";
+  common[(size_t)CommonMessages::select] = u"Select";
+  common[(size_t)CommonMessages::create] = u"Create";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"BpS";
   common[(size_t)CommonMessages::left] = u"Links";
@@ -584,6 +613,18 @@ void MessageResources::fillMessagesDE() {
   common[(size_t)CommonMessages::top] = u"Hoch";
   common[(size_t)CommonMessages::bottom] = u"Runter";
   common[(size_t)CommonMessages::to] = u" bis ";
+  
+  mainMenu[(size_t)MainMenuMessages::title] = u"Main menu";
+  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUE";
+  mainMenu[(size_t)MainMenuMessages::loadState] = u"LOAD STATE";
+  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
+  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
+  mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
+  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Current profile";
+  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Current save slot";
+  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
+  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
   generalSettings[(size_t)GeneralSettingsMessages::title] = u"Allgemain";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Fenstereinstellungen"; // ---
@@ -621,7 +662,7 @@ void MessageResources::fillMessagesDE() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Blaues Thema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Grünes Thema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-Fi Theme";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_yellow] = u"Gelbes Thema";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Gelbes Thema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Farbthema für die Benutzeroberfläche";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Sprache";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Sprache für die Benutzeroberfläche";
@@ -689,8 +730,6 @@ void MessageResources::fillMessagesDE() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
-  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
-  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
@@ -842,6 +881,9 @@ void MessageResources::fillMessagesES() {
   common[(size_t)CommonMessages::ok] = u"Aceptar";
   common[(size_t)CommonMessages::cancel] = u"Cancelar";
   common[(size_t)CommonMessages::apply] = u"Aplicar";
+  common[(size_t)CommonMessages::navigate] = u"Navigate";
+  common[(size_t)CommonMessages::select] = u"Select";
+  common[(size_t)CommonMessages::create] = u"Create";
   common[(size_t)CommonMessages::maximum] = u"máximo";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Izquierdo";
@@ -850,6 +892,18 @@ void MessageResources::fillMessagesES() {
   common[(size_t)CommonMessages::top] = u"Superior";
   common[(size_t)CommonMessages::bottom] = u"Inferior";
   common[(size_t)CommonMessages::to] = u" hasta ";
+  
+  mainMenu[(size_t)MainMenuMessages::title] = u"Main menu";
+  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUE";
+  mainMenu[(size_t)MainMenuMessages::loadState] = u"LOAD STATE";
+  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
+  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
+  mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
+  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Current profile";
+  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Current save slot";
+  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
+  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
   generalSettings[(size_t)GeneralSettingsMessages::title] = u"Configuración general";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Gestión de ventanas"; // ---
@@ -887,7 +941,7 @@ void MessageResources::fillMessagesES() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Tema azul";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Tema verde";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Tema sci-fi";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_yellow] = u"Tema amarillo";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Tema amarillo";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Elija el tema para la interfaz de usuario";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Idioma";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Elija el idioma para la interfaz de usuario";
@@ -955,8 +1009,6 @@ void MessageResources::fillMessagesES() {
   profileSelector[(size_t)ProfileSelectorMessages::createProfile] = u"Create profile";
   profileSelector[(size_t)ProfileSelectorMessages::editProfile] = u"Edit";
   profileSelector[(size_t)ProfileSelectorMessages::deleteProfile] = u"Delete";
-  profileSelector[(size_t)ProfileSelectorMessages::select] = u"Select";
-  profileSelector[(size_t)ProfileSelectorMessages::create] = u"Create";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   

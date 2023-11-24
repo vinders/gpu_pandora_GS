@@ -37,12 +37,11 @@ namespace menu {
       /// @brief Create selector tile control
       /// @param tileId    Unique tile selection identifier (profile/item ID)
       /// @param onChange  Event handler to call (with 'tileId' and TileAction) on user interaction
-      Tile(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
-           uint32_t fixedWidth, uint32_t paddingY, const float backgroundColor[4],
-           uint32_t tileId, std::function<void(uint32_t,TileAction)> onChange)
+      Tile(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY, uint32_t fixedWidth,
+           const float backgroundColor[4], uint32_t tileId, std::function<void(uint32_t,TileAction)> onChange, bool addButtons)
         : tileId(tileId),
           onChange(std::move(onChange)) {
-        init(context, label, x, labelY, fixedWidth, paddingY, backgroundColor);
+        init(context, label, x, labelY, fixedWidth, backgroundColor, addButtons);
       }
 
       Tile() = default;
@@ -100,7 +99,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
-                uint32_t fixedWidth, uint32_t paddingY, const float backgroundColor[4]);
+                uint32_t fixedWidth, const float backgroundColor[4], bool addButtons);
 
     private:
       display::controls::ControlMesh controlMesh;

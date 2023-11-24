@@ -104,6 +104,14 @@ namespace menu {
       static constexpr inline uint32_t keyboardKeySideY() noexcept { return 3u; }   ///< Keyboard key side height
       static constexpr inline uint32_t keyboardKeyPaddingX() noexcept { return 6u; }///< Horizontal keyboard key inner padding
       static constexpr inline uint32_t keyboardKeyPaddingY() noexcept { return 5u; }///< Vertical keyboard key inner padding
+
+      static constexpr const uint32_t minTilePaddingX() noexcept { return 4u; }  ///< Minimum horizontal tile padding
+      static constexpr const uint32_t maxTilePaddingX() noexcept { return 10u; } ///< Maximum horizontal tile padding
+      static constexpr const uint32_t tilePaddingY() noexcept { return 11u; }    ///< Vertical tile padding
+      static constexpr const uint32_t tileContentWidth() noexcept { return 192u; } ///< Tile content width (without padding)
+      static constexpr const uint32_t tileContentHeight(uint32_t fontHeight) noexcept { ///< Tile content height (without padding)
+        return fontHeight ? fontHeight*3u : 50;
+      }
     };
     
     

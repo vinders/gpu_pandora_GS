@@ -121,7 +121,10 @@ namespace menu {
 
       inline bool isPopupOpen() const noexcept { return (openPopup != nullptr); }
       inline bool isControllerUsed() const noexcept { return isControllerUsed_; }
-      inline void setControllerUsed(bool isUsed) noexcept { isControllerUsed_ = isUsed; }
+      inline void setControllerUsed(bool isUsed) noexcept {
+        isControllerUsed_ = isUsed; 
+        selectControlIndex(0);
+      }
 
       // -- window event --
       

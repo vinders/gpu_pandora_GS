@@ -115,6 +115,33 @@ void Button::move(RendererContext& context, int32_t x, int32_t labelY) {
   }
 }
 
+void Button::move(RendererContext& context, uint32_t width, const float backgroundColor[4]) {
+  std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
+  if (vertices.size() > 6) { // with borders
+    const uint32_t borderSize = static_cast<uint32_t>(vertices[6].position[0] - vertices[0].position[0] + 0.5f);
+    if (vertices[0].position[1] == vertices[1].position[1]) {
+      GeometryGenerator::resizeBLTRCutRectangleVerticesX(vertices.data(), (float)width);
+      GeometryGenerator::resizeBLTRCutRectangleVerticesX(vertices.data() + 6, (float)(width - borderSize));
+    }
+    else {
+      GeometryGenerator::resizeTLBRCutRectangleVerticesX(vertices.data(), (float)width);
+      GeometryGenerator::resizeTLBRCutRectangleVerticesX(vertices.data() + 6, (float)(width - borderSize));
+    }
+    for (uint32_t i = 6; i < (uint32_t)vertices.size(); ++i)
+      memcpy(vertices[i].color, backgroundColor, sizeof(float)*4u);
+  }
+  else {
+    if (vertices[0].position[1] == vertices[1].position[1])
+      GeometryGenerator::resizeBLTRCutRectangleVerticesX(vertices.data(), (float)width);
+    else
+      GeometryGenerator::resizeTLBRCutRectangleVerticesX(vertices.data(), (float)width);
+    for (auto& vertex : vertices)
+      memcpy(vertex.color, backgroundColor, sizeof(float)*4u);
+  }
+  controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                     controlMesh.x(), controlMesh.y(), width, controlMesh.height());
+}
+
 
 // -- accessors/operations -- --------------------------------------------------
 

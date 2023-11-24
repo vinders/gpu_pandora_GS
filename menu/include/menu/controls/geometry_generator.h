@@ -196,6 +196,11 @@ namespace menu {
       static void resizeRadialGradientRectangleVertices(display::controls::ControlVertex* vertexIt,
                                                         float x2, float y2) noexcept;
 
+      /// @brief Resize horizontally existing rectangle with two cut corners (update 6 menu control vertices)
+      static void resizeTLBRCutRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x2) noexcept;
+      /// @brief Resize horizontally existing rectangle with two cut corners (update 6 menu control vertices)
+      static void resizeBLTRCutRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x2) noexcept;
+
       /// @brief Move existing rectangle vertically (update 4 menu control vertices)
       static inline void moveRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x1, float x2) noexcept {
         vertexIt->position[0] = x1;     (++vertexIt)->position[0] = x2;

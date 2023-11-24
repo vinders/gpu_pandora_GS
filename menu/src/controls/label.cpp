@@ -38,7 +38,7 @@ void Label::init(RendererContext& context, const char16_t* label, int32_t x, int
   // create icon
   if (iconData.texture() != nullptr) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconData.width() - (int32_t)Control::labelMargin();
-    const int32_t iconY = labelY - ((int32_t)iconData.height() - (int32_t)labelFont.XHeight())/2;
+    const int32_t iconY = labelY - ((int32_t)iconData.height() - (int32_t)labelFont.XHeight())/2 - 1;
     iconMesh = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
                         iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
   }
@@ -58,7 +58,7 @@ void Label::move(RendererContext& context, int32_t x, int32_t labelY, TextAlignm
   
   if (iconMesh.width()) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconMesh.width() - (int32_t)Control::labelMargin();
-    const int32_t iconY = labelY - ((int32_t)iconMesh.height() - (int32_t)labelMesh.height())/2;
+    const int32_t iconY = labelY - ((int32_t)iconMesh.height() - (int32_t)labelMesh.height())/2 - 1;
     iconMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), iconX, iconY);
   }
 }

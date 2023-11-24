@@ -14,34 +14,35 @@ GNU General Public License for more details (LICENSE file).
 #pragma once
 
 #include <cstdint>
-#include <cstring>
 #include <memory>
 #include <vector>
+#include <hardware/display_monitor.h>
 #include "menu/color_theme.h"
 #include "menu/config_profile.h"
 #include "menu/message_resources.h"
 #include "menu/renderer_state_buffers.h"
 #include "menu/controls/button.h"
+#include "menu/controls/fieldset.h"
 #include "menu/controls/label.h"
+#include "menu/controls/slider.h"
 #include "menu/controls/tile.h"
 #include "menu/controls/popup.h"
 #include "menu/pages/page.h"
 
 namespace menu {
   namespace pages {
-    class ProfileSelector final : public Page {
+    class MainMenu final : public Page {
     public:
-      ProfileSelector(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
-                      const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
-                      int32_t x, int32_t y, uint32_t width, uint32_t height,
-                      uint32_t activeProfileId, std::vector<ConfigProfile>& profiles)
-        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false, buttonBarHeight()),
-        theme(theme),
-        profiles(&profiles),
-        activeProfileId(activeProfileId) {
+      MainMenu(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
+               const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
+               int32_t x, int32_t y, uint32_t width, uint32_t height, uint32_t activeProfileId, std::vector<ConfigProfile>& profiles)
+        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false),
+          profiles(&profiles),
+          activeProfileId(activeProfileId),
+          theme(theme) {
         init(localizedText, x, y, width, height);
       }
-      ~ProfileSelector() noexcept override;
+      ~MainMenu() noexcept override;
 
       // -- window event --
 
@@ -58,35 +59,32 @@ namespace menu {
       void init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width, uint32_t height);
       void onButtonAction(uint32_t id);
       void onTileAction(uint32_t id, controls::TileAction type);
-      void onProfileRemoved(uint32_t popupAction);
+
+      void adaptButtonStyle(controls::Button& button, const controls::Control* activeControl);
       void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
-      static constexpr inline uint32_t buttonBarHeight() noexcept { return 33; }
-
-      uint32_t getProfileIndex(uint32_t id) const noexcept;
-      static constexpr inline uint32_t notFound() noexcept { return 0xFFFFFFFFu; }
 
     private:
-      std::shared_ptr<ColorTheme> theme = nullptr;
+      display::controls::TextMesh title;
       std::vector<ConfigProfile>* profiles = nullptr;
       uint32_t activeProfileId = 0;
-      display::controls::TextMesh title;
 
-      // profile tiles
-      std::vector<controls::Tile> profileTiles;
+      controls::Button resume;
+      controls::Button loadState;
+      controls::Button saveState;
+      controls::Button resetGame;
+      controls::Button exitGame;
+      controls::Slider activeSaveSlot;
 
-      // actions
-      controls::Button createProfile;
-      controls::Button editProfile;
-      controls::Button deleteProfile;
-      bool isDeleteEnabled = true;
+      controls::Fieldset recentProfilesGroup;
+      std::vector<controls::Tile> recentProfiles;
 
-      controls::Label selectProfileControllerInfo;
-      controls::Label createProfileControllerInfo;
-      controls::Label editProfileControllerInfo;
-      controls::Label deleteProfileControllerInfo;
+      controls::Label navigateControllerInfo;
+      controls::Label selectControllerInfo;
 
-      controls::Popup confirmationPopup;
+      controls::Popup resetPopup;
+
+      std::shared_ptr<ColorTheme> theme = nullptr;
     };
   }
 }
