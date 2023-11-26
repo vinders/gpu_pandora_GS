@@ -105,7 +105,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   mover.moveTitle(title);
 
   // clock group
-  mover.moveFieldset(4, 0, clockGroup);
+  mover.moveFieldset(clockGroup);
 
   mover.moveSlider(clockVisibility);
   mover.moveSlider(clockFormat);
@@ -113,7 +113,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   mover.moveSlider(clockLocationY);
 
   // tech info group
-  mover.moveFieldset(2, 0, techInfoGroup);
+  mover.moveFieldset(techInfoGroup);
 
   mover.moveCheckBox(techInfoVisibility);
   mover.moveSlider(techInfoType);

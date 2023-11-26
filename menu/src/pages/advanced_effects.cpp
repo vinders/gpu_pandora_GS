@@ -218,7 +218,7 @@ void AdvancedEffects::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   constexpr const uint32_t gammaPreviewLineHeight = Control::pageLineHeight() + (Control::pageLineHeight() >> 1);
 
   // gamma group
-  mover.moveFieldset(1, gammaPreviewLineHeight, gammaGroup);
+  mover.moveFieldset(gammaGroup);
 
   gammaPreview.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
                     mover.linePositionX() + (int32_t)gammaRulerOffsetX + (int32_t)Control::labelMargin(),
@@ -227,7 +227,7 @@ void AdvancedEffects::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveRuler(mover.linePositionX() + (int32_t)gammaRulerOffsetX, gammaCorrection);
 
   // color group
-  mover.moveFieldset(4, 0, colorGroup);
+  mover.moveFieldset(colorGroup);
 
   mover.moveSlider(colorBitDepth);
   mover.moveComboBox(scanlines);
@@ -235,13 +235,13 @@ void AdvancedEffects::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveComboBox(specialShading);
 
   // hdr group
-  mover.moveFieldset(2, 0, hdrGroup);
+  mover.moveFieldset(hdrGroup);
 
   mover.moveRuler(bloom);
   mover.moveRuler(lumaSharpen);
 
   // special game fixes group
-  mover.moveFieldset(3, 0, specialGameFixesGroup);
+  mover.moveFieldset(specialGameFixesGroup);
 
   mover.moveCheckBox(lowCompatibilityFrameRead);
   mover.moveCheckBox(ignoreSmallFramebufferMoves);

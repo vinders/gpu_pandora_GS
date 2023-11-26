@@ -47,6 +47,10 @@ void MessageResources::fillMessagesEN() {
   common[(size_t)CommonMessages::navigate] = u"Navigate";
   common[(size_t)CommonMessages::select] = u"Select";
   common[(size_t)CommonMessages::create] = u"Create";
+  common[(size_t)CommonMessages::mainMenu] = u"Main menu";
+  common[(size_t)CommonMessages::globalSettings] = u"Global settings";
+  common[(size_t)CommonMessages::profileSelector] = u"Profile selector";
+  common[(size_t)CommonMessages::profileSettings] = u"Profile settings";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Left";
@@ -62,9 +66,8 @@ void MessageResources::fillMessagesEN() {
   mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
   mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
   mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
-  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Profile";
   mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Save slot";
-  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  //mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
   mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
   mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
@@ -104,7 +107,7 @@ void MessageResources::fillMessagesEN() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Blue theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Green theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-fi theme";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Golden theme";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Gold theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choose color theme for the user interface";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Language";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Choose language for the user interface";
@@ -178,10 +181,14 @@ void MessageResources::fillMessagesEN() {
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
+  profileSettings[(size_t)ProfileSettingsMessages::profileName_tooltip] = u"Choose a name to identify this profile (and sort it in the profile selector)";
   profileSettings[(size_t)ProfileSettingsMessages::tileColor] = u"Tile color";
+  profileSettings[(size_t)ProfileSettingsMessages::tileColor_tooltip] = u"Choose the color of the profile tile (in the profile selector)";
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
+  profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset_tooltip] = u"Replace all settings of this profile with a preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::existingProfile_tooltip] = u"Replace all settings of this profile with those of another profile";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
@@ -324,8 +331,12 @@ void MessageResources::fillMessagesFR() {
   common[(size_t)CommonMessages::cancel] = u"Annuler";
   common[(size_t)CommonMessages::apply] = u"Appliquer";
   common[(size_t)CommonMessages::navigate] = u"Navigate";
-  common[(size_t)CommonMessages::select] = u"Select";
-  common[(size_t)CommonMessages::create] = u"Create";
+  common[(size_t)CommonMessages::select] = u"Sélection";
+  common[(size_t)CommonMessages::create] = u"Création";
+  common[(size_t)CommonMessages::mainMenu] = u"Menu principal";
+  common[(size_t)CommonMessages::globalSettings] = u"Options globales";
+  common[(size_t)CommonMessages::profileSelector] = u"Sélecteur de profil";
+  common[(size_t)CommonMessages::profileSettings] = u"Options du profil";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Gauche";
@@ -335,17 +346,16 @@ void MessageResources::fillMessagesFR() {
   common[(size_t)CommonMessages::bottom] = u"Bas";
   common[(size_t)CommonMessages::to] = u" à ";
   
-  mainMenu[(size_t)MainMenuMessages::title] = u"Main menu";
-  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUE";
-  mainMenu[(size_t)MainMenuMessages::loadState] = u"LOAD STATE";
-  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
-  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
-  mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
-  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Profile";
-  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Save slot";
-  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
-  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
-  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
+  mainMenu[(size_t)MainMenuMessages::title] = u"Menu principal";
+  mainMenu[(size_t)MainMenuMessages::resume] = u"CONTINUER";
+  mainMenu[(size_t)MainMenuMessages::loadState] = u"CHARGEMENT RAPIDE";
+  mainMenu[(size_t)MainMenuMessages::saveState] = u"SAUVEGARDE RAPIDE";
+  mainMenu[(size_t)MainMenuMessages::resetGame] = u"RÉINITIALISER";
+  mainMenu[(size_t)MainMenuMessages::exitGame] = u"QUITTER";
+  mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Bloc de sauvegarde";
+  //mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Profils récents";
+  mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Réinitialiser le jeu";
+  mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"Cette opération redémarrera complètement le jeu";
   
   generalSettings[(size_t)GeneralSettingsMessages::title] = u"Options générales";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Paramètres de fenêtre"; // ---
@@ -383,7 +393,7 @@ void MessageResources::fillMessagesFR() {
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Thème bleu";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Thème vert";
   generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Thème sci-fi";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Thème doré";
+  generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Thème or";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choisir le thème de couleurs de l'interface graphique";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Langue";
   generalSettings[(size_t)GeneralSettingsMessages::language_tooltip] = u"Choisir la langue de l'interface graphique";
@@ -457,10 +467,14 @@ void MessageResources::fillMessagesFR() {
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
+  profileSettings[(size_t)ProfileSettingsMessages::profileName_tooltip] = u"Choose a name to identify this profile";
   profileSettings[(size_t)ProfileSettingsMessages::tileColor] = u"Tile color";
+  profileSettings[(size_t)ProfileSettingsMessages::tileColor_tooltip] = u"Choose the color of the profile tile in the profile selector";
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
+  profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset_tooltip] = u"Replace all settings of this profile with a preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::existingProfile_tooltip] = u"Replace all settings of this profile with those of another profile";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
@@ -605,6 +619,10 @@ void MessageResources::fillMessagesDE() {
   common[(size_t)CommonMessages::navigate] = u"Navigate";
   common[(size_t)CommonMessages::select] = u"Select";
   common[(size_t)CommonMessages::create] = u"Create";
+  common[(size_t)CommonMessages::mainMenu] = u"Main menu";
+  common[(size_t)CommonMessages::globalSettings] = u"Global settings";
+  common[(size_t)CommonMessages::profileSelector] = u"Profile selector";
+  common[(size_t)CommonMessages::profileSettings] = u"Profile settings";
   common[(size_t)CommonMessages::maximum] = u"max";
   common[(size_t)CommonMessages::fps] = u"BpS";
   common[(size_t)CommonMessages::left] = u"Links";
@@ -620,9 +638,8 @@ void MessageResources::fillMessagesDE() {
   mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
   mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
   mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
-  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Current profile";
   mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Current save slot";
-  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  //mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
   mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
   mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
@@ -736,10 +753,14 @@ void MessageResources::fillMessagesDE() {
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
+  profileSettings[(size_t)ProfileSettingsMessages::profileName_tooltip] = u"Choose a name to identify this profile";
   profileSettings[(size_t)ProfileSettingsMessages::tileColor] = u"Tile color";
+  profileSettings[(size_t)ProfileSettingsMessages::tileColor_tooltip] = u"Choose the color of the profile tile in the profile selector";
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
+  profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset_tooltip] = u"Replace all settings of this profile with a preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::existingProfile_tooltip] = u"Replace all settings of this profile with those of another profile";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";
@@ -884,6 +905,10 @@ void MessageResources::fillMessagesES() {
   common[(size_t)CommonMessages::navigate] = u"Navigate";
   common[(size_t)CommonMessages::select] = u"Select";
   common[(size_t)CommonMessages::create] = u"Create";
+  common[(size_t)CommonMessages::mainMenu] = u"Main menu";
+  common[(size_t)CommonMessages::globalSettings] = u"Global settings";
+  common[(size_t)CommonMessages::profileSelector] = u"Profile selector";
+  common[(size_t)CommonMessages::profileSettings] = u"Profile settings";
   common[(size_t)CommonMessages::maximum] = u"máximo";
   common[(size_t)CommonMessages::fps] = u"fps";
   common[(size_t)CommonMessages::left] = u"Izquierdo";
@@ -899,9 +924,8 @@ void MessageResources::fillMessagesES() {
   mainMenu[(size_t)MainMenuMessages::saveState] = u"SAVE STATE";
   mainMenu[(size_t)MainMenuMessages::resetGame] = u"RESET GAME";
   mainMenu[(size_t)MainMenuMessages::exitGame] = u"EXIT GAME";
-  mainMenu[(size_t)MainMenuMessages::activeProfile] = u"Current profile";
   mainMenu[(size_t)MainMenuMessages::activeSaveSlot] = u"Current save slot";
-  mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
+  //mainMenu[(size_t)MainMenuMessages::recentProfiles] = u"Recent profiles";
   mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
   mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
@@ -1015,10 +1039,14 @@ void MessageResources::fillMessagesES() {
   profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
+  profileSettings[(size_t)ProfileSettingsMessages::profileName_tooltip] = u"Choose a name to identify this profile";
   profileSettings[(size_t)ProfileSettingsMessages::tileColor] = u"Tile color";
+  profileSettings[(size_t)ProfileSettingsMessages::tileColor_tooltip] = u"Choose the color of the profile tile in the profile selector";
   profileSettings[(size_t)ProfileSettingsMessages::presetGroup] = u"Profile configuration presets";
   profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset] = u"Predefined preset";
+  profileSettings[(size_t)ProfileSettingsMessages::predefinedPreset_tooltip] = u"Replace all settings of this profile with a preset";
   profileSettings[(size_t)ProfileSettingsMessages::existingProfile] = u"Existing profile";
+  profileSettings[(size_t)ProfileSettingsMessages::existingProfile_tooltip] = u"Replace all settings of this profile with those of another profile";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupTitle] = u"Apply profile preset";
   profileSettings[(size_t)ProfileSettingsMessages::applyPopupMessage] = u"This operation will replace all settings of the profile";
   tileColors[(size_t)TileColors::themeColor] = u"Theme color";

@@ -3,6 +3,11 @@
 #define IDR_TITLE_DESC   104
 #define IDR_TEXT_FONT    106
 #define IDR_TEXT_DESC    108
-#define IDR_MENU_ICONS        110
-#define IDR_MENU_ICONS_ALPHA  112
-#define IDR_RATIO_PREVIEW     114
+#define IDR_MENU_ICONS         110
+#define IDR_MENU_ICONS_ALPHA   112
+#define IDR_MENU_TABS          114
+#define IDR_MENU_TABS_ALPHA    116
+#define IDR_PANDORA_LOGO       118
+#define IDR_PANDORA_LOGO_ALPHA 120
+#define IDR_RATIO_PREVIEW      122
+#define IDR_RADIAL_GRADIENT    124

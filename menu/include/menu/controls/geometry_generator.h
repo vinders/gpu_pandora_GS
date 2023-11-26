@@ -192,9 +192,6 @@ namespace menu {
         (vertexIt + 5)->position[0] = x2;
         (vertexIt + 7)->position[0] = x2 - cornerSize;
       }
-      /// @brief Resize existing rectangle with radial gradient (update 13 menu control vertices)
-      static void resizeRadialGradientRectangleVertices(display::controls::ControlVertex* vertexIt,
-                                                        float x2, float y2) noexcept;
 
       /// @brief Resize horizontally existing rectangle with two cut corners (update 6 menu control vertices)
       static void resizeTLBRCutRectangleVerticesX(display::controls::ControlVertex* vertexIt, float x2) noexcept;
@@ -211,6 +208,9 @@ namespace menu {
         vertexIt->position[1] = y1;     (++vertexIt)->position[1] = y1;
         (++vertexIt)->position[1] = y2; (++vertexIt)->position[1] = y2;
       }
+      /// @brief Move existing rectangle with radial gradient (update 13 menu control vertices)
+      static void moveRadialGradientRectangleVertices(display::controls::ControlVertex* vertexIt,
+                                                      float x1, float x2, float y1, float y2) noexcept;
 
       // -- other shape generation --
 

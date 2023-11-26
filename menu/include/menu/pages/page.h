@@ -30,16 +30,33 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   namespace controls { class KeyBinding; class Popup; }
   namespace pages {
+    enum class PageId : uint32_t {
+      none = 0,
+      mainMenu,
+      profileSelector,
+      // general pages
+      generalSettings,
+      generalHotkeyBindings,
+      generalOsdSettings,
+      // profile pages
+      profileSettings,
+      profileScreenStretching,
+      profileSmoothingUpscaling,
+      profileAdvancedEffects
+    };
+    
+    // ---
+    
     class ControlRegistration final { ///< Interactive control registration (to allow hover/click/drag/select)
     public:
       template <typename CtrlT>
-      ControlRegistration(CtrlT& control, bool isInScrollableArea,
-                          const char16_t* tooltip = nullptr, uint32_t leftHoverMargin = 0) noexcept
+      ControlRegistration(CtrlT& control, bool isInScrollableArea, const char16_t* tooltip = nullptr,
+                          uint32_t leftHoverMargin = 0, uint32_t rightHoverMargin = 0) noexcept
         : target(&control),
           top(control.y() - control.hoverMarginY()),
           bottom(control.y() + (int32_t)control.height() + control.hoverMarginY()),
           left(control.x() - (int32_t)leftHoverMargin),
-          right(control.x() + (int32_t)control.width()),
+          right(control.x() + (int32_t)control.width() + (int32_t)rightHoverMargin),
           isScrollable(isInScrollableArea),
           tooltip(tooltip) {}
       ControlRegistration() noexcept = default;
@@ -110,20 +127,22 @@ namespace menu {
 
       // -- accessors --
 
-      inline int32_t x() const noexcept { return backgroundMesh.x(); }
-      inline int32_t y() const noexcept { return backgroundMesh.y(); }
-      inline uint32_t width() const noexcept { return backgroundMesh.width(); }
-      inline uint32_t height() const noexcept { return backgroundMesh.height(); }
+      inline int32_t x() const noexcept { return x_; }
+      inline int32_t y() const noexcept { return scrollbar.y(); }
+      inline uint32_t width() const noexcept { return width_; }
+      inline uint32_t height() const noexcept { return scrollbar.height(); }
       inline int32_t scrollLevel() const noexcept { return scrollY; }
       inline uint32_t contentHeight() const noexcept {
         return tooltip.width() ? static_cast<uint32_t>(tooltip.y() - scrollbar.y()) : scrollbar.height();
       }
+      inline uint32_t tooltipHeight() const noexcept { return tooltip.height(); }
 
       inline bool isPopupOpen() const noexcept { return (openPopup != nullptr); }
       inline bool isControllerUsed() const noexcept { return isControllerUsed_; }
       inline void setControllerUsed(bool isUsed) noexcept {
         isControllerUsed_ = isUsed; 
-        selectControlIndex(0);
+        if (isUsed)
+          selectControlIndex(0);
       }
 
       // -- window event --
@@ -163,7 +182,7 @@ namespace menu {
       /// @brief Draw page control backgrounds
       /// @remarks Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       /// @returns Presence of foregrounds to draw (true) or not
-      bool drawBackgrounds();
+      bool drawBackgrounds(int32_t mouseX, int32_t mouseY);
       /// @brief Draw page control icons
       /// @remarks Use 'bindGraphicsPipeline' (for flat-shaded images) before call.
       virtual void drawIcons() {}
@@ -245,19 +264,17 @@ namespace menu {
       int32_t scrollY = 0;
       uint32_t pageHeight = 0;
       uint32_t bottomBarHeight = 0;
+      int32_t x_ = 0;
+      int32_t width_ = 0;
 
-      display::controls::ControlMesh backgroundMesh;
       display::controls::ControlMesh controlHoverMesh;
       std::vector<ControlRegistration> controlRegistry;
       ControlRegistration* openControl = nullptr;
       int32_t activeControlIndex = noControlSelection();
-      int32_t mouseX_ = -1;
-      int32_t mouseY_ = -1;
       bool isMouseDown_ = false;
       bool isControllerUsed_ = false;
 
       controls::Popup* openPopup = nullptr;
-      controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
     };
   }
 }

@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 # include <video/d3d11/renderer.h>
 # include <video/d3d11/texture.h>
 # include <video/d3d11/buffer.h>
+# include <video/d3d11/sampler.h>
 # ifdef USE_SHADERS
 # include <video/d3d11/shader.h>
 # endif
@@ -26,6 +27,7 @@ namespace video_api = pandora::video::d3d11;
 # include <video/vulkan/renderer.h>
 # include <video/vulkan/texture.h>
 # include <video/vulkan/buffer.h>
+# include <video/vulkan/sampler.h>
 # ifdef USE_SHADERS
 # include <video/vulkan/shader.h>
 # endif

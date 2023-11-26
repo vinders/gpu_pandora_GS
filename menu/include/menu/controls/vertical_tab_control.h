@@ -72,6 +72,7 @@ namespace menu {
       void selectIndex(RendererContext& context, uint32_t index); ///< Select tab at index if available
 
       void move(RendererContext& context, int32_t x, int32_t y, uint32_t barHeight); ///< Change control location (on window resize)
+      void move(RendererContext& context, uint32_t barHeight);                       ///< Change control height (on page/decoration change)
 
       // -- rendering --
 
@@ -95,6 +96,7 @@ namespace menu {
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight, uint32_t paddingY,
                 uint32_t paddingTop, const float barColor[4], const float borderColor[4], const VerticalTabOption* tabs, size_t tabCount);
+      void moveSelection(RendererContext& context, bool notify);
       static constexpr inline uint32_t iconLabelMargin() noexcept { return 11u; }
 
       struct TabMesh final { // selectable value stored

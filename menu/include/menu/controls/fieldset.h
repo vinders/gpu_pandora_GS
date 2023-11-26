@@ -26,8 +26,8 @@ namespace menu {
     class Fieldset final {
     public:
       /// @brief Create fieldset control
-      Fieldset(RendererContext& context, const char16_t* label, FieldsetStyle style,
-               const float color[4], int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight);
+      Fieldset(RendererContext& context, const char16_t* label, const float color[4],
+               int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight);
 
       Fieldset() = default;
       Fieldset(const Fieldset&) = delete;
@@ -51,8 +51,6 @@ namespace menu {
       // -- operations --
 
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
-      void move(RendererContext& context, int32_t x, int32_t labelY, ///< Change control location (on window resize)
-                uint32_t width, uint32_t contentHeight);
 
       // -- rendering --
 
@@ -74,7 +72,6 @@ namespace menu {
     private:
       display::controls::ControlMesh controlMesh;
       display::controls::TextMesh labelMesh;
-      FieldsetStyle style = FieldsetStyle::classic;
     };
   }
 }

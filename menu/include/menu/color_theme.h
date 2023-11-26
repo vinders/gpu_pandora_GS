@@ -22,7 +22,7 @@ namespace menu {
     blue = 0, ///< blue background, blue controls, gradients
     green,    ///< green background, green controls, gradients
     scifi,    ///< dark background, green controls, gradient boxes
-    yellow,   ///< dark background, yellow controls, gradient boxes
+    gold,   ///< dark background, yellow controls, gradient boxes
     COUNT
   };
 
@@ -48,7 +48,7 @@ namespace menu {
     inline const float* disabledControlModifier() const noexcept { return disabledControl; }///< Color modifier for disabled control backgrounds
     inline const float* activeControlModifier() const noexcept { return activeControl; }    ///< Color modifier for active/hover control backgrounds
     inline const float* activeScrollControlModifier() const noexcept{ return activeScrollControl; }///< Color modifier for inverted active/hover scroll controls
-    inline const float* regularIconModifier() const noexcept { return regularIcon; }     ///< Color modifier for regular icons
+    inline const float* coloredIconModifier() const noexcept { return coloredIcon; }     ///< Color modifier for regular icons (theme hue/saturation)
     inline const float* disabledIconModifier() const noexcept { return disabledIcon; }   ///< Color modifier for disabled icons
     inline const float* activeIconModifier() const noexcept { return activeIcon; }       ///< Color modifier for active/hover icons
     inline const float* regularLabelColor() const noexcept { return regularLabel; }      ///< Regular control label color
@@ -68,8 +68,6 @@ namespace menu {
     inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
     inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
     inline const float* popupTitleBarColor() const noexcept { return popupTitleBar; }    ///< Popup title bar control color
-    inline controls::BackgroundStyle backgroundStyle() const noexcept{ return backgroundType; }///< Page background visual style
-    inline controls::FieldsetStyle fieldsetStyle() const noexcept{ return fieldsetType; }///< Fieldset visual style
 
     inline const controls::TabControlColors& tabControlColorParams() const noexcept { return tabControlColors;  }
     inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; }    ///< Tab-control tab background color
@@ -81,6 +79,7 @@ namespace menu {
     inline const float* verticalTabBorderColor() const noexcept { return verticalTabBorder; }  ///< Vertical tab border color
     inline const float* verticalTabLabelColor() const noexcept { return verticalTabLabel; }    ///< Vertical tab text color
     inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; }///< Vertical active/hover tab text color
+    inline const float* verticalTabIconModifier() const noexcept{ return verticalTabIcon; }///< Vertical tab icon color modifier
 
     inline const float* buttonReferenceColor() const noexcept { return buttonReference; }///< Regular button color
     inline const float* buttonControlColor() const noexcept { return buttonControl; }    ///< Regular button background color
@@ -108,7 +107,7 @@ namespace menu {
     float disabledControl[4];
     float activeControl[4];
     float activeScrollControl[4];
-    float regularIcon[4];
+    float coloredIcon[4];
     float disabledIcon[4];
     float activeIcon[4];
     float regularLabel[4];
@@ -128,8 +127,6 @@ namespace menu {
     float fieldsetControl[4];
     float fieldsetLabel[4];
     float popupTitleBar[4];
-    controls::BackgroundStyle backgroundType = controls::BackgroundStyle::plain;
-    controls::FieldsetStyle fieldsetType = controls::FieldsetStyle::classic;
 
     controls::TabControlColors tabControlColors;
     float tabLabel[4];
@@ -138,6 +135,7 @@ namespace menu {
     float verticalTabBorder[4];
     float verticalTabLabel[4];
     float verticalTabActiveLabel[4];
+    float verticalTabIcon[4];
 
     float buttonReference[4];
     float buttonControl[4];

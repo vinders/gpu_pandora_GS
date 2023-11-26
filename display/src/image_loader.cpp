@@ -33,8 +33,7 @@ const char16_t* display::toDefaultLabel(ControlIconType type) noexcept {
     case ControlIconType::remove: return u"-";
     case ControlIconType::keyboard: return u"Keyboard";
     case ControlIconType::controller: return u"Controller";
-    case ControlIconType::buttonDpad:
-    case ControlIconType::buttonDpadY: return u"D-pad";
+    case ControlIconType::buttonDpad: return u"D-pad";
     case ControlIconType::buttonDpadUp: return u"^";
     case ControlIconType::buttonDpadDown: return u"v";
     case ControlIconType::buttonDpadLeft: return u"<";
@@ -60,21 +59,20 @@ ControlIcon ImageLoader::getIcon(ControlIconType type) {
     switch (type) {
       case ControlIconType::checked:   return ControlIcon(iconsSprite, 0, 0, 64,22);
       case ControlIconType::unchecked: return ControlIcon(iconsSprite, 0,24, 64,22);
-      case ControlIconType::home:      break;//TODO
-      case ControlIconType::settings:  break;//TODO
-      case ControlIconType::selector:  break;//TODO
-      case ControlIconType::profile:   break;//TODO
+      case ControlIconType::tabHome:      return ControlIcon(tabsSprite, 0,0, 48,48);
+      case ControlIconType::tabSettings:  return ControlIcon(tabsSprite, 0,48, 48,48);
+      case ControlIconType::tabSelector:  return ControlIcon(tabsSprite, 0,96, 48,48);
+      case ControlIconType::tabProfile:   return ControlIcon(tabsSprite, 0,144, 48,48);
       case ControlIconType::add:    return ControlIcon(iconsSprite, 1,48, 19,19);
       case ControlIconType::edit:   return ControlIcon(iconsSprite, 1,69, 19,19);
       case ControlIconType::remove: return ControlIcon(iconsSprite, 1,90, 19,19);
       case ControlIconType::keyboard:   return ControlIcon(iconsSprite, 1,111, 22,22);
       case ControlIconType::controller: return ControlIcon(iconsSprite, 1,135, 22,22);
-      case ControlIconType::buttonDpad:      return ControlIcon(iconsSprite, 26,48, 38,38);
-      case ControlIconType::buttonDpadY:     return ControlIcon(iconsSprite, 26,86, 38,38);
-      case ControlIconType::buttonDpadUp:    return ControlIcon(iconsSprite, 38,49, 14,15);
-      case ControlIconType::buttonDpadDown:  return ControlIcon(iconsSprite, 38,70, 14,15);
-      case ControlIconType::buttonDpadLeft:  return ControlIcon(iconsSprite, 27,60, 15,14);
-      case ControlIconType::buttonDpadRight: return ControlIcon(iconsSprite, 48,60, 15,14);
+      case ControlIconType::buttonDpad:      return ControlIcon(iconsSprite, 26,86, 38,38);
+      case ControlIconType::buttonDpadUp:    return ControlIcon(iconsSprite, 26,48, 14,17);
+      case ControlIconType::buttonDpadDown:  return ControlIcon(iconsSprite, 26,67, 14,17);
+      case ControlIconType::buttonDpadLeft:  return ControlIcon(iconsSprite, 27,60, 44,70);
+      case ControlIconType::buttonDpadRight: return ControlIcon(iconsSprite, 48,60, 44,48);
       case ControlIconType::buttonStart:  return ControlIcon(iconsSprite, 0,167, 26,14);
       case ControlIconType::buttonSelect: return ControlIcon(iconsSprite, 0,187, 26,12);
       case ControlIconType::buttonL1: return ControlIcon(iconsSprite, 26,126, 38,19);

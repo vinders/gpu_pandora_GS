@@ -24,6 +24,8 @@ using namespace menu;
 
 // -- init/resize geometry -- --------------------------------------------------
 
+#define ARROW_SIZE 7
+
 void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
                               uint32_t paddingY, uint32_t paddingTop, const float barColor[4], const float borderColor[4],
                               const VerticalTabOption* tabs, size_t tabCount) {
@@ -47,8 +49,8 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
                         x, y, tabWidth+1u, barHeight);
 
   // tab icons/labels
-  auto& font = context.getFont(FontType::labels);
-  int32_t tabY = y + (int32_t)paddingTop + (int32_t)(paddingY >> 1);
+  auto& font = context.getFont(FontType::inputText);
+  int32_t tabY = y + (int32_t)paddingTop + (int32_t)paddingY;
   int32_t tabCenterX = x + (int32_t)(tabWidth >> 1);
 
   for (const auto* tabIt = tabs; tabCount; ++tabIt, --tabCount) {
@@ -64,12 +66,15 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
         height += iconData.height();
       }
     }
-    if (tabIt->name() && *(tabIt->name()) != (char16_t)0) {
-      int32_t labelY = y + (int32_t)height;
-      if (icon.width())
+    if (tabWidth >= Control::sectionWideTabWidth() && tabIt->name() && *(tabIt->name()) != (char16_t)0) {
+      int32_t labelY = tabY + (int32_t)height;
+      if (icon.width()) {
         labelY += (int32_t)iconLabelMargin();
-      label = TextMesh(context.renderer(), font, tabIt->name(), context.pixelSizeX(), context.pixelSizeY(), tabCenterX, labelY, TextAlignment::center);
+        height += iconLabelMargin();
+      }
       height += font.XHeight();
+
+      label = TextMesh(context.renderer(), font, tabIt->name(), context.pixelSizeX(), context.pixelSizeY(), tabCenterX, labelY, TextAlignment::center);
     }
     height += paddingY;
 
@@ -80,13 +85,20 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
   // active tab arrow
   vertices = std::vector<ControlVertex>(static_cast<size_t>(3));
   vertexIt = vertices.data();
-  GeometryGenerator::fillControlVertex(*vertexIt,     borderColor, 0.f, 0.f);
-  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, 6.f, -6.f);
-  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, 0.f, -12.f);
+  float arrowColor[4]{ borderColor[0]*1.1f, borderColor[1]*1.1f, borderColor[2]*1.1f, borderColor[3]*2.f };
+  if (arrowColor[3] > 1.f)
+    arrowColor[3] = 1.f;
+  GeometryGenerator::fillControlVertex(*vertexIt,     arrowColor, 0.f, -(float)ARROW_SIZE);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, (float)ARROW_SIZE, 0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), borderColor, (float)ARROW_SIZE, -(float)(ARROW_SIZE << 1));
   indices.resize(3);
+
   const auto& selectedTab = tabMeshes[selectedIndex];
+  const int32_t arrowY = (selectedTab.iconMesh.width())
+                       ? (selectedTab.iconMesh.y() + (int32_t)((selectedTab.iconMesh.height() + 1u) >> 1) - ARROW_SIZE)
+                       : (selectedTab.y + (int32_t)(selectedTab.height >> 1) - ARROW_SIZE);
   activeTabMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                              x + (int32_t)tabWidth - 6, selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6, 6u, 12u);
+                              x + (int32_t)tabWidth - 7, arrowY, 7u, 14u);
 }
 
 // ---
@@ -111,10 +123,29 @@ void VerticalTabControl::move(RendererContext& context, int32_t x, int32_t y, ui
                         tab.nameMesh.x() + offsetX, tab.nameMesh.y() + offsetY);
     }
   }
+  moveSelection(context, false);
+}
 
+void VerticalTabControl::move(RendererContext& context, uint32_t barHeight) {
+  if (barHeight != barMesh.height()) {
+    auto vertices = barMesh.relativeVertices();
+    GeometryGenerator::resizeRectangleVerticesY(vertices.data(), -(float)barHeight);
+    GeometryGenerator::resizeRectangleVerticesY(vertices.data() + (intptr_t)4, -(float)barHeight);
+    barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                   barMesh.x(), barMesh.y(), barMesh.width(), barHeight);
+  }
+}
+
+void VerticalTabControl::moveSelection(RendererContext& context, bool notify) {
   const auto& selectedTab = tabMeshes[selectedIndex];
+  const int32_t arrowY = (selectedTab.iconMesh.width())
+                       ? (selectedTab.iconMesh.y() + (int32_t)((selectedTab.iconMesh.height() + 1u) >> 1) - ARROW_SIZE)
+                       : (selectedTab.y + (int32_t)(selectedTab.height >> 1) - ARROW_SIZE);
+
   activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabMesh.x() + offsetX, selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
+                      activeTabMesh.x(), arrowY);
+  if (notify && onChange)
+    onChange(selectedIndex);
 }
 
 
@@ -135,11 +166,10 @@ void VerticalTabControl::click(RendererContext& context, int32_t mouseY) {
     if (mouseY >= lastTabLabel.y + (int32_t)lastTabLabel.height)
       return;
   }
-  selectedIndex = (uint32_t)currentIndex;
-
-  const auto& selectedTab = tabMeshes[selectedIndex];
-  activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabMesh.x(), selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
+  if (selectedIndex != (uint32_t)currentIndex) {
+    selectedIndex = (uint32_t)currentIndex;
+    moveSelection(context, true);
+  }
 }
 
 // ---
@@ -150,9 +180,7 @@ void VerticalTabControl::selectPrevious(RendererContext& context) {
   else
     selectedIndex = (uint32_t)tabMeshes.size() - 1u;
 
-  const auto& selectedTab = tabMeshes[selectedIndex];
-  activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabMesh.x(), selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
+  moveSelection(context, true);
 }
 
 void VerticalTabControl::selectNext(RendererContext& context) {
@@ -161,18 +189,13 @@ void VerticalTabControl::selectNext(RendererContext& context) {
   else
     selectedIndex = 0;
 
-  const auto& selectedTab = tabMeshes[selectedIndex];
-  activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabMesh.x(), selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
+  moveSelection(context, true);
 }
 
 void VerticalTabControl::selectIndex(RendererContext& context, uint32_t index) {
   if (index < (uint32_t)tabMeshes.size()) {
     this->selectedIndex = index;
-
-    const auto& selectedTab = tabMeshes[selectedIndex];
-    activeTabMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                       activeTabMesh.x(), selectedTab.y + (int32_t)(selectedTab.height >> 1) - 6);
+    moveSelection(context, false);
   }
 }
 
@@ -183,8 +206,8 @@ void VerticalTabControl::drawIcons(RendererContext& context, int32_t mouseX, int
                                    RendererStateBuffers& buffers) {
   uint32_t currentIndex = 0;
   int32_t hoverIndex = -1;
-  buffers.bindIconBuffer(context.renderer(), ControlBufferType::regular);
-  if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.height()) {
+  buffers.bindIconBuffer(context.renderer(), ControlBufferType::regularTabIcon);
+  if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.width()) {
     for (auto& mesh : tabMeshes) {
       if (mouseY >= mesh.y && mouseY < mesh.y + (int32_t)mesh.height) {
         hoverIndex = (int32_t)currentIndex;
@@ -202,7 +225,7 @@ void VerticalTabControl::drawIcons(RendererContext& context, int32_t mouseX, int
     }
   }
 
-  buffers.bindIconBuffer(context.renderer(), ControlBufferType::active);
+  buffers.bindIconBuffer(context.renderer(), ControlBufferType::activeTabIcon);
   tabMeshes[selectedIndex].iconMesh.draw(context.renderer());
   if (hoverIndex >= 0 && hoverIndex != (int32_t)selectedIndex)
     tabMeshes[hoverIndex].iconMesh.draw(context.renderer());
@@ -213,7 +236,7 @@ void VerticalTabControl::drawLabels(RendererContext& context, int32_t mouseX, in
   uint32_t currentIndex = 0;
   int32_t hoverIndex = -1;
   buffers.bindLabelBuffer(context.renderer(), LabelBufferType::verticalTab);
-  if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.height()) {
+  if (mouseX >= barMesh.x() && mouseX < barMesh.x() + (int32_t)barMesh.width()) {
     for (auto& mesh : tabMeshes) {
       if (mouseY >= mesh.y && mouseY < mesh.y + (int32_t)mesh.height) {
         hoverIndex = (int32_t)currentIndex;

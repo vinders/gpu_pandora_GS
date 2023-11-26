@@ -92,11 +92,13 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
   if (currentProfile == nullptr || currentProfile->name == nullptr || currentProfile->name[0] == u'\0') {
     char16_t defaultName[DEFAULT_NAME_BUFFER_SIZE];
     setDefaultProfileName(profileId, defaultName);
-    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr,
+    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName),
+                             localizedText.getMessage(ProfileSettingsMessages::profileName_tooltip),
                              defaultName, MAX_NAME_LENGTH, profileName);
   }
   else {
-    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName), nullptr,
+    builder.addStringTextBox(PROFILE_NAME_ID, localizedText.getMessage(ProfileSettingsMessages::profileName),
+                             localizedText.getMessage(ProfileSettingsMessages::profileName_tooltip),
                              currentProfile->name.get(), MAX_NAME_LENGTH, profileName);
   }
 
@@ -105,6 +107,7 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     tileColorOptions[i] = ComboBoxOption(localizedText.getMessage((TileColors)i), (ComboValue)i);
 
   builder.addColorPicker(TILE_COLOR_ID, localizedText.getMessage(ProfileSettingsMessages::tileColor),
+                         localizedText.getMessage(ProfileSettingsMessages::tileColor_tooltip),
                          theme->tileColor(TileColors::themeColor), tileColorOptions,
                          sizeof(tileColorOptions)/sizeof(*tileColorOptions), 0, tileColor, colorPreview);
 
@@ -118,7 +121,8 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     comboBoxLabels.emplace_back(preset.name.get(), (ComboValue)preset.id);
   }
   const char16_t* buttonLabel = localizedText.getMessage(CommonMessages::apply);
-  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::predefinedPreset), nullptr,
+  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::predefinedPreset),
+                                localizedText.getMessage(ProfileSettingsMessages::predefinedPreset_tooltip),
                                 comboBoxLabels.data(), comboBoxLabels.size(), presetToApply,
                                 APPLY_PRESET_ID, buttonLabel, applyPreset);
 
@@ -133,7 +137,8 @@ void ProfileSettings::init(const MessageResources& localizedText, int32_t x, int
     firstComboBoxLabel = comboBoxLabels.data();
     hasOtherProfiles = true;
   }
-  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::existingProfile), nullptr,
+  builder.addComboBoxWithButton(0, localizedText.getMessage(ProfileSettingsMessages::existingProfile),
+                                localizedText.getMessage(ProfileSettingsMessages::existingProfile_tooltip),
                                 firstComboBoxLabel, comboBoxLabels.size(), profileToCopy,
                                 COPY_PROFILE_ID, buttonLabel, copyProfile);
 
@@ -177,13 +182,13 @@ void ProfileSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveTitle(title);
 
   // profile ID group
-  mover.moveFieldset(2, 0, profileIdGroup);
+  mover.moveFieldset(profileIdGroup);
 
   mover.moveTextBox(profileName);
   mover.moveColorPicker(tileColor, colorPreview);
 
   // preset group
-  mover.moveFieldset(2, 0, presetGroup);
+  mover.moveFieldset(presetGroup);
 
   mover.moveComboBoxWithButton(presetToApply, applyPreset);
   mover.moveComboBoxWithButton(profileToCopy, copyProfile);

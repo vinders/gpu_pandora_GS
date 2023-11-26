@@ -38,31 +38,41 @@ namespace menu {
 #   ifdef _WINDOWS
     RendererContext(std::shared_ptr<video_api::Renderer> renderer,
                     const char* fontDirectoryPath, const char* iconSpriteId, const char* iconSpriteAlphaId,
+                    const char* tabSpriteId, const char* tabSpriteAlphaId,
+                    const char* pandoraLogoId, const char* pandoraLogoAlphaId,
                     const char* ratioPreviewId, uint32_t clientWidth, uint32_t clientHeight)
-    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId) {
+    : renderer_(std::move(renderer)),
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
+      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewId, nullptr);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
     }
     RendererContext(std::shared_ptr<video_api::Renderer> renderer,
                     const char* fontDirectoryPath, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
+                    const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId,
+                    const wchar_t* pandoraLogoId, const wchar_t* pandoraLogoAlphaId,
                     const wchar_t* ratioPreviewId, uint32_t clientWidth, uint32_t clientHeight)
-    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId) {
+    : renderer_(std::move(renderer)),
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
+      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewId, nullptr);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
     }
 #   else
     RendererContext(std::shared_ptr<video_api::Renderer> renderer,
-                    const char* fontDirectoryPath, const char* iconSpritePath,
-                    const char* ratioPreviewPath, uint32_t clientWidth, uint32_t clientHeight)
-    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpritePath) {
+                    const char* fontDirectoryPath, const char* iconSpritePath, const char* tabSpritePath,
+                    const char* pandoraLogoPath, const char* ratioPreviewPath,
+                    uint32_t clientWidth, uint32_t clientHeight)
+    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpritePath, tabSpritePath) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
+      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId);
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewPath);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
@@ -85,6 +95,7 @@ namespace menu {
 
     inline video_api::Renderer& renderer() noexcept { return *renderer_; }       ///< Video rendered used for menu
     inline display::ImageLoader& imageLoader() noexcept { return imageLoader_; } ///< Menu image/sprite loader
+    inline const std::shared_ptr<video_api::Texture2D>& pandoraLogoImage() const noexcept { return pandoraLogo; }
     inline const std::shared_ptr<video_api::Texture2D>& ratioPreviewImage() const noexcept { return ratioPreview; }
     
     /// @brief Get font glyph reader (by font type)
@@ -103,6 +114,7 @@ namespace menu {
     std::shared_ptr<video_api::Renderer> renderer_ = nullptr;
     std::array<std::unique_ptr<display::Font>, (size_t)FontType::COUNT> fonts{};
     display::ImageLoader imageLoader_;
+    std::shared_ptr<video_api::Texture2D> pandoraLogo = nullptr;
     std::shared_ptr<video_api::Texture2D> ratioPreview = nullptr;
     uint32_t clientWidth_ = 0;
     uint32_t clientHeight_ = 0;

@@ -68,6 +68,15 @@ namespace menu {
       static constexpr inline uint32_t lineHoverPaddingX() noexcept { return 10; }///< Control line hover left/right padding
       static constexpr inline uint32_t autoScrollPaddingY() noexcept { return 8; }///< Padding above/below control during auto-scroll
 
+      static constexpr inline uint32_t sectionWideTabWidth() noexcept { return 120; } ///< Vertical section tab width -- wide
+      static inline uint32_t sectionTabWidth(uint32_t clientWidth) noexcept { ///< Vertical section tab width
+        return (clientWidth >= 720u) ? sectionWideTabWidth() : 70;
+      }
+      static constexpr inline uint32_t maxPageTabWidth() noexcept { return 200; }   ///< Maximum page tab width
+      static constexpr inline uint32_t minPageTabPaddingX() noexcept { return 12; } ///< Minimum horizontal padding before/after page tabs
+      static constexpr inline uint32_t maxPageTabPaddingX() noexcept { return 30; } ///< Maximum horizontal padding before/after page tabs
+      static constexpr inline uint32_t pageTabPaddingY() noexcept { return 11; }    ///< Vertical padding above/below page tabs
+
       // -- control sizes --
 
       static constexpr inline uint32_t fieldsetTitleShortPaddingX() noexcept{ return 9; }///< Fieldset title horizontal padding -- gradient style
@@ -117,14 +126,6 @@ namespace menu {
     
     // -- control styling -- ---------------------------------------------------
 
-    enum class BackgroundStyle : uint32_t { ///< Background visual style
-      plain = 0,       ///< Unique color
-      radialGradient   ///< Centered radial gradient
-    };
-    enum class FieldsetStyle : uint32_t { ///< Fieldset visual style
-      classic = 0, ///< Title bar and top/left borders with simplegradients
-      gradientBox  ///< Title bar and content box with gradients
-    };
     enum class ComboBoxStyle : uint32_t { ///< Combo-box visual style
       classic = 0, ///< Rectangle
       cutCorner    ///< Rectangle with top-right corner cut

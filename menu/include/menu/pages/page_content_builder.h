@@ -147,7 +147,8 @@ namespace menu {
       // ---
       
       /// @brief Create single key binding (keyboard/controller)
-      void addControllerKeyBinding(const char16_t* label, const char16_t* tooltip, uint32_t keyCode, controls::KeyBinding& outBinding);
+      void addControllerKeyBinding(const char16_t* label, const char16_t* tooltip, uint32_t controlWidth,
+                                   uint32_t keyCode, controls::KeyBinding& outBinding);
       /// @brief Create keyboard and controller key binding
       void addDualKeyBinding(const char16_t* label, const char16_t* tooltip,
                              uint32_t keyboardKeyCode, uint32_t controllerKeyCode, controls::KeyBinding& outBinding);
@@ -155,7 +156,7 @@ namespace menu {
       // ---
 
       /// @brief Create color-picker (combo-box and preview mesh)
-      void addColorPicker(uint32_t controlId, const char16_t* label, const float previewColorRgba[4],
+      void addColorPicker(uint32_t controlId, const char16_t* label, const char16_t* tooltip, const float previewColorRgba[4],
                           controls::ComboBoxOption* options, size_t optionCount, int32_t selectedIndex,
                           controls::ComboBox& outComboBox, display::controls::ControlMesh& outColorPreview);
       /// @brief Change preview of a color-picker (preview mesh)
@@ -199,7 +200,7 @@ namespace menu {
       /// @brief Move main page title mesh
       void moveTitle(display::controls::TextMesh& title);
       /// @brief Move fielset (group of controls)
-      void moveFieldset(uint32_t controlLineCount, uint32_t additionalPaddingY, controls::Fieldset& fieldset);
+      void moveFieldset(controls::Fieldset& fieldset);
 
       // -- page controls --
 

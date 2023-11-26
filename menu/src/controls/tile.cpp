@@ -105,7 +105,7 @@ void Tile::init(RendererContext& context, const char16_t* label, int32_t x, int3
   ControlVertex* vertexIt = vertices.data();
 
   const float colorDarker[4]{ backgroundColor[0]*0.85f, backgroundColor[1]*0.85f,
-                              backgroundColor[2]*0.85f, backgroundColor[3]*0.95f };
+                              backgroundColor[2]*0.85f, backgroundColor[3] };
   GeometryGenerator::fillControlVertex(*vertexIt,     backgroundColor, 0.f,               0.f); // background (gradient from top)
   GeometryGenerator::fillControlVertex(*(++vertexIt), backgroundColor, (float)fixedWidth, 0.f);
   GeometryGenerator::fillRectangleVertices(++vertexIt, colorDarker, 0.f, (float)fixedWidth, -(float)((height<<1)/3), -(float)height);

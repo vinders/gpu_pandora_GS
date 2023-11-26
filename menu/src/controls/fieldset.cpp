@@ -23,9 +23,8 @@ using namespace menu;
 
 // -- init/resize geometry -- --------------------------------------------------
 
-Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyle style_,
-                   const float color[4], int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight)
-  : style(style_) {
+Fieldset::Fieldset(RendererContext& context, const char16_t* label, const float color[4],
+                   int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight) {
   // create fieldset decoration
   auto& labelFont = context.getFont(FontType::labels);
   const int32_t y = labelY - (int32_t)Control::fieldsetTitlePaddingY();
@@ -33,34 +32,18 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyl
   const uint32_t totalHeight = barHeight + contentHeight;
   ++labelY;
 
-  std::vector<ControlVertex> vertices;
-  std::vector<uint32_t> indices;
+  std::vector<ControlVertex> vertices(static_cast<size_t>(24));
+  ControlVertex* vertexIt = vertices.data();
+  
   float backColor[4]{ color[0], color[1], color[2], 0.3f*color[3] };
-  float transparentColor[4]{ color[0], color[1], color[2], 0.f };
-
-  ControlVertex* vertexIt;
-  if (style == FieldsetStyle::classic) {
-    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11,  12,13,14,14,13,15,  16,17,18,18,17,19 };
-    vertices.resize(20);
-    vertexIt = vertices.data();
-
-    GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, backColor, transparentColor, // title bar background
-                                                        0.f, (float)width, -1.f, -(float)(barHeight-1));
-  }
-  else { // FieldsetStyle::gradientBox -> add content background
-    transparentColor[3] = 0.1f*color[3];
-    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11,  12,13,14,14,13,15,  16,17,18,18,17,19,  20,21,22,22,21,23 };
-    vertices.resize(24);
-    vertexIt = vertices.data();
-
-    GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, backColor, transparentColor, // title bar background
-                                                        0.f, (float)width, -1.f, -(float)(barHeight-1));
-    vertexIt[1].position[0] -= (float)(barHeight-1u);
-    vertexIt += 4;
-    backColor[3] *= 0.25f;
-    GeometryGenerator::fillRectangleVertices(vertexIt, backColor,  // content background
-                                              1.f, (float)width, -(float)barHeight, -(float)totalHeight);
-  }
+  float transparentColor[4]{ color[0], color[1], color[2], 0.1f*color[3] };
+  GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, backColor, transparentColor, // title bar background
+                                                      0.f, (float)width, -1.f, -(float)(barHeight-1));
+  vertexIt[1].position[0] -= (float)(barHeight-1u);
+  vertexIt += 4;
+  backColor[3] *= 0.25f;
+  GeometryGenerator::fillRectangleVertices(vertexIt, backColor,  // content background
+                                            1.f, (float)width, -(float)barHeight, -(float)totalHeight);
   vertexIt += 4;
   const uint32_t solidWidth = (width << 1) / 3u;
   GeometryGenerator::fillRectangleVertices(vertexIt, color,  // title underline
@@ -74,6 +57,9 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, FieldsetStyl
   vertexIt += 4;
   GeometryGenerator::fillVerticalRectangleVertices(vertexIt, color, transparentColor, // vertical line gradient
                                                     0.f, 1.f, -(float)barHeight, -(float)totalHeight);
+  
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3,       4,5,6,6,5,7,       8,9,10,10,9,11,
+                                 12,13,14,14,13,15, 16,17,18,18,17,19, 20,21,22,22,21,23 };
   controlMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(),
                             context.pixelSizeY(), x, y, width, totalHeight);
   
@@ -91,36 +77,5 @@ void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY) {
   ++labelY;
 
   controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - Control::fieldsetTitlePaddingY() - 1);
-  labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + paddingX, labelY);
-}
-
-void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY, uint32_t width, uint32_t contentHeight) {
-  if (controlMesh.width() == 0)
-    return;
-  const int32_t paddingX = labelMesh.x() - controlMesh.x();
-  uint32_t totalHeight = labelMesh.height() + ((uint32_t)Control::fieldsetTitlePaddingY() << 1) + contentHeight;
-  ++labelY;
-  
-  std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
-  ControlVertex* vertexIt = vertices.data();
-
-  if (style == FieldsetStyle::gradientBox) {
-    GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background
-    (vertexIt + 1)->position[0] = (float)width + (vertexIt + 2)->position[1];
-    (vertexIt + 3)->position[0] = (float)width;
-    vertexIt += 4;
-  }
-  GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)width);        // title bar background (gradient) -or- content background (gradientBox)
-  vertexIt += 4;
-  const uint32_t solidWidth = (width << 1) / 3u;
-  GeometryGenerator::resizeRectangleVerticesX(vertexIt, (float)solidWidth);   // title underline
-  vertexIt += 4;
-  GeometryGenerator::moveRectangleVerticesX(vertexIt, (float)solidWidth, (float)width); // title underline gradient
-  vertexIt += 8;
-  GeometryGenerator::resizeRectangleVerticesY(vertexIt, -(float)totalHeight); // vertical line
-
-  controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
-                     x, labelY - Control::fieldsetTitlePaddingY() - 1, width, totalHeight);
-  
   labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + paddingX, labelY);
 }

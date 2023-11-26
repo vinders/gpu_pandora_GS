@@ -36,7 +36,7 @@ namespace menu {
                       const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
                       int32_t x, int32_t y, uint32_t width, uint32_t height,
                       uint32_t profileId, const std::vector<ConfigProfile>& profiles, const std::vector<ConfigProfile>& presets)
-        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, true),
+        : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, true, true),
           theme(theme),
           profileId(profileId),
           hasOtherProfiles(profiles.size() > (size_t)1) {

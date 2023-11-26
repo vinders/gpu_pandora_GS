@@ -270,8 +270,7 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
   mover.moveTitle(title);
 
   // aspect ratio group
-  mover.moveFieldset(5, Control::pageLineHeight() + (Control::pageLineHeight() >> 3) + Control::fieldsetContentPaddingTop(),
-                     aspectRatioGroup);
+  mover.moveFieldset(aspectRatioGroup);
   mover.addLineOffset((int32_t)(Control::pageLineHeight() >> 3));
 
   ratioPreviewImage.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
@@ -294,7 +293,7 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
   mover.addLineOffset((int32_t)Control::pageLineHeight() - (int32_t)((Control::pageLineHeight() >> 2) << 1));
 
   // display adjustements group
-  mover.moveFieldset(5, 1, displayAdjustGroup);
+  mover.moveFieldset(displayAdjustGroup);
 
   mover.moveDoubleTextBox(blackBordersX, blackBordersY);
   mover.moveRuler(screenCurvature);

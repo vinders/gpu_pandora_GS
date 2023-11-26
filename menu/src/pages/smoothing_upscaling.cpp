@@ -319,7 +319,7 @@ void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   mover.moveTitle(title);
 
   // framebuffer group
-  mover.moveFieldset(3, Control::pageLineHeight() - (Control::pageLineHeight() >> 2), framebufferGroup);
+  mover.moveFieldset(framebufferGroup);
 
   mover.moveDoubleTextBox(internalResolutionX, internalResolutionY);
   mover.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
@@ -331,7 +331,7 @@ void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   mover.moveComboBox(mdecMovieFilter);
 
   // screen group
-  mover.moveFieldset(3, Control::pageLineHeight() - (Control::pageLineHeight() >> 2), screenGroup);
+  mover.moveFieldset(screenGroup);
 
   mover.moveDoubleComboBox(screenUpscaling, screenUpscalingFactor);
   mover.addLineOffset(-(int32_t)(Control::pageLineHeight() >> 2));
@@ -343,7 +343,7 @@ void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   mover.moveRuler(screenBlur);
 
   // texture group
-  mover.moveFieldset(4, 0, textureGroup);
+  mover.moveFieldset(textureGroup);
 
   mover.moveDoubleComboBox(textureUpscaling, textureUpscalingFactor);
   mover.moveComboBox(textureSmoothing);
@@ -351,7 +351,7 @@ void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   mover.moveRuler(textureSplatting);
 
   // sprite group
-  mover.moveFieldset(4, 0, spriteGroup);
+  mover.moveFieldset(spriteGroup);
 
   mover.moveCheckBox(spriteTextureSettings);
   mover.moveDoubleComboBox(spriteUpscaling, spriteUpscalingFactor);

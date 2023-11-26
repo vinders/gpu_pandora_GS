@@ -80,7 +80,7 @@ bool CheckBox::click(RendererContext&, int32_t, int32_t) {
 
 void CheckBox::drawIcon(RendererContext& context, RendererStateBuffers& buffers, bool isActive) {
   buffers.bindIconBuffer(context.renderer(), isEnabled()
-                                             ? (isActive ? ControlBufferType::activeIcon : ControlBufferType::regularIcon)
+                                             ? (isActive ? ControlBufferType::activeIcon : ControlBufferType::coloredIcon)
                                              : ControlBufferType::disabledIcon);
   if (*boundValue)
     checkedMesh.draw(context.renderer());

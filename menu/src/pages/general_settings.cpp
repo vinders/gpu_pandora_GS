@@ -342,7 +342,7 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveTitle(title);
 
   // display group
-  mover.moveFieldset(3, 0, windowGroup);
+  mover.moveFieldset(windowGroup);
 
   mover.moveSlider(displayMode);
   mover.moveDoubleComboBox(fullscreenSize, fullscreenRate);
@@ -354,7 +354,7 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
                       windowHeight.controlX() + windowSizeOffsetX, windowSizeY);
 
   // compatibility group
-  mover.moveFieldset(4, 0, compatibilityGroup);
+  mover.moveFieldset(compatibilityGroup);
 
   mover.moveSlider(subprecisionMode);
   mover.moveCheckBox(widescreenMode);
@@ -362,14 +362,14 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveCheckBox(autoloadOnStart);
 
   // framerate group
-  mover.moveFieldset(3, 0, framerateGroup);
+  mover.moveFieldset(framerateGroup);
 
   mover.moveSlider(framerateLimit);
   mover.moveTextBox(fixedFramerate);
   mover.moveCheckBox(frameSkipping);
 
   // user interface group
-  mover.moveFieldset(2, 0, userInterfaceGroup);
+  mover.moveFieldset(userInterfaceGroup);
 
   mover.moveSlider(interfaceColor);
   mover.moveComboBox(interfaceLanguage);
@@ -437,12 +437,16 @@ void GeneralSettings::onValueChange(uint32_t id, uint32_t value) {
       Page::updateColors(*theme);
       init(x(), y(), width());
       selectControlIndex(static_cast<uint32_t>(countRegistryControls() - 2u));
+      if (onThemeChange)
+        onThemeChange();
       break;
     }
     case INTERFACE_LANGUAGE_ID: {
       localizedText->updateLocalization((LocalizationType)value);
       init(x(), y(), width());
       selectControlIndex(static_cast<uint32_t>(countRegistryControls() - 1u));
+      if (onThemeChange)
+        onThemeChange();
       break;
     }
     default: assert(false); break;

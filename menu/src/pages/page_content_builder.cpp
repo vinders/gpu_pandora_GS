@@ -89,16 +89,15 @@ void PageContentBuilder::addFieldset(const char16_t* label, uint32_t controlLine
                                      Fieldset& outFieldset) {
   currentLineY += Control::fieldsetContentMarginBottom();
   outFieldset = Fieldset(*context, label,
-                         theme->fieldsetStyle(), theme->fieldsetControlColor(),
+                         theme->fieldsetControlColor(),
                          fieldsetX, currentLineY,
                          fieldsetWidth, Control::fieldsetContentHeight(controlLineCount) + additionalPaddingY);
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 }
 
-void PageContentMover::moveFieldset(uint32_t controlLineCount, uint32_t additionalPaddingY, Fieldset& fieldset) {
+void PageContentMover::moveFieldset(Fieldset& fieldset) {
   currentLineY += Control::fieldsetContentMarginBottom();
-  fieldset.move(*context, fieldsetX, currentLineY,
-                fieldsetWidth, Control::fieldsetContentHeight(controlLineCount) + additionalPaddingY);
+  fieldset.move(*context, fieldsetX, currentLineY);
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 }
 
@@ -369,11 +368,11 @@ void PageContentMover::moveDoubleTextBox(TextBox& leftTextBox, TextBox& rightTex
 
 // ---
 
-void PageContentBuilder::addControllerKeyBinding(const char16_t* label, const char16_t* tooltip,
+void PageContentBuilder::addControllerKeyBinding(const char16_t* label, const char16_t* tooltip, uint32_t controlWidth,
                                                  uint32_t keyCode, KeyBinding& outBinding) {
   outBinding = KeyBinding(*context, label,
                           controlX, currentLineY,
-                          Control::pageLabelWidth(), (Control::pageControlWidth() >> 1) + 1,
+                          Control::pageLabelWidth(), controlWidth,
                           theme->textBoxControlColor(), theme->keyboardKeyColorParams(), KeyBindingType::controller,
                           KeyBinding::emptyKeyValue(), keyCode,
                           false, enabler);
@@ -419,16 +418,16 @@ static void fillColorPreviewTopRgba(const float previewColor[4], float outRgba[4
   *(++outRgba) = *(++previewColor);
 }
 
-void PageContentBuilder::addColorPicker(uint32_t controlId, const char16_t* label, const float previewColorRgba[4],
-                                        ComboBoxOption* options, size_t optionCount, int32_t selectedIndex,
-                                        ComboBox& outComboBox, ControlMesh& outColorPreview) {
+void PageContentBuilder::addColorPicker(uint32_t controlId, const char16_t* label, const char16_t* tooltip,
+                                        const float previewColorRgba[4], ComboBoxOption* options, size_t optionCount,
+                                        int32_t selectedIndex, ComboBox& outComboBox, ControlMesh& outColorPreview) {
   outComboBox = ComboBox(*context, label,
                          controlX, currentLineY,
                          Control::pageLabelWidth(), (Control::pageControlWidth() >> 1),
                          ComboBoxStyle::classic, theme->comboBoxColorParams(),
                          controlId, controlId ? keyValueChangeHandler : nullptr,
                          options, optionCount, selectedIndex, enabler);
-  registry.emplace_back(outComboBox, true, nullptr);
+  registry.emplace_back(outComboBox, true, tooltip);
 
   const uint32_t previewBoxSize = outComboBox.height();
   float previewBorderRgba[4];

@@ -43,19 +43,20 @@ void HotkeyBindings::init(const ColorTheme& theme, const MessageResources& local
   builder.addCheckBox(0, localizedText.getMessage(HotkeyBindingsMessages::enableKeyBindings),
                       localizedText.getMessage(HotkeyBindingsMessages::enableKeyBindings_tooltip),
                       isBindingEnabled, enableKeyBindings);
-
   builder.setEnabler(isBindingEnabled);
+
+  constexpr const uint32_t hotkeySettingsWidth = Control::pageControlWidth()*2u/3u;
   builder.addControllerKeyBinding(localizedText.getMessage(HotkeyBindingsMessages::hotkey),
                                   localizedText.getMessage(HotkeyBindingsMessages::hotkey_tooltip),
-                                  0x40u/*XINPUT_GAMEPAD_LEFT_THUMB*/, hotkeyBinding);
+                                  hotkeySettingsWidth, 0x40u/*XINPUT_GAMEPAD_LEFT_THUMB*/, hotkeyBinding);
 
   ComboBoxOption speedCommandOptions[]{ ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::hold),  0/*TMP*/),
                                         ComboBoxOption(localizedText.getMessage(HotkeyBindingsMessages::toggle), 1/*TMP*/) };
   builder.addSlider(0, localizedText.getMessage(HotkeyBindingsMessages::slowMotionMode),
-                    localizedText.getMessage(HotkeyBindingsMessages::slowMotionMode_tooltip), Control::pageControlWidth(),
+                    localizedText.getMessage(HotkeyBindingsMessages::slowMotionMode_tooltip), hotkeySettingsWidth,
                     speedCommandOptions, sizeof(speedCommandOptions)/sizeof(*speedCommandOptions), 0, slowMotionMode);
   builder.addSlider(0, localizedText.getMessage(HotkeyBindingsMessages::fastForwardMode),
-                    localizedText.getMessage(HotkeyBindingsMessages::fastForwardMode_tooltip), Control::pageControlWidth(),
+                    localizedText.getMessage(HotkeyBindingsMessages::fastForwardMode_tooltip), hotkeySettingsWidth,
                     speedCommandOptions, sizeof(speedCommandOptions)/sizeof(*speedCommandOptions), 0, fastForwardMode);
 
   // bindings group
@@ -101,7 +102,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
   mover.moveTitle(title);
 
   // hotkey/hint group
-  mover.moveFieldset(5, 0, behaviorGroup);
+  mover.moveFieldset(behaviorGroup);
 
   mover.moveCheckBox(menuHintMouseMove);
   mover.moveCheckBox(enableKeyBindings);
@@ -111,7 +112,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
 
   // bindings group
   constexpr const uint32_t categorySeparationHeight = (Control::pageLineHeight() >> 1);
-  mover.moveFieldset((uint32_t)HotkeyActions::COUNT, categorySeparationHeight*3u, bindingsGroup);
+  mover.moveFieldset(bindingsGroup);
 
   for (size_t i = 0; i < (size_t)HotkeyActions::COUNT; ++i) {
     if (i == (size_t)HotkeyActions::nextSaveSlot || i == (size_t)HotkeyActions::pauseResume || i == (size_t)HotkeyActions::screenshot)

@@ -23,17 +23,16 @@ namespace display {
     none = 0,
     checked,
     unchecked,
-    home,
-    settings,
-    selector,
-    profile,
+    tabHome,
+    tabSettings,
+    tabSelector,
+    tabProfile,
     add,
     edit,
     remove,
     keyboard,
     controller,
     buttonDpad,
-    buttonDpadY,
     buttonDpadUp,
     buttonDpadDown,
     buttonDpadLeft,
@@ -89,13 +88,26 @@ namespace display {
   class ImageLoader final {
   public:
 #   ifdef _WINDOWS
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpriteId, const char* iconSpriteAlphaId)
-      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId); }
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId)
-      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId); }
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
+                const char* iconSpriteId, const char* iconSpriteAlphaId,
+                const char* tabSpriteId, const char* tabSpriteAlphaId)
+      : renderer(std::move(renderer)) {
+      iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
+      tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
+    }
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
+                const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
+                const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId)
+      : renderer(std::move(renderer)) {
+      iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
+      tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
+    }
 #   else
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath)
-      : renderer(std::move(renderer)) { iconsSprite = loadImage(iconSpritePath); }
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath, const char* tabSpritePath)
+      : renderer(std::move(renderer)) {
+      iconsSprite = loadImage(iconSpritePath);
+      tabsSprite = loadImage(tabSpritePath);
+    }
 #   endif
 
     ImageLoader() = default;
@@ -127,5 +139,6 @@ namespace display {
   private:
     std::shared_ptr<video_api::Renderer> renderer = nullptr;
     std::shared_ptr<video_api::Texture2D> iconsSprite = nullptr;
+    std::shared_ptr<video_api::Texture2D> tabsSprite = nullptr;
   };
 }

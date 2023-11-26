@@ -33,31 +33,6 @@ using namespace menu::pages;
 using namespace menu;
 
 
-static ControlMesh generateBackground(RendererContext& context, const ColorTheme& theme,
-                                      int32_t x, int32_t y, uint32_t width, uint32_t height) {
-  std::vector<ControlVertex> backgroundVertices;
-  std::vector<uint32_t> indices;
-
-  if (theme.backgroundStyle() == BackgroundStyle::radialGradient) {
-    backgroundVertices.resize(static_cast<size_t>(13));
-    GeometryGenerator::fillRadialGradientRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
-                                                           theme.backgroundGradientColor(),
-                                                           0.f, (float)width, 0.f, -(float)height);
-    indices = { 0,1,3,0,3,5,  1,2,4,2,6,4,    3,1,7,1,4,7,  3,7,5,4,6,7,
-                5,7,8,7,11,8, 5,8,10,8,11,10, 7,6,9,7,9,11, 6,12,9,9,12,11 };
-  }
-  else { // BackgroundStyle::plain
-    backgroundVertices.resize(static_cast<size_t>(4));
-    GeometryGenerator::fillRectangleVertices(backgroundVertices.data(), theme.backgroundColor(),
-                                             0.f, (float)width, 0.f, -(float)height);
-    indices = { 0,1,2,2,1,3 };
-  }
-  return ControlMesh(context.renderer(), std::move(backgroundVertices), indices,
-                     context.pixelSizeX(), context.pixelSizeY(), x, y, width, height);
-}
-
-// ---
-
 #define HOVER_BORDER_RADIUS 3.f
 
 Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
@@ -67,13 +42,15 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
     buffers(std::move(buffers_)),
     scrollY(0),
     bottomBarHeight(bottomBarHeight),
-    activeControlIndex(noControlSelection()),
-    backgroundType(theme.backgroundStyle()) {
+    x_(x),
+    width_(width),
+    activeControlIndex(noControlSelection()) {
   assert(this->context != nullptr && this->buffers != nullptr);
 
   // create page scrollbar
   const int32_t scrollBarX = x + (int32_t)width - (int32_t)Control::scrollbarWidth();
   auto scrollHandler = std::bind(&Page::onScroll, this, std::placeholders::_1);
+  buffers->updateScrollBuffer(context->pixelSizeY(), 0);
   scrollbar = ScrollBar(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor(),
                         scrollBarX, y, Control::scrollbarWidth(), std::move(scrollHandler),
                         visibleHeight, visibleHeight, (Control::pageLineHeight() >> 1));
@@ -81,14 +58,11 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   // create tooltip bar
   if (enableTooltip) {
     tooltip = Tooltip(*context, u" ", FontType::inputText, LabelBufferType::regular,
-                      x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(),
-                      width, Control::tooltipBarHeight(), theme.tooltipControlColor(), display::ControlIconType::none);
+                      0, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(),
+                      context->clientWidth(), Control::tooltipBarHeight(), theme.tooltipControlColor(), display::ControlIconType::none);
     if (tooltip.height() > this->bottomBarHeight)
       this->bottomBarHeight = tooltip.height();
   }
-
-  // create page background
-  backgroundMesh = generateBackground(*context, theme, x, y, width, visibleHeight);
 
   // create control line hover area
   const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
@@ -111,7 +85,6 @@ Page::~Page() noexcept {
   // release controls before context
   scrollbar.release();
   tooltip.release();
-  backgroundMesh.release();
   controlHoverMesh.release();
   controlRegistry.clear();
 
@@ -124,20 +97,14 @@ Page::~Page() noexcept {
 void Page::moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight) {
   const int32_t scrollBarX = x + (int32_t)width - (int32_t)scrollbar.width();
   scrollbar.moveControl(*context, scrollBarX, y, visibleHeight);
+  this->x_ = x;
+  this->width_ = width;
 
   if (tooltip.width()) {
-    tooltip.move(*context, x, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(), width);
+    tooltip.move(*context, 0, y + (int32_t)visibleHeight - (int32_t)Control::tooltipBarHeight(), context->clientWidth());
     if (activeControlIndex != noControlSelection())
       tooltip.updateLabel(*context, u" ", LabelBufferType::regular);
   }
-
-  auto backgroundVertices = backgroundMesh.relativeVertices();
-  if (backgroundType == BackgroundStyle::radialGradient)
-    GeometryGenerator::resizeRadialGradientRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
-  else
-    GeometryGenerator::resizeRectangleVertices(backgroundVertices.data(), (float)width, -(float)visibleHeight);
-  backgroundMesh.update(context->renderer(), std::move(backgroundVertices), context->pixelSizeX(), context->pixelSizeY(),
-                        x, y, width, visibleHeight);
 
   if (controlHoverMesh.width()) {
     const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
@@ -156,9 +123,6 @@ void Page::updateColors(const ColorTheme& theme) {
   scrollbar.updateColors(*context, theme.scrollbarControlColor(), theme.scrollbarThumbColor());
   if (tooltip.width())
     tooltip.updateColors(*context, theme.tooltipControlColor());
-  backgroundMesh = generateBackground(*context, theme, backgroundMesh.x(), backgroundMesh.y(),
-                                      backgroundMesh.width(), backgroundMesh.height());
-  backgroundType = theme.backgroundStyle();
 
   if (controlHoverMesh.width()) {
     std::vector<ControlVertex> vertices = controlHoverMesh.relativeVertices();
@@ -202,8 +166,7 @@ void Page::onHover(int32_t controlIndex) {
       if (controlHoverMesh.width()) {
         int32_t controlHoverX;
         uint32_t controlHoverWidth;
-        const int32_t controlX = backgroundMesh.x() + (int32_t)Control::fieldsetMarginX(backgroundMesh.width())
-                                                    + (int32_t)Control::fieldsetContentMarginX(backgroundMesh.width());
+        const int32_t controlX = x_ + (int32_t)Control::fieldsetMarginX(width_) + (int32_t)Control::fieldsetContentMarginX(width_);
         if (control->x() < controlX + (int32_t)Control::pageLabelWidth()) {
           controlHoverX = controlX - (int32_t)Control::lineHoverPaddingX();
           controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
@@ -556,8 +519,6 @@ void Page::mouseButton(int32_t, int32_t, MouseButton button) {
 }
 
 void Page::mouseMove(int32_t mouseX, int32_t mouseY) {
-  this->mouseX_ = mouseX;
-  this->mouseY_ = mouseY;
   isControllerUsed_ = false;
 
   // moving while dragging scrollbar
@@ -604,8 +565,6 @@ void Page::mouseScroll(int32_t deltaY) {
 }
 
 void Page::mouseLeave() noexcept {
-  mouseX_ = -1;
-  mouseY_ = -1;
   if (scrollbar.isDragged())
     scrollbar.mouseLeave();
 }
@@ -829,27 +788,26 @@ void Page::padButtonDown(uint32_t virtualKeyCode) {
 
 // -- rendering -- -------------------------------------------------------------
 
-bool Page::drawBackgrounds() {
+bool Page::drawBackgrounds(int32_t mouseX, int32_t mouseY) {
   // fixed geometry
   auto& renderer = context->renderer();
-  if (!buffers->isFixedLocationBuffer())
-    buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
+  if (tooltip.width() || scrollbar.isEnabled()) {
+    if (!buffers->isFixedLocationBuffer())
+      buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
 
-  buffers->bindControlBuffer(renderer, ControlBufferType::regular);
-  backgroundMesh.draw(renderer);
-  if (tooltip.width())
-    tooltip.drawBackground(*context, *buffers);
-  scrollbar.drawControl(*context, mouseX_, mouseY_, *buffers);
+    if (tooltip.width())
+      tooltip.drawBackground(*context, *buffers);
+    scrollbar.drawControl(*context, mouseX, mouseY, *buffers);
+  }
 
   // scrollable geometry
   if (activeControlIndex != noControlSelection() && controlHoverMesh.width()) {
-    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(backgroundMesh.x(), backgroundMesh.y(),
-                                                                 backgroundMesh.width(), contentHeight()));
+    buffers->bindScrollLocationBuffer(renderer, ScissorRectangle(x(), y(), width(), contentHeight()));
     buffers->bindControlBuffer(renderer, ControlBufferType::regular);
     controlHoverMesh.draw(renderer);
   }
 
-  drawPageBackgrounds(mouseX_, mouseY_);
+  drawPageBackgrounds(mouseX, mouseY);
   return ((openControl != nullptr && openControl->control()->type() == ControlType::comboBox) || openPopup != nullptr);
 }
 

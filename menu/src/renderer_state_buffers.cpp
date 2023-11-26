@@ -87,12 +87,19 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   controlBuffers[(size_t)ControlBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeScrollControlModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::activeScroll] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  memcpy(colorData.color, theme.regularIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::regularIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.coloredIconModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::coloredIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.disabledIconModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::disabledIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.activeIconModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::activeIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  memcpy(colorData.color, theme.verticalTabIconModifier(), sizeof(float)*4);
+  controlBuffers[(size_t)ControlBufferType::regularTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  colorData.color[1] += 0.05f;
+  colorData.color[2] += 0.05f;
+  colorData.color[3] += 0.05f;
+  colorData.color[3] *= 1.5f;
+  controlBuffers[(size_t)ControlBufferType::activeTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   // fragment slot 0 - text background color
   memcpy(colorData.color, theme.regularLabelColor(), sizeof(float)*4);

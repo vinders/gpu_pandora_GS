@@ -292,40 +292,6 @@ void GeometryGenerator::fillCornerCutRectangleVertices(ControlVertex* outVertexI
 
 // -- rectangle resize -- ------------------------------------------------------
 
-void GeometryGenerator::resizeRadialGradientRectangleVertices(ControlVertex* vertexIt, float x2, float y2) noexcept {
-  const float x1 = vertexIt->position[0];
-  const float y1 = vertexIt->position[1];
-  const float radiusX = floorf((x2 - x1)*0.5f);
-  const float radiusY = floorf((y1 - y2)*0.5f);
-  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
-  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
-
-  (++vertexIt)->position[0] = x1 + radiusX;
-  (++vertexIt)->position[0] = x2;
-
-  (++vertexIt)->position[0] = x1 + offsetX;
-  vertexIt->position[1] = y1 - offsetY;
-  (++vertexIt)->position[0] = x2 - offsetX;
-  vertexIt->position[1] = y1 - offsetY;
-
-  (++vertexIt)->position[1] = y1 - radiusY;
-  (++vertexIt)->position[0] = x2;
-  vertexIt->position[1] = y1 - radiusY;
-  (++vertexIt)->position[0] = x1 + radiusX;
-  vertexIt->position[1] = y1 - radiusY;
-
-  (++vertexIt)->position[0] = x1 + offsetX;
-  vertexIt->position[1] = y2 + offsetY;
-  (++vertexIt)->position[0] = x2 - offsetX;
-  vertexIt->position[1] = y2 + offsetY;
-
-  (++vertexIt)->position[1] = y2;
-  (++vertexIt)->position[0] = x1 + radiusX;
-  vertexIt->position[1] = y2;
-  (++vertexIt)->position[0] = x2;
-  vertexIt->position[1] = y2;
-}
-
 void GeometryGenerator::resizeRoundedRectangleVerticesX(ControlVertex* vertexIt, float x2, float radius) noexcept {
   const uint32_t vertexCount = getRoundedRectangleVertexCount(radius);
   const float offset = x2 - vertexIt[(vertexCount >> 1) + 1u].position[0];
@@ -354,6 +320,44 @@ void GeometryGenerator::resizeBLTRCutRectangleVerticesX(ControlVertex* vertexIt,
   vertexIt->position[0] = x2;
   vertexIt += 2;
   vertexIt->position[0] = x2;
+}
+
+void GeometryGenerator::moveRadialGradientRectangleVertices(ControlVertex* vertexIt, float x1, float x2, float y1, float y2) noexcept {
+  const float radiusX = floorf((x2 - x1)*0.5f);
+  const float radiusY = floorf((y1 - y2)*0.5f);
+  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
+  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
+
+  vertexIt->position[0] = x1;
+  vertexIt->position[1] = y1;
+  (++vertexIt)->position[0] = x1 + radiusX;
+  vertexIt->position[1] = y1;
+  (++vertexIt)->position[0] = x2;
+  vertexIt->position[1] = y1;
+
+  (++vertexIt)->position[0] = x1 + offsetX;
+  vertexIt->position[1] = y1 - offsetY;
+  (++vertexIt)->position[0] = x2 - offsetX;
+  vertexIt->position[1] = y1 - offsetY;
+
+  (++vertexIt)->position[0] = x1;
+  vertexIt->position[1] = y1 - radiusY;
+  (++vertexIt)->position[0] = x2;
+  vertexIt->position[1] = y1 - radiusY;
+  (++vertexIt)->position[0] = x1 + radiusX;
+  vertexIt->position[1] = y1 - radiusY;
+
+  (++vertexIt)->position[0] = x1 + offsetX;
+  vertexIt->position[1] = y2 + offsetY;
+  (++vertexIt)->position[0] = x2 - offsetX;
+  vertexIt->position[1] = y2 + offsetY;
+
+  (++vertexIt)->position[0] = x1;
+  vertexIt->position[1] = y2;
+  (++vertexIt)->position[0] = x1 + radiusX;
+  vertexIt->position[1] = y2;
+  (++vertexIt)->position[0] = x2;
+  vertexIt->position[1] = y2;
 }
 
 
