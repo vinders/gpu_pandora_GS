@@ -14,6 +14,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cassert>
 #include <cstring>
 #include <cmath>
+#include "menu/controls/geometry_generator.h"
 #include "menu/pages/page_content_builder.h"
 #include "menu/pages/main_menu.h"
 
@@ -49,22 +50,19 @@ struct MainMenuGrid final {
 
 static MainMenuGrid computeGrid(RendererContext& context, int32_t x, int32_t y, uint32_t width, uint32_t height) {
   MainMenuGrid grid;
-  if (width >= 980u)
-    grid.controlX = (x + (int32_t)width / 3 - (int32_t)buttonWidth/3);
-  else if (width >= 780u)
-    grid.controlX = (x + (int32_t)(width >> 2) - (int32_t)buttonWidth/4);
-  else if (width >= 650u)
-    grid.controlX = (x + (int32_t)(width >> 2) - (int32_t)buttonWidth/3);
-  else
-    grid.controlX = (x + (int32_t)(width >> 2) - (int32_t)buttonWidth/3 - (int32_t)buttonWidth/8);
+  grid.controlX = (x + (int32_t)((width - Control::scrollbarWidth() - activeButtonWidth + buttonWidth) >> 1) - (int32_t)(buttonWidth >> 1));
   grid.titleHeight = context.getFont(FontType::titles).XHeight();
   grid.buttonHeight = context.getFont(FontType::labels).XHeight() + (buttonPaddingY << 1);
 
-  grid.offsetY = ((int32_t)height - (int32_t)((grid.buttonHeight + buttonSpacingY)*5u)) / 2;
+  const uint32_t gridHeight = ((grid.buttonHeight + buttonSpacingY) * 5u);
+  grid.offsetY = ((int32_t)height - (int32_t)gridHeight) / 2;
   if (grid.offsetY < (int32_t)Control::titleMarginTop() + (int32_t)Control::pageLineHeight() + (int32_t)grid.titleHeight)
     grid.offsetY = Control::titleMarginTop() + Control::pageLineHeight() + grid.titleHeight;
-  else
+  else {
     grid.offsetY -= (int32_t)(height >> 4);
+    if (grid.offsetY > (int32_t)gridHeight)
+      grid.offsetY = (int32_t)gridHeight;
+  }
 
   grid.controllerInfoY = y + (int32_t)height - (int32_t)Control::pageLineHeight() - 2;
   grid.fieldsetWidth = (int32_t)tileWidth + (int32_t)(tilePaddingX << 1);
@@ -100,6 +98,7 @@ static inline void fillSaveSlotOptions(ComboBoxOption* saveSlots, uint32_t saveS
 #define RESET_GAME_ID 4
 #define EXIT_GAME_ID  5
 
+#define HOVER_BORDER_RADIUS 3.f
 static constexpr const uint32_t saveSlotCount = 6;
 static constexpr const uint32_t recentTileCount = 5;
 
@@ -116,7 +115,7 @@ void MainMenu::init(const MessageResources& localizedText, int32_t x, int32_t y,
 
   auto buttonActionHandler = std::bind(&MainMenu::onButtonAction,this,std::placeholders::_1);
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::labels, ControlIconType::none, theme->buttonControlColor(),
-                                    theme->buttonBorderColor(), 2, buttonWidth, buttonPaddingX, buttonPaddingY);
+                                    theme->buttonBorderColor(), theme->buttonBorderSize(), buttonWidth, buttonPaddingX, buttonPaddingY);
   int32_t currentLineY = y + grid.offsetY + (int32_t)buttonPaddingY;
   resume = Button(*context, localizedText.getMessage(MainMenuMessages::resume), grid.controlX, currentLineY, buttonStyle, RESUME_ID, buttonActionHandler);
   registry.emplace_back(resume, true, nullptr, 0, activeButtonWidth - buttonWidth);
@@ -142,6 +141,21 @@ void MainMenu::init(const MessageResources& localizedText, int32_t x, int32_t y,
   registry.emplace_back(activeSaveSlot, true);
   currentLineY += Control::pageLineHeight();
 
+  // create save state selector hover mesh
+  constexpr const uint32_t saveSlotHoverWidth = buttonWidth + (Control::lineHoverPaddingX() << 1);
+  constexpr const uint32_t saveSlotHoverHeight = Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
+  std::vector<ControlVertex> saveSlotHoverVertices(GeometryGenerator::getRoundedRectangleVertexCount(HOVER_BORDER_RADIUS));
+  GeometryGenerator::fillRoundedRectangleVertices(saveSlotHoverVertices.data(), theme->lineSelectorControlColor(),
+                                                  0.f, (float)saveSlotHoverWidth, 0.f, -(float)saveSlotHoverHeight,
+                                                  HOVER_BORDER_RADIUS);
+  std::vector<uint32_t> indices(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
+  GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
+  
+  saveSlotHoverMesh = ControlMesh(context->renderer(), std::move(saveSlotHoverVertices), indices, context->pixelSizeX(),
+                                  context->pixelSizeY(), resume.x() - (int32_t)Control::lineHoverPaddingX(),
+                                  activeSaveSlot.y() - static_cast<int32_t>((saveSlotHoverHeight - activeSaveSlot.height()) >> 1) - 1,
+                                  saveSlotHoverWidth, saveSlotHoverHeight);
+
   // create controller action info
   navigateControllerInfo = Label(*context, localizedText.getMessage(CommonMessages::navigate),
                                  x + (int32_t)(width >> 1), grid.controllerInfoY,
@@ -150,40 +164,6 @@ void MainMenu::init(const MessageResources& localizedText, int32_t x, int32_t y,
                                navigateControllerInfo.x() + (int32_t)navigateControllerInfo.width()
                                + (int32_t)Control::controlSideMargin() + (int32_t)Control::buttonPaddingX(),
                                grid.controllerInfoY, TextAlignment::left, ControlIconType::buttonCross);
-
-  // create list of recent profiles
-  /*if (profiles->size() > 1u) {
-    const uint32_t tileHeight = Control::tileContentHeight(context->getFont(FontType::inputText).XHeight()) + (Control::tilePaddingY() << 1);
-    uint32_t tileCount = (height - Control::fieldsetContentMarginBottom() - fieldsetTitleHeight) / (tileHeight + 1u);
-    if ((uint32_t)profiles->size() - 1u < recentTileCount) {
-      if (tileCount > (uint32_t)profiles->size() - 1u)
-        tileCount = (uint32_t)profiles->size() - 1u;
-    }
-    else if (tileCount > recentTileCount)
-      tileCount = recentTileCount;
-
-    // fieldset group
-    const uint32_t fieldsetContentHeight = 5u * (tileHeight + 1u) + Control::fieldsetContentPaddingTop() + 4u + Control::fieldsetContentPaddingBottom();
-    int32_t recentLineY = resume.y() - (int32_t)(Control::fieldsetTitlePaddingY() << 1) + 3;
-    recentProfilesGroup = Fieldset(*context, localizedText.getMessage(MainMenuMessages::recentProfiles), theme->fieldsetControlColor(),
-                                   grid.recentProfilesGroupX, recentLineY, grid.fieldsetWidth, fieldsetContentHeight);
-    // tiles
-    const int32_t tileX = recentProfilesGroup.x() + (int32_t)tilePaddingX;
-    auto tileActionHandler = [this](uint32_t id, TileAction action) { this->onTileAction(id, action); };
-    recentLineY += (int32_t)Control::pageLineHeight() + (int32_t)Control::fieldsetContentPaddingTop() + 3;
-    recentProfiles.reserve((size_t)tileCount);
-
-    uint32_t insertIndex = 1;
-    float tileColor[4]{ 0.f,0.f,0.f,0.65f };
-    for (uint32_t i = 0; i < tileCount; ++i, insertIndex += 2) {
-      const auto& profile = (*profiles)[i + 1];
-      memcpy(tileColor, theme->tileColor(profile.color), sizeof(float)*3u);
-      recentProfiles.emplace_back(*context, profile.name.get(), tileX, recentLineY, tileWidth,
-                                  tileColor, profile.id, tileActionHandler, false);
-      registry.insert(registry.begin() + insertIndex, ControlRegistration(recentProfiles.back(), true));
-      recentLineY += (int32_t)tileHeight + 1;
-    }
-  }*/
 
   // control registry
   Page::moveScrollbarThumb(currentLineY);
@@ -208,9 +188,7 @@ MainMenu::~MainMenu() noexcept {
   resetGame.release();
   exitGame.release();
   activeSaveSlot.release();
-
-  //recentProfilesGroup.release();
-  //recentProfiles.clear();
+  saveSlotHoverMesh.release();
 
   navigateControllerInfo.release();
   selectControllerInfo.release();
@@ -251,27 +229,15 @@ void MainMenu::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   registry.emplace_back(activeSaveSlot, true);
   currentLineY += Control::pageLineHeight();
 
+  constexpr const uint32_t saveSlotHoverHeight = Control::pageLineHeight() + (Control::pageLineHeight() >> 2);
+  saveSlotHoverMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                         resume.x() - (int32_t)Control::lineHoverPaddingX(),
+                         activeSaveSlot.y() - static_cast<int32_t>((saveSlotHoverHeight - activeSaveSlot.height()) >> 1) - 1);
+
   navigateControllerInfo.move(*context, x + (int32_t)(width >> 1), grid.controllerInfoY, TextAlignment::right);
   selectControllerInfo.move(*context, navigateControllerInfo.x() + (int32_t)navigateControllerInfo.width()
                                       + (int32_t)Control::controlSideMargin() + (int32_t)Control::buttonPaddingX(),
                             grid.controllerInfoY, TextAlignment::left);
-
-  // recent profiles
-  /*if (!recentProfiles.empty()) {
-    int32_t recentLineY = resume.y() - (int32_t)(Control::fieldsetTitlePaddingY() << 1) + 3;
-    recentProfilesGroup.move(*context, grid.recentProfilesGroupX, recentLineY);
-
-    const int32_t tileX = recentProfilesGroup.x() + (int32_t)tilePaddingX;
-    recentLineY += (int32_t)Control::pageLineHeight() + (int32_t)Control::fieldsetContentPaddingTop() + 3;
-
-    uint32_t insertIndex = 1;
-    for (uint32_t i = 0; i < (uint32_t)recentProfiles.size(); ++i, insertIndex += 2) {
-      auto& profile = recentProfiles[i];
-      profile.move(*context, tileX, recentLineY, tileWidth);
-      registry.insert(registry.begin() + insertIndex, ControlRegistration(profile, true));
-      recentLineY += (int32_t)profile.height() + 1;
-    }
-  }*/
 
   Page::moveScrollbarThumb(currentLineY); // required after a move
   registerControls(std::move(registry));
@@ -311,10 +277,10 @@ void MainMenu::onTileAction(uint32_t id, TileAction type) {
 void MainMenu::adaptButtonStyle(Button& button, const Control* activeControl) {
   if (activeControl == &button) {
     if (button.width() != activeButtonWidth)
-      button.move(*context, activeButtonWidth, theme->buttonBorderColor());
+      button.move(*context, activeButtonWidth, theme->buttonSpecialColor(), theme->buttonSpecialColor());
   }
   else if (button.width() != buttonWidth && activeControl != nullptr)
-    button.move(*context, buttonWidth, theme->buttonControlColor());
+    button.move(*context, buttonWidth, theme->buttonControlColor(), theme->buttonBorderColor());
 }
 
 // ---
@@ -335,24 +301,20 @@ void MainMenu::drawPageBackgrounds(int32_t mouseX, int32_t) {
     buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(x(), y(), width(), contentHeight()));
 
   auto* hoverControl = getActiveControl();
-  resume.drawBackground(*context, *buffers, (hoverControl == &resume), isMouseDown());
   adaptButtonStyle(resume, hoverControl);
-  loadState.drawBackground(*context, *buffers, (hoverControl == &loadState), isMouseDown());
+  resume.drawBackground(*context, *buffers, (resume.width() == activeButtonWidth), (isMouseDown() && hoverControl));
   adaptButtonStyle(loadState, hoverControl);
-  saveState.drawBackground(*context, *buffers, (hoverControl == &saveState), isMouseDown());
+  loadState.drawBackground(*context, *buffers, (loadState.width() == activeButtonWidth), (isMouseDown() && hoverControl));
   adaptButtonStyle(saveState, hoverControl);
-  resetGame.drawBackground(*context, *buffers, (hoverControl == &resetGame), isMouseDown());
+  saveState.drawBackground(*context, *buffers, (saveState.width() == activeButtonWidth), (isMouseDown() && hoverControl));
   adaptButtonStyle(resetGame, hoverControl);
-  exitGame.drawBackground(*context, *buffers, (hoverControl == &exitGame), isMouseDown());
+  resetGame.drawBackground(*context, *buffers, (resetGame.width() == activeButtonWidth), (isMouseDown() && hoverControl));
   adaptButtonStyle(exitGame, hoverControl);
+  exitGame.drawBackground(*context, *buffers, (exitGame.width() == activeButtonWidth), (isMouseDown() && hoverControl));
 
+  if (hoverControl == &activeSaveSlot)
+    saveSlotHoverMesh.draw(context->renderer());
   activeSaveSlot.drawBackground(*context, mouseX, *buffers, (hoverControl == &activeSaveSlot));
-
-  /*if (recentProfilesGroup.width() && (int32_t)width() - (int32_t)activeButtonWidth > (int32_t)tileWidth + 60) {
-    recentProfilesGroup.drawBackground(*context, *buffers);
-    for (auto& tile : recentProfiles)
-      tile.drawBackground(*context, mouseX, mouseY, *buffers, false, (hoverControl == &tile));
-  }*/
 }
 
 void MainMenu::drawPageLabels() {

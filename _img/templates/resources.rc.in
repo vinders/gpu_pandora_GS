@@ -1,11 +1,12 @@
 #include <system/api/windows_version.h>
 #include "_generated/resources.h"
 
-IDC_MENU_CURSOR CURSOR  "${_RES_DIR}/menu_cursor.cur"
 IDR_TITLE_FONT  RCDATA  "${_RES_DIR}/title_font_map.png"
 IDR_TITLE_DESC  RCDATA  "${_RES_DIR}/title_font_map.desc"
 IDR_TEXT_FONT   RCDATA  "${_RES_DIR}/text_font_map.png"
 IDR_TEXT_DESC   RCDATA  "${_RES_DIR}/text_font_map.desc"
+
+IDC_MENU_CURSOR CURSOR  "${_RES_DIR}/menu_cursor.cur"
 IDR_MENU_ICONS         BITMAP  "${_RES_DIR}/menu_icons.bmp"
 IDR_MENU_ICONS_ALPHA   BITMAP  "${_RES_DIR}/menu_icons_alpha.bmp"
 IDR_MENU_TABS          BITMAP  "${_RES_DIR}/menu_tabs.bmp"
@@ -14,3 +15,6 @@ IDR_PANDORA_LOGO       BITMAP  "${_RES_DIR}/pandora_logo.bmp"
 IDR_PANDORA_LOGO_ALPHA BITMAP  "${_RES_DIR}/pandora_logo_alpha.bmp"
 IDR_RATIO_PREVIEW      BITMAP  "${_RES_DIR}/ratio_preview.bmp"
 IDR_RADIAL_GRADIENT    BITMAP  "${_RES_DIR}/radial_gradient.bmp"
+
+IDF_TITLE_FONT         FONT    "${_RES_DIR}/fonts/Orbitron-Medium.ttf"
+IDF_TEXT_FONT          FONT    "${_RES_DIR}/fonts/Coda-Regular.ttf"

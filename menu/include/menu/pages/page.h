@@ -100,12 +100,16 @@ namespace menu {
       /// @brief Update control location (on window resize event)
       /// @warning Open controls must be closed BEFORE calling this
       template <typename CtrlT>
-      inline void updateLocation(CtrlT& control) const noexcept {
+      inline void updateLocation(CtrlT& control) noexcept {
         assert(target == &control);
         top = control.y();
         bottom = control.y() + (int32_t)control.height();
         left = control.x();
         right = control.x() + (int32_t)control.width();
+      }
+      inline void updateLocation(int32_t offsetX) noexcept {
+        left += offsetX;
+        right += offsetX;
       }
 
     private:
@@ -175,7 +179,8 @@ namespace menu {
       /// @returns True if default key behavior should be prevented
       bool vkeyDown(uint32_t virtualKeyCode);
       /// @brief Report controller button down (pad)
-      void padButtonDown(uint32_t virtualKeyCode);
+      /// @returns True if default button behavior should be prevented
+      bool padButtonDown(uint32_t virtualKeyCode);
       
       // -- rendering --
       
@@ -203,6 +208,11 @@ namespace menu {
            bool enableTooltip, bool enableHoverMesh, uint32_t bottomBarHeight = 0);
 
       void moveBase(int32_t x, int32_t y, uint32_t width, uint32_t visibleHeight);
+      void moveRegisteredControls(int32_t offsetX) {
+        for (auto& control : controlRegistry)
+          control.updateLocation(offsetX);
+      }
+
       inline void moveScrollbarThumb(int32_t bottomY) {
         scrollbar.moveThumb(*context, static_cast<uint32_t>(bottomY - scrollbar.y()) + tooltip.height()); // will call onScroll if needed
         pageHeight = scrollbar.pageHeight();
@@ -218,6 +228,7 @@ namespace menu {
         }
         return false;
       }
+
       void updateColors(const ColorTheme& theme);
       void setActivePopup(controls::Popup& popup, std::function<void(uint32_t)> handler);
 

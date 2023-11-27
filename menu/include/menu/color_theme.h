@@ -57,9 +57,10 @@ namespace menu {
     inline const float* tileLabelColor() const noexcept { return tileLabel; }            ///< Profile tile label color
     inline const float* activeTileLabelColor() const noexcept { return activeTileLabel; }///< Active/hover tile label color
     inline const float* selectedTileLabelColor() const noexcept { return selectedTileLabel; }///< Active/hover tile label color
+    inline const float* labelReferenceColor() const noexcept { return labelReference; } ///< Label color computation reference
 
     inline const float* backgroundColor() const noexcept { return background; }             ///< Page background color
-    inline const float* backgroundGradientColor() const noexcept{ return backgroundGradient; }///< Page background gradient secondary color
+    inline const uint8_t* backgroundGradientColor() const noexcept{ return backgroundGradient; }///< Page background gradient center color
     inline const float* scrollbarControlColor() const noexcept { return scrollbarControl; } ///< Page scroll-bar background color
     inline const float* scrollbarThumbColor() const noexcept { return scrollbarThumb; }     ///< Page scroll-bar thumb color
     inline const float* lineSelectorControlColor() const noexcept{ return lineSelectorControl; }///< Page active/hover line selector background color
@@ -67,7 +68,9 @@ namespace menu {
     inline const float* titleLabelColor() const noexcept { return titleLabel; }          ///< Page title label color
     inline const float* fieldsetControlColor() const noexcept { return fieldsetControl; }///< Fieldset decoration color
     inline const float* fieldsetLabelColor() const noexcept { return fieldsetLabel; }    ///< Fieldset text color
+    inline const float* popupControlColor() const noexcept { return popupControl; }      ///< Popup main control color
     inline const float* popupTitleBarColor() const noexcept { return popupTitleBar; }    ///< Popup title bar control color
+    inline const float* popupBorderColor() const noexcept { return popupBorder; }        ///< Popup border color (title bar border and button area)
 
     inline const controls::TabControlColors& tabControlColorParams() const noexcept { return tabControlColors;  }
     inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; }    ///< Tab-control tab background color
@@ -75,15 +78,20 @@ namespace menu {
     inline const float* tabActiveLineColor() const noexcept { return tabControlColors.colors[2]; } ///< Tab-control bar active area color
     inline const float* tabLabelColor() const noexcept { return tabLabel; }              ///< Tab-control tab text color
     inline const float* tabActiveLabelColor() const noexcept { return tabActiveLabel; }  ///< Tab-control active/hover tab text color
-    inline const float* verticalTabControlColor() const noexcept { return verticalTabControl; }///< Vertical tab bar color
-    inline const float* verticalTabBorderColor() const noexcept { return verticalTabBorder; }  ///< Vertical tab border color
-    inline const float* verticalTabLabelColor() const noexcept { return verticalTabLabel; }    ///< Vertical tab text color
-    inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; }///< Vertical active/hover tab text color
-    inline const float* verticalTabIconModifier() const noexcept{ return verticalTabIcon; }///< Vertical tab icon color modifier
+    inline const controls::TabControlColors& verticalTabControlColorParams() const noexcept { return verticalTabControlColors;  }
+    inline const float* verticalTabControlColor() const noexcept { return verticalTabControlColors.colors[0]; }///< Vertical tab bar color
+    inline const float* verticalTabBottomColor() const noexcept { return verticalTabControlColors.colors[1]; } ///< Vertical tab bar bottom color
+    inline const float* verticalTabBorderColor() const noexcept { return verticalTabControlColors.colors[2]; } ///< Vertical tab border color
+    inline const float* verticalTabLabelColor() const noexcept { return verticalTabLabel; }            ///< Vertical tab text color
+    inline const float* verticalTabActiveLabelColor() const noexcept{ return verticalTabActiveLabel; } ///< Vertical active/hover tab text color
+    inline const float* verticalTabIconModifier() const noexcept{ return verticalTabIcon; }            ///< Vertical tab icon color modifier
+    inline const float* verticalActiveTabIconModifier() const noexcept{ return verticalActiveTabIcon; }///< Vertical tab icon color modifier
 
-    inline const float* buttonReferenceColor() const noexcept { return buttonReference; }///< Regular button color
     inline const float* buttonControlColor() const noexcept { return buttonControl; }    ///< Regular button background color
     inline const float* buttonBorderColor() const noexcept { return buttonBorder; }      ///< Regular button border color
+    inline uint32_t buttonBorderSize() const noexcept { return buttonBorderSize_; }
+    inline const float* buttonSelectorColor() const noexcept { return buttonSelector; }  ///< Profile selector button background/border color
+    inline const float* buttonSpecialColor() const noexcept { return buttonSpecial; }    ///< Special button background/border color
     inline const float* buttonLabelColor() const noexcept { return buttonLabel; }        ///< Regular button text color
     inline const float* textBoxControlColor() const noexcept { return textBoxControl; }  ///< Text-box background color
     inline const float* textBoxLabelColor() const noexcept { return textBoxLabel; }      ///< Text-box text color
@@ -116,9 +124,10 @@ namespace menu {
     float tileLabel[4];
     float activeTileLabel[4];
     float selectedTileLabel[4];
+    float labelReference[4];
 
     float background[4];
-    float backgroundGradient[4]{ 0.f,0.f,0.f,1.f };
+    uint8_t backgroundGradient[4];
     float scrollbarControl[4];
     float scrollbarThumb[4];
     float lineSelectorControl[4];
@@ -126,20 +135,23 @@ namespace menu {
     float titleLabel[4];
     float fieldsetControl[4];
     float fieldsetLabel[4];
+    float popupControl[4];
     float popupTitleBar[4];
+    float popupBorder[4];
 
     controls::TabControlColors tabControlColors;
     float tabLabel[4];
     float tabActiveLabel[4];
-    float verticalTabControl[4];
-    float verticalTabBorder[4];
+    controls::TabControlColors verticalTabControlColors;
     float verticalTabLabel[4];
     float verticalTabActiveLabel[4];
     float verticalTabIcon[4];
+    float verticalActiveTabIcon[4];
 
-    float buttonReference[4];
     float buttonControl[4];
     float buttonBorder[4];
+    float buttonSelector[4];
+    float buttonSpecial[4];
     float buttonLabel[4];
     float textBoxControl[4];
     float textBoxLabel[4];
@@ -152,6 +164,7 @@ namespace menu {
 
     controls::ControlColors<(size_t)TileColors::COUNT> tileColors;
     
+    uint32_t buttonBorderSize_ = 0;
     ColorThemeType themeType_ = (ColorThemeType)-1;
   };
 }

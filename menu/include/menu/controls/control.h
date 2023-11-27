@@ -83,7 +83,9 @@ namespace menu {
       static constexpr inline uint32_t fieldsetTitleWidePaddingX() noexcept{ return 12; }///< Fieldset title horizontal padding -- classic style
       static constexpr inline uint32_t fieldsetTitlePaddingY() noexcept { return 10; }   ///< Fieldset title vertical padding
       static constexpr inline int32_t fieldsetMarginX(uint32_t pageWidth) noexcept {     ///< Fieldset left margin in the page
-        return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 30 : 10;
+        return (pageWidth >= Control::fieldsetMaxWidth() + Control::scrollbarWidth() + 2u*30u)
+               ? ((pageWidth - Control::fieldsetMaxWidth() - Control::scrollbarWidth()) >> 1)
+               : (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 30 : 10;
       }
       static constexpr inline uint32_t fieldsetContentMarginX(uint32_t pageWidth) noexcept { ///< Margin to the left of fieldset inner controls
         return (pageWidth >= pageLabelWidth() + pageControlWidth() + scrollbarWidth() + 80u) ? 20 : 8;
@@ -120,6 +122,12 @@ namespace menu {
       static constexpr const uint32_t tileContentWidth() noexcept { return 192u; } ///< Tile content width (without padding)
       static constexpr const uint32_t tileContentHeight(uint32_t fontHeight) noexcept { ///< Tile content height (without padding)
         return fontHeight ? fontHeight*3u : 50;
+      }
+      static constexpr inline int32_t tileGridMarginX(uint32_t pageWidth, uint32_t gridWidth,   ///< Tile grid left margin in the page
+                                                      uint32_t pageHeight, uint32_t contentHeight) noexcept {
+        return (pageHeight > contentHeight)
+               ? (((int32_t)pageWidth - (int32_t)gridWidth) >> 1)
+               : (((int32_t)pageWidth - (int32_t)gridWidth - (int32_t)Control::scrollbarWidth()) >> 1);
       }
     };
     

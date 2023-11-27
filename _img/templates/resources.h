@@ -1,13 +1,17 @@
-#define IDC_MENU_CURSOR  100
-#define IDR_TITLE_FONT   102
-#define IDR_TITLE_DESC   104
-#define IDR_TEXT_FONT    106
-#define IDR_TEXT_DESC    108
-#define IDR_MENU_ICONS         110
-#define IDR_MENU_ICONS_ALPHA   112
-#define IDR_MENU_TABS          114
-#define IDR_MENU_TABS_ALPHA    116
-#define IDR_PANDORA_LOGO       118
-#define IDR_PANDORA_LOGO_ALPHA 120
-#define IDR_RATIO_PREVIEW      122
-#define IDR_RADIAL_GRADIENT    124
+#define IDR_TITLE_FONT   302
+#define IDR_TITLE_DESC   304
+#define IDR_TEXT_FONT    306
+#define IDR_TEXT_DESC    308
+
+#define IDC_MENU_CURSOR        100
+#define IDR_MENU_ICONS         102
+#define IDR_MENU_ICONS_ALPHA   104
+#define IDR_MENU_TABS          106
+#define IDR_MENU_TABS_ALPHA    108
+#define IDR_PANDORA_LOGO       110
+#define IDR_PANDORA_LOGO_ALPHA 112
+#define IDR_RATIO_PREVIEW      114
+#define IDR_RADIAL_GRADIENT    116
+
+#define IDF_TITLE_FONT  200
+#define IDF_TEXT_FONT   202

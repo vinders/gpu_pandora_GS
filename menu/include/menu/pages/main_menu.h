@@ -75,9 +75,7 @@ namespace menu {
       controls::Button resetGame;
       controls::Button exitGame;
       controls::Slider activeSaveSlot;
-
-      controls::Fieldset recentProfilesGroup;
-      std::vector<controls::Tile> recentProfiles;
+      display::controls::ControlMesh saveSlotHoverMesh;
 
       controls::Label navigateControllerInfo;
       controls::Label selectControllerInfo;

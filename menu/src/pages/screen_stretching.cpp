@@ -266,6 +266,7 @@ ScreenStretching::~ScreenStretching() noexcept {
 void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - blackBordersX.x();
 
   mover.moveTitle(title);
 
@@ -302,6 +303,7 @@ void ScreenStretching::move(int32_t x, int32_t y, uint32_t width, uint32_t heigh
   mover.moveCheckBox(centerY);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 void ScreenStretching::onValueChange(uint32_t id, uint32_t value) {

@@ -101,6 +101,7 @@ OsdSettings::~OsdSettings() noexcept {
 void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - clockVisibility.x();
 
   mover.moveTitle(title);
 
@@ -119,6 +120,7 @@ void OsdSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   mover.moveSlider(techInfoType);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 void OsdSettings::onValueChange(uint32_t id, uint32_t value) {

@@ -315,6 +315,7 @@ SmoothingUpscaling::~SmoothingUpscaling() noexcept {
 void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - internalResolutionX.x();
 
   mover.moveTitle(title);
 
@@ -359,6 +360,7 @@ void SmoothingUpscaling::move(int32_t x, int32_t y, uint32_t width, uint32_t hei
   mover.moveSlider(spriteGrain);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 #define MAX_INT_RES_X  (uint32_t)MAX_TEXTURE_SIZE/2048u

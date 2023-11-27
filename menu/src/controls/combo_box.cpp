@@ -83,7 +83,8 @@ static inline void generateBackground(float width, uint32_t height, ComboBoxStyl
 // ---
 
 void ComboBox::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
-                    ComboBoxStyle style, const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount) {
+                    ComboBoxStyle style, const ComboBoxColors& colors, ComboBoxOption* values,
+                    size_t valueCount, uint32_t maxBoxWidth) {
   // create label
   auto& labelFont = context.getFont(FontType::labels);
   labelMesh = TextMesh(context.renderer(), labelFont, label, context.pixelSizeX(), context.pixelSizeY(), x, labelY);
@@ -114,6 +115,8 @@ void ComboBox::init(RendererContext& context, const char16_t* label, int32_t x, 
   uint32_t boxWidth = longestOptionNameWidth + (comboBoxPaddingX() << 2);
   if (boxWidth < minBoxWidth)
     boxWidth = minBoxWidth;
+  else if (maxBoxWidth && boxWidth > maxBoxWidth)
+    boxWidth = maxBoxWidth;
 
   // create background
   std::vector<ControlVertex> vertices;

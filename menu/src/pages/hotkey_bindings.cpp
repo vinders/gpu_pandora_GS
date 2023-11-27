@@ -98,6 +98,7 @@ HotkeyBindings::~HotkeyBindings() noexcept {
 void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - menuHintMouseMove.x();
 
   mover.moveTitle(title);
 
@@ -121,6 +122,7 @@ void HotkeyBindings::move(int32_t x, int32_t y, uint32_t width, uint32_t height)
   }
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 void HotkeyBindings::resolveKeyboardBindings(const controls::KeyBinding* updatedControl) noexcept {

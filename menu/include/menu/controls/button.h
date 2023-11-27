@@ -81,7 +81,7 @@ namespace menu {
       }
       
       void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
-      void move(RendererContext& context, uint32_t width, const float backgroundColor[4]); ///< Change control width
+      void move(RendererContext& context, uint32_t width, const float backgroundColor[4], const float borderColor[4]); ///< Change control width
 
       // -- rendering --
 

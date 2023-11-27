@@ -65,20 +65,21 @@ Page::Page(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererSt
   }
 
   // create control line hover area
-  const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
-                              + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
-  constexpr const uint32_t controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
-                                             + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
-  std::vector<ControlVertex> controlHoverVertices(GeometryGenerator::getRoundedRectangleVertexCount(HOVER_BORDER_RADIUS));
-  GeometryGenerator::fillRoundedRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
-                                                  0.f, (float)controlHoverWidth, 0.f, -(float)Control::pageLineHeight(),
-                                                  HOVER_BORDER_RADIUS);
-  std::vector<uint32_t> indices(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
-  GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
-
-  if (enableHoverMesh)
+  if (enableHoverMesh) {
+    const int32_t controlHoverX = x + (int32_t)Control::fieldsetMarginX(width)
+                                + (int32_t)Control::fieldsetContentMarginX(width) - Control::lineHoverPaddingX();
+    constexpr const uint32_t controlHoverWidth = Control::pageLabelWidth() + Control::pageControlWidth()
+                                               + (Control::lineHoverPaddingX() << 1) + Control::labelMargin();
+    std::vector<ControlVertex> controlHoverVertices(GeometryGenerator::getRoundedRectangleVertexCount(HOVER_BORDER_RADIUS));
+    GeometryGenerator::fillRoundedRectangleVertices(controlHoverVertices.data(), theme.lineSelectorControlColor(),
+                                                    0.f, (float)controlHoverWidth, 0.f, -(float)Control::pageLineHeight(),
+                                                    HOVER_BORDER_RADIUS);
+    std::vector<uint32_t> indices(GeometryGenerator::getRoundedRectangleVertexIndexCount(HOVER_BORDER_RADIUS));
+    GeometryGenerator::fillRoundedRectangleIndices(indices.data(), 0, HOVER_BORDER_RADIUS);
+  
     controlHoverMesh = ControlMesh(context->renderer(), std::move(controlHoverVertices), indices, context->pixelSizeX(),
                                    context->pixelSizeY(), controlHoverX, 0, controlHoverWidth, Control::pageLineHeight());
+  }
 }
 
 Page::~Page() noexcept {
@@ -750,25 +751,17 @@ bool Page::vkeyDown(uint32_t virtualKeyCode) {
   return false;
 }
 
-void Page::padButtonDown(uint32_t virtualKeyCode) {
+bool Page::padButtonDown(uint32_t virtualKeyCode) {
   isControllerUsed_ = true;
   if (openControl != nullptr && openPopup == nullptr) {
-    auto controlType = openControl->control()->type();
-    if (controlType == ControlType::textBox) {
-      switch (virtualKeyCode) {
-        case /*XINPUT_GAMEPAD_DPAD_LEFT*/0x0004: vkeyDown(_P_VK_SUBTRACT); return;
-        case /*XINPUT_GAMEPAD_DPAD_RIGHT*/0x0008: vkeyDown(_P_VK_ADD); return;
-        default: break;
-      }
-    }
-    else if (controlType == ControlType::keyBinding) {
+    if (openControl->control()->type() == ControlType::keyBinding) {
       auto* target = reinterpret_cast<KeyBinding*>(openControl->control());
       if (!target->setControllerValue(*context, virtualKeyCode)) {
         if (target->keyboardValue() != KeyBinding::emptyKeyValue())
           resolveKeyboardBindings(target);
         openControl = nullptr;
       }
-      return;
+      return true;
     }
   }
   switch (virtualKeyCode) {
@@ -783,6 +776,7 @@ void Page::padButtonDown(uint32_t virtualKeyCode) {
     case /*XINPUT_GAMEPAD_Y*/0x8000: vkeyDown(_P_VK_SPACE); break;
     default: break;
   }
+  return false;
 }
 
 

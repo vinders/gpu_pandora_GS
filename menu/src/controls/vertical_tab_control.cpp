@@ -27,30 +27,37 @@ using namespace menu;
 #define ARROW_SIZE 7
 
 void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
-                              uint32_t paddingY, uint32_t paddingTop, const float barColor[4], const float borderColor[4],
+                              uint32_t paddingY, uint32_t paddingTop, const controls::TabControlColors& colors,
                               const VerticalTabOption* tabs, size_t tabCount) {
   // vertical bar
-  std::vector<ControlVertex> vertices(static_cast<size_t>(paddingTop ? 12 : 8));
+  std::vector<ControlVertex> vertices(static_cast<size_t>(14));
   ControlVertex* vertexIt = vertices.data();
-  GeometryGenerator::fillRectangleVertices(vertexIt, barColor, 0.f, (float)tabWidth, 0.f, -(float)barHeight); // background
+  
+  GeometryGenerator::fillControlVertex(*vertexIt, colors.colors[0], 0.f, 0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), colors.colors[0], (float)tabWidth, 0.f);
+  GeometryGenerator::fillVerticalRectangleVertices(++vertexIt, colors.colors[0], colors.colors[1],
+                                                   0.f, (float)tabWidth, -(float)(barHeight >> 1), -(float)barHeight); // background
   vertexIt += 4;
+  const float* borderColor = colors.colors[2];
   GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, (float)tabWidth, (float)(tabWidth+1), // right border
                                            0.f, -(float)barHeight);
-  std::vector<uint32_t> indices;
-  if (paddingTop) {
-    vertexIt += 4;
-    GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, 0.f, (float)tabWidth, // top border
-                                             -(float)paddingTop, -(float)(paddingTop+1u));
-    indices = { 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11 };
+  vertexIt += 4;
+  float topBorderColor[4]{ borderColor[0], borderColor[1], borderColor[2], 0.9f*borderColor[3] };
+  if (borderColor[0] > borderColor[1] && borderColor[0] > 1.5f * borderColor[2]) { // red/yellow bar -> darken below top padding
+    topBorderColor[0] *= 0.45f;
+    topBorderColor[1] *= 0.45f;
+    topBorderColor[2] *= 0.45f;
+    topBorderColor[3] = 0.75f * borderColor[3];
   }
-  else
-    indices = { 0,1,2, 2,1,3,  4,5,6, 6,5,7 };
+  GeometryGenerator::fillRectangleVertices(vertexIt, topBorderColor, 0.f, (float)tabWidth, // top border
+                                           -(float)paddingTop, -(float)(paddingTop+1u));
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3, 2,3,4,4,3,5, 6,7,8,8,7,9, 10,11,12,12,11,13 };
   barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                         x, y, tabWidth+1u, barHeight);
 
   // tab icons/labels
   auto& font = context.getFont(FontType::inputText);
-  int32_t tabY = y + (int32_t)paddingTop + (int32_t)paddingY;
+  int32_t tabY = y + (int32_t)paddingTop + (int32_t)paddingY + 2;
   int32_t tabCenterX = x + (int32_t)(tabWidth >> 1);
 
   for (const auto* tabIt = tabs; tabCount; ++tabIt, --tabCount) {
@@ -107,8 +114,8 @@ void VerticalTabControl::move(RendererContext& context, int32_t x, int32_t y, ui
   const int32_t offsetX = x - barMesh.x();
   const int32_t offsetY = y - barMesh.y();
   auto vertices = barMesh.relativeVertices();
-  GeometryGenerator::resizeRectangleVerticesY(vertices.data(), -(float)barHeight);
-  GeometryGenerator::resizeRectangleVerticesY(vertices.data() + (intptr_t)4, -(float)barHeight);
+  GeometryGenerator::moveRectangleVerticesY(vertices.data() + 2, -(float)(barHeight >> 1), -(float)barHeight);
+  GeometryGenerator::resizeRectangleVerticesY(vertices.data() + 6, -(float)barHeight);
   barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                  x, y, barMesh.width(), barHeight);
 
@@ -129,8 +136,8 @@ void VerticalTabControl::move(RendererContext& context, int32_t x, int32_t y, ui
 void VerticalTabControl::move(RendererContext& context, uint32_t barHeight) {
   if (barHeight != barMesh.height()) {
     auto vertices = barMesh.relativeVertices();
-    GeometryGenerator::resizeRectangleVerticesY(vertices.data(), -(float)barHeight);
-    GeometryGenerator::resizeRectangleVerticesY(vertices.data() + (intptr_t)4, -(float)barHeight);
+    GeometryGenerator::moveRectangleVerticesY(vertices.data() + 2, -(float)(barHeight >> 1), -(float)barHeight);
+    GeometryGenerator::resizeRectangleVerticesY(vertices.data() + 6, -(float)barHeight);
     barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
                    barMesh.x(), barMesh.y(), barMesh.width(), barHeight);
   }

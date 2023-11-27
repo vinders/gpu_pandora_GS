@@ -97,7 +97,7 @@ void PageContentBuilder::addFieldset(const char16_t* label, uint32_t controlLine
 
 void PageContentMover::moveFieldset(Fieldset& fieldset) {
   currentLineY += Control::fieldsetContentMarginBottom();
-  fieldset.move(*context, fieldsetX, currentLineY);
+  fieldset.move(*context, fieldsetX, currentLineY, fieldsetWidth);
   currentLineY += Control::pageLineHeight() + Control::fieldsetContentPaddingTop();
 }
 
@@ -192,16 +192,20 @@ void PageContentMover::moveDoubleComboBox(ComboBox& leftComboBox, ComboBox& righ
 void PageContentBuilder::addComboBoxWithButton(uint32_t controlId, const char16_t* label, const char16_t* tooltip,
                                                ComboBoxOption* options, size_t optionCount, ComboBox& outComboBox,
                                                uint32_t buttonId, const char16_t* buttonLabel, Button& outButton) {
+  uint32_t minLabelWidth = Control::pageLabelWidth();
+  if (fieldsetWidth < Control::pageLabelWidth() + Control::controlSideMargin() + Control::pageControlWidth() + 20 + 48)
+    minLabelWidth -= 48u;
+
   outComboBox = ComboBox(*context, label,
                          controlX, currentLineY,
-                         Control::pageLabelWidth(),
+                         minLabelWidth,
                          (Control::pageControlWidth() >> 1),
                          ComboBoxStyle::classic, theme->comboBoxColorParams(),
                          controlId, controlId ? keyValueChangeHandler : nullptr,
-                         options, optionCount, 0, enabler);
+                         options, optionCount, 0, enabler, Control::pageControlWidth());
 
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none,
-                                    theme->buttonBorderColor(), theme->buttonBorderColor(), 0, 0,
+                                    theme->buttonSpecialColor(), theme->buttonSpecialColor(), 0, 0,
                                     Control::buttonPaddingX(), Control::comboBoxPaddingY());
   outButton = Button(*context, buttonLabel,
                      outComboBox.x() + (int32_t)outComboBox.width() + (int32_t)Control::controlSideMargin(),

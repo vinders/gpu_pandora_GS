@@ -77,34 +77,6 @@ void GeometryGenerator::fillDoubleGradientRectangleVertices(ControlVertex* outVe
   fillControlVertex(*(++outVertexIt), rgba[0], x2, y2);
 }
 
-void GeometryGenerator::fillRadialGradientRectangleVertices(display::controls::ControlVertex* outVertexIt,
-                                                            const float rgba1[4], const float rgba2[4],
-                                                            float x1, float x2, float y1, float y2) noexcept {
-  const float radiusX = floorf((x2 - x1)*0.5f);
-  const float radiusY = floorf((y1 - y2)*0.5f);
-  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
-  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
-
-  const float rgbaDarker[4]{ rgba1[0]*0.4f, rgba1[1]*0.4f, rgba1[2]*0.4f, rgba1[3] };
-  fillControlVertex(*outVertexIt,     rgbaDarker, x1,           y1);
-  fillControlVertex(*(++outVertexIt), rgbaDarker, x1 + radiusX, y1);
-  fillControlVertex(*(++outVertexIt), rgbaDarker, x2,           y1);
-
-  const float rgbaHalf[4]{ rgba1[0]*0.7f, rgba1[1]*0.7f, rgba1[2]*0.7f, rgba1[3] };
-  fillControlVertex(*(++outVertexIt), rgbaDarker, x1 + offsetX, y1 - offsetY);
-  fillControlVertex(*(++outVertexIt), rgbaDarker, x2 - offsetX, y1 - offsetY);
-  fillControlVertex(*(++outVertexIt), rgbaDarker, x1,           y1 - radiusY);
-  fillControlVertex(*(++outVertexIt), rgbaHalf,   x2,           y1 - radiusY);
-  fillControlVertex(*(++outVertexIt), rgba2,      x1 + radiusX, y1 - radiusY);
-  fillControlVertex(*(++outVertexIt), rgbaHalf,   x1 + offsetX, y2 + offsetY);
-  fillControlVertex(*(++outVertexIt), rgba1,      x2 - offsetX, y2 + offsetY);
-
-  const float rgba3_4[4]{ rgba1[0]*0.85f, rgba1[1]*0.85f, rgba1[2]*0.85f, rgba1[3] };
-  fillControlVertex(*(++outVertexIt), rgbaHalf, x1,           y2);
-  fillControlVertex(*(++outVertexIt), rgba3_4,  x1 + radiusX, y2);
-  fillControlVertex(*(++outVertexIt), rgba1,    x2,           y2);
-}
-
 void GeometryGenerator::fillObliqueRectangleVertices(ControlVertex* outVertexIt, const float rgba[4],
                                                      float x1, float x2, float y1, float y2, float yOffset) noexcept {
   fillControlVertex(*outVertexIt,     rgba, x1, y1);
@@ -320,44 +292,6 @@ void GeometryGenerator::resizeBLTRCutRectangleVerticesX(ControlVertex* vertexIt,
   vertexIt->position[0] = x2;
   vertexIt += 2;
   vertexIt->position[0] = x2;
-}
-
-void GeometryGenerator::moveRadialGradientRectangleVertices(ControlVertex* vertexIt, float x1, float x2, float y1, float y2) noexcept {
-  const float radiusX = floorf((x2 - x1)*0.5f);
-  const float radiusY = floorf((y1 - y2)*0.5f);
-  const float offsetX = radiusX - (float)floor((double)radiusX * cos(M_PI_4));
-  const float offsetY = radiusY - (float)floor((double)radiusY * sin(M_PI_4));
-
-  vertexIt->position[0] = x1;
-  vertexIt->position[1] = y1;
-  (++vertexIt)->position[0] = x1 + radiusX;
-  vertexIt->position[1] = y1;
-  (++vertexIt)->position[0] = x2;
-  vertexIt->position[1] = y1;
-
-  (++vertexIt)->position[0] = x1 + offsetX;
-  vertexIt->position[1] = y1 - offsetY;
-  (++vertexIt)->position[0] = x2 - offsetX;
-  vertexIt->position[1] = y1 - offsetY;
-
-  (++vertexIt)->position[0] = x1;
-  vertexIt->position[1] = y1 - radiusY;
-  (++vertexIt)->position[0] = x2;
-  vertexIt->position[1] = y1 - radiusY;
-  (++vertexIt)->position[0] = x1 + radiusX;
-  vertexIt->position[1] = y1 - radiusY;
-
-  (++vertexIt)->position[0] = x1 + offsetX;
-  vertexIt->position[1] = y2 + offsetY;
-  (++vertexIt)->position[0] = x2 - offsetX;
-  vertexIt->position[1] = y2 + offsetY;
-
-  (++vertexIt)->position[0] = x1;
-  vertexIt->position[1] = y2;
-  (++vertexIt)->position[0] = x1 + radiusX;
-  vertexIt->position[1] = y2;
-  (++vertexIt)->position[0] = x2;
-  vertexIt->position[1] = y2;
 }
 
 

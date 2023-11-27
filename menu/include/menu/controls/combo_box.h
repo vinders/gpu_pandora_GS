@@ -37,7 +37,7 @@ namespace menu {
       ComboBox(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY,
                uint32_t minLabelWidth, uint32_t minBoxWidth, ComboBoxStyle style, const ComboBoxColors& colors,
                uint32_t operationId, std::function<void(uint32_t,uint32_t)> onChange, ComboBoxOption* values,
-               size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr)
+               size_t valueCount, int32_t selectedIndex = -1, const bool* enabler = nullptr, uint32_t maxBoxWidth = 0)
         : selectedIndex((selectedIndex < (int32_t)valueCount) ? selectedIndex : -1),
           enabler(enabler),
           onChange(std::move(onChange)),
@@ -45,7 +45,7 @@ namespace menu {
           minLabelWidth(minLabelWidth),
           minBoxWidth(minBoxWidth) {
         assert(valueCount != 0);
-        init(context, label, x, labelY, style, colors, values, valueCount);
+        init(context, label, x, labelY, style, colors, values, valueCount, maxBoxWidth);
       }
 
       ComboBox() = default;
@@ -141,7 +141,7 @@ namespace menu {
 
     private:
       void init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY, ComboBoxStyle style,
-                const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount);
+                const ComboBoxColors& colors, ComboBoxOption* values, size_t valueCount, uint32_t maxBoxWidth);
       void moveDropdownHover(RendererContext& context, int32_t hoverIndex);
 
       struct OptionMesh final { // selectable value stored

@@ -41,8 +41,10 @@ namespace display {
     buttonSelect,
     buttonL1,
     buttonL2,
+    buttonSmallL2,
     buttonR1,
     buttonR2,
+    buttonSmallR2,
     buttonTriangle,
     buttonCircle,
     buttonSquare,
@@ -90,20 +92,23 @@ namespace display {
 #   ifdef _WINDOWS
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
                 const char* iconSpriteId, const char* iconSpriteAlphaId,
-                const char* tabSpriteId, const char* tabSpriteAlphaId)
-      : renderer(std::move(renderer)) {
+                const char* tabSpriteId, const char* tabSpriteAlphaId,
+                const char* radialGradientId)
+      : renderer(std::move(renderer)), radialGradientId(radialGradientId) {
       iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
       tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
     }
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
                 const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
-                const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId)
-      : renderer(std::move(renderer)) {
+                const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId,
+                const wchar_t* radialGradientId)
+      : renderer(std::move(renderer)), radialGradientWideId(radialGradientId) {
       iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
       tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
     }
 #   else
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath, const char* tabSpritePath)
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath,
+                const char* tabSpritePath, const char* radialGradientPath)
       : renderer(std::move(renderer)) {
       iconsSprite = loadImage(iconSpritePath);
       tabsSprite = loadImage(tabSpritePath);
@@ -136,9 +141,17 @@ namespace display {
     std::shared_ptr<video_api::Texture2D> loadImage(const char* path);
 #   endif
 
+    std::shared_ptr<video_api::Texture2D> loadRadialGradient(const uint8_t rgbaColor[4]);
+
   private:
     std::shared_ptr<video_api::Renderer> renderer = nullptr;
     std::shared_ptr<video_api::Texture2D> iconsSprite = nullptr;
     std::shared_ptr<video_api::Texture2D> tabsSprite = nullptr;
+#   ifdef _WINDOWS
+    const char* radialGradientId = nullptr;
+    const wchar_t* radialGradientWideId = nullptr;
+#   else
+    const char* radialGradientPath = nullptr;
+#   endif
   };
 }

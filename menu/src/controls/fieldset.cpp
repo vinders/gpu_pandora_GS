@@ -70,12 +70,36 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, const float 
 
 // ---
 
-void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY) {
+void Fieldset::move(RendererContext& context, int32_t x, int32_t labelY, uint32_t width) {
   if (controlMesh.width() == 0)
     return;
   const int32_t paddingX = labelMesh.x() - controlMesh.x();
   ++labelY;
 
-  controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - Control::fieldsetTitlePaddingY() - 1);
+  if (controlMesh.width() != width) {
+    std::vector<ControlVertex> vertices = controlMesh.relativeVertices();
+    ControlVertex* vertexIt = vertices.data() + 1;
+    vertexIt->position[0] += (float)(int32_t)width - (int32_t)controlMesh.width();
+    vertexIt += 2;
+    vertexIt->position[0] = (float)width;
+    vertexIt += 2;
+    vertexIt->position[0] = (float)width;
+    vertexIt += 2;
+    vertexIt->position[0] = (float)width;
+    vertexIt += 2;
+    const uint32_t solidWidth = (width << 1) / 3u;
+    vertexIt->position[0] = (float)solidWidth;
+    vertexIt += 2;
+    vertexIt->position[0] = (float)solidWidth;
+    (++vertexIt)->position[0] = (float)solidWidth;
+    (++vertexIt)->position[0] = (float)width;
+    (++vertexIt)->position[0] = (float)solidWidth;
+    (++vertexIt)->position[0] = (float)width;
+    controlMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(),
+                       context.pixelSizeY(), x, labelY - Control::fieldsetTitlePaddingY() - 1, width, controlMesh.height());
+  }
+  else
+    controlMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x, labelY - Control::fieldsetTitlePaddingY() - 1);
+
   labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), x + paddingX, labelY);
 }

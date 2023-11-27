@@ -95,10 +95,7 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   controlBuffers[(size_t)ControlBufferType::activeIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.verticalTabIconModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::regularTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  colorData.color[1] += 0.05f;
-  colorData.color[2] += 0.05f;
-  colorData.color[3] += 0.05f;
-  colorData.color[3] *= 1.5f;
+  memcpy(colorData.color, theme.verticalActiveTabIconModifier(), sizeof(float)*4);
   controlBuffers[(size_t)ControlBufferType::activeTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   
   // fragment slot 0 - text background color
@@ -130,10 +127,10 @@ void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorThe
   
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
   labelBuffers[(size_t)LabelBufferType::button] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
-  toSpecialLabelColor(colorData.color, theme.buttonReferenceColor(), theme.regularLabelColor(), theme.disabledLabelColor());
+  toSpecialLabelColor(colorData.color, theme.labelReferenceColor(), theme.regularLabelColor(), theme.disabledLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
-  toSpecialLabelColor(colorData.color, theme.buttonReferenceColor(), theme.regularLabelColor(), theme.activeLabelColor());
+  toSpecialLabelColor(colorData.color, theme.labelReferenceColor(), theme.regularLabelColor(), theme.activeLabelColor());
   labelBuffers[(size_t)LabelBufferType::buttonActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
 
   memcpy(colorData.color, theme.textBoxLabelColor(), sizeof(float)*4);

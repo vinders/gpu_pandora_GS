@@ -74,6 +74,9 @@ namespace menu {
     /// @brief Report keyboard event
     bool onKeyboardEvent(pandora::video::Window* sender, pandora::video::KeyboardEvent event,
                          uint32_t keyCode, uint32_t change);
+    /// @brief Report controller event
+    bool onControllerEvent(pandora::video::KeyboardEvent event, uint32_t virtualKeyCode,
+                           int32_t analogX, int32_t analogY);
     /// @brief Report mouse event
     bool onMouseEvent(pandora::video::Window* sender, pandora::video::MouseEvent event,
                       int32_t x, int32_t y, int32_t index);
@@ -87,7 +90,9 @@ namespace menu {
     void moveBackground();
     
     void createSectionTabs(uint32_t activeTabIndex);
+    void moveSectionTabs();
     void createPageTabs(TabMode mode, uint32_t activeTabIndex, bool forceRegen = false);
+    void movePageTabs();
     void createPage(pages::PageId id, bool isControllerUsed);
   
   private:
@@ -103,9 +108,14 @@ namespace menu {
     video_api::Sampler textureSampler;
     
     display::controls::ControlMesh backgroundMesh;
-    display::controls::IconMesh logoMesh;
+    display::controls::IconMesh backgroundGradientMesh;
     controls::VerticalTabControl sectionTabs;
+    display::controls::IconMesh logoMesh;
+    display::controls::IconMesh sectionUpButtonMesh;
+    display::controls::IconMesh sectionDownButtonMesh;
     controls::TabControl pageTabs;
+    display::controls::IconMesh pagePreviousButton;
+    display::controls::IconMesh pageNextButton;
     std::unique_ptr<pages::Page> activePage;
     
     bool isInvalidated = false;

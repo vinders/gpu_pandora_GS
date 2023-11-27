@@ -30,7 +30,7 @@ using namespace menu;
 
 #define GAMMA_PREVIEW_WIDTH  Control::pageControlWidth()
 #define GAMMA_PREVIEW_HEIGHT (Control::pageLineHeight() + (Control::pageLineHeight() >> 2))
-#define GAMMA_SAMPLE_COLOR_COMP 12.0/255.0
+#define GAMMA_SAMPLE_COLOR_COMP 12.5/255.0
 
 void AdvancedEffects::generateGammaPreview(const float* fieldsetControlRgba, int32_t x, int32_t y, double gamma) {
   std::vector<ControlVertex> vertices(static_cast<size_t>(20u));
@@ -211,6 +211,7 @@ AdvancedEffects::~AdvancedEffects() noexcept {
 void AdvancedEffects::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - colorBitDepth.x();
 
   mover.moveTitle(title);
 
@@ -248,6 +249,7 @@ void AdvancedEffects::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveCheckBox(fakeGpuBusyStates);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 void AdvancedEffects::onValueChange(uint32_t id, uint32_t value) {

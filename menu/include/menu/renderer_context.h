@@ -40,9 +40,10 @@ namespace menu {
                     const char* fontDirectoryPath, const char* iconSpriteId, const char* iconSpriteAlphaId,
                     const char* tabSpriteId, const char* tabSpriteAlphaId,
                     const char* pandoraLogoId, const char* pandoraLogoAlphaId,
-                    const char* ratioPreviewId, uint32_t clientWidth, uint32_t clientHeight)
+                    const char* ratioPreviewId, const char* radialGradientId,
+                    uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId) {
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
       pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
@@ -54,9 +55,10 @@ namespace menu {
                     const char* fontDirectoryPath, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
                     const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId,
                     const wchar_t* pandoraLogoId, const wchar_t* pandoraLogoAlphaId,
-                    const wchar_t* ratioPreviewId, uint32_t clientWidth, uint32_t clientHeight)
+                    const wchar_t* ratioPreviewId, const wchar_t* radialGradientId,
+                    uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId) {
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
       pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);

@@ -50,7 +50,7 @@ namespace menu {
 
       // -- operations --
 
-      void move(RendererContext& context, int32_t x, int32_t labelY); ///< Change control location (on window resize)
+      void move(RendererContext& context, int32_t x, int32_t labelY, uint32_t width); ///< Change control location (on window resize)
 
       // -- rendering --
 

@@ -338,6 +338,7 @@ GeneralSettings::~GeneralSettings() noexcept {
 void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
   PageContentMover mover(*context, x, y, width);
+  const int32_t offsetX = mover.linePositionX() - displayMode.x();
 
   mover.moveTitle(title);
 
@@ -375,6 +376,7 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveComboBox(interfaceLanguage);
 
   Page::moveScrollbarThumb(mover.linePositionY()); // required after a move
+  Page::moveRegisteredControls(offsetX);
 }
 
 void GeneralSettings::onChange(uint32_t id) {

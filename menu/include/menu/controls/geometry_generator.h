@@ -72,14 +72,6 @@ namespace menu {
       /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
       static void fillDoubleGradientRectangleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[3][4],
                                                       float x1, float x2, float y1, float y2, float topGradHeight) noexcept;
-      /// @brief Generate rectangle (in 13 menu control vertices)
-      ///        (expected indices: 0,1,3,0,3,5,  1,2,4,2,6,4,    3,1,7,1,4,7,  3,7,5,4,6,7,
-      ///                           5,7,8,7,11,8, 5,8,10,8,11,10, 7,6,9,7,9,11, 6,12,9,9,12,11)
-      /// @param outVertexIt  Must point to an array of at least 13 control vertices
-      /// @warning Required: x1 < x2 (positive) and y1 > y2 (negative: Y-axis goes up)
-      static void fillRadialGradientRectangleVertices(display::controls::ControlVertex* outVertexIt,
-                                                      const float rgba1[4], const float rgba2[4],
-                                                      float x1, float x2, float y1, float y2) noexcept;
 
       /// @brief Generate oblique rectangle (in 4 menu control vertices)
       /// @param outVertexIt  Must point to an array of at least 4 control vertices
@@ -208,9 +200,6 @@ namespace menu {
         vertexIt->position[1] = y1;     (++vertexIt)->position[1] = y1;
         (++vertexIt)->position[1] = y2; (++vertexIt)->position[1] = y2;
       }
-      /// @brief Move existing rectangle with radial gradient (update 13 menu control vertices)
-      static void moveRadialGradientRectangleVertices(display::controls::ControlVertex* vertexIt,
-                                                      float x1, float x2, float y1, float y2) noexcept;
 
       // -- other shape generation --
 

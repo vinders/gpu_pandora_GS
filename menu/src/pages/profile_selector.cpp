@@ -30,6 +30,7 @@ struct TileGrid final {
   uint32_t lineCount;
   uint32_t tileWidth;
   uint32_t tileHeight;
+  int32_t offsetY;
 };
 
 static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHeight, uint32_t profileCount) {
@@ -60,8 +61,11 @@ static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHe
   grid.tileWidth = Control::tileContentWidth() + doublePaddingX;
 
   grid.tileHeight = tileContentHeight + (Control::tilePaddingY() << 1);
-
   grid.gridWidth = grid.rowCount*(grid.tileWidth + 1u) - 1u;
+
+  const int32_t remainingHeight = (int32_t)height - (int32_t)((grid.tileHeight+1u)*grid.lineCount);
+  const uint32_t otherPagesTabsHeight = fontHeight + (Control::pageTabPaddingY() << 1) + 1u;
+  grid.offsetY = (remainingHeight > (int32_t)(otherPagesTabsHeight << 1)) ? (int32_t)otherPagesTabsHeight : 0;
   return grid;
 }
 
@@ -73,15 +77,20 @@ static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHe
 #define DELETE_PROFILE_ID 3
 
 void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width, uint32_t height) {
-  const int32_t marginX = Control::fieldsetMarginX(width);
+  auto& titleFont = context->getFont(FontType::titles);
+  const uint32_t topBottomGridMargins = Control::titleMarginTop() + titleFont.XHeight() + Control::pageLineHeight() + buttonBarHeight();
+  auto grid = computeTileGrid(width - Control::scrollbarWidth() - 40u, height - topBottomGridMargins,
+                              context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
+
+  const int32_t marginX = Control::tileGridMarginX(width, grid.gridWidth, height,
+                                                   topBottomGridMargins + (grid.tileHeight+1u)*grid.lineCount);
   const int32_t controlX = x + marginX;
-  title = TextMesh(context->renderer(), context->getFont(FontType::titles), localizedText.getMessage(ProfileSelectorMessages::title),
-                   context->pixelSizeX(), context->pixelSizeY(), controlX, y + Control::titleMarginTop(), TextAlignment::left);
+  title = TextMesh(context->renderer(), titleFont, localizedText.getMessage(ProfileSelectorMessages::title),
+                   context->pixelSizeX(), context->pixelSizeY(), controlX,
+                   y + (int32_t)Control::titleMarginTop() + grid.offsetY, TextAlignment::left);
   int32_t currentLineY = title.y() + (int32_t)title.height() + (int32_t)Control::pageLineHeight();
 
   // create tiles
-  auto grid = computeTileGrid(width - ((uint32_t)marginX << 1), height - (uint32_t)(currentLineY - y) - buttonBarHeight(),
-                              context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
   std::vector<ControlRegistration> registry;
   registry.reserve(profiles->size() + 3u);
   profileTiles.reserve(profiles->size());
@@ -112,7 +121,7 @@ void ProfileSelector::init(const MessageResources& localizedText, int32_t x, int
 
   // create action buttons
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::inputText, ControlIconType::none,
-                                    theme->buttonControlColor(), theme->buttonBorderColor(), 0, 0,
+                                    theme->buttonSelectorColor(), theme->buttonSelectorColor(), 0, 0,
                                     Control::buttonPaddingX(), Control::comboBoxPaddingY());
   int32_t buttonLabelY = y + (int32_t)height - (int32_t)buttonBarHeight() + (int32_t)Control::comboBoxPaddingY() + 4u;
   if (buttonLabelY > currentLineY + (int32_t)Control::controlSideMargin())
@@ -182,15 +191,19 @@ ProfileSelector::~ProfileSelector() noexcept {
 
 void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
   Page::moveBase(x, y, width, height);
+  auto& titleFont = context->getFont(FontType::titles);
+  const uint32_t topBottomGridMargins = Control::titleMarginTop() + titleFont.XHeight() + Control::pageLineHeight() + buttonBarHeight();
+  auto grid = computeTileGrid(width - Control::scrollbarWidth() - 40u, height - topBottomGridMargins,
+                              context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
 
-  const int32_t marginX = Control::fieldsetMarginX(width);
+  const int32_t marginX = Control::tileGridMarginX(width, grid.gridWidth, height,
+                                                   topBottomGridMargins + (grid.tileHeight+1u)*grid.lineCount);
   const int32_t controlX = x + marginX;
-  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlX, y + Control::titleMarginTop());
+  title.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(), controlX,
+             y + (int32_t)Control::titleMarginTop() + grid.offsetY);
   int32_t currentLineY = title.y() + (int32_t)title.height() + (int32_t)Control::pageLineHeight();
 
   // tiles
-  auto grid = computeTileGrid(width - ((uint32_t)marginX << 1), height - (uint32_t)(currentLineY - y) - buttonBarHeight(),
-                              context->getFont(FontType::labels).XHeight(), (uint32_t)(profiles->size()));
   std::vector<ControlRegistration> registry;
   registry.reserve(profiles->size() + 3u);
 

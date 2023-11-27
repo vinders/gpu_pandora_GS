@@ -72,8 +72,14 @@ MenuFrame::MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context_,
   
 MenuFrame::~MenuFrame() noexcept {
   backgroundMesh.release();
+  backgroundGradientMesh.release();
   sectionTabs.release();
+  logoMesh.release();
+  sectionUpButtonMesh.release();
+  sectionDownButtonMesh.release();
   pageTabs.release();
+  pagePreviousButton.release();
+  pageNextButton.release();
   activePage = nullptr;
   
   controlPipeline.release();
@@ -110,18 +116,13 @@ bool MenuFrame::onPositionEvent(Window* sender, PositionEvent event, uint32_t, u
         
         if (sectionTabs.width() != Control::sectionTabWidth(context->clientWidth()) + 1u) // section tab width changed -> rebuild
           createSectionTabs(sectionTabs.activeTabIndex());
-        else { // simple resize
-          sectionTabs.move(*context, 0, 0, clientArea.height - activePage->tooltipHeight());
-          logoMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
-                        (sectionTabs.width() + 1u - logoMesh.width()) >> 1, (logoAreaHeight + 1u - logoMesh.height()) >> 1);
-        }
+        else // simple resize
+          moveSectionTabs();
         moveBackground(); // uses section tab width -> done after
 
-        const int32_t pageX = (int32_t)sectionTabs.width();
-        if (pageTabs.width()) {
-          pageTabs.move(*context, pageX, 0, clientArea.width);
-        }
-        activePage->move(pageX, (int32_t)pageTabs.height(), 
+        if (pageTabs.width())
+          movePageTabs();
+        activePage->move((int32_t)sectionTabs.width(), (int32_t)pageTabs.height(), 
                          clientArea.width - sectionTabs.width(),
                          clientArea.height - pageTabs.height());
       }
@@ -143,6 +144,34 @@ bool MenuFrame::onKeyboardEvent(Window*, KeyboardEvent event, uint32_t keyCode, 
     case KeyboardEvent::charInput: {
       isInvalidated = true;
       activePage->keyDown((char32_t)keyCode);
+      break;
+    }
+    default: break;
+  }
+  return false;
+}
+
+bool MenuFrame::onControllerEvent(KeyboardEvent event, uint32_t virtualKeyCode, int32_t analogX, int32_t analogY) {
+  switch (event) {
+    case KeyboardEvent::keyDown:
+    case KeyboardEvent::altKeyDown: {
+      isInvalidated = true;
+      if (activePage->padButtonDown(virtualKeyCode))
+        return true;
+
+      switch (virtualKeyCode) {
+        case /*XINPUT_GAMEPAD_LEFT_SHOULDER*/0x0100:  sectionTabs.selectPrevious(*context); break;
+        case /*XINPUT_GAMEPAD_RIGHT_SHOULDER*/0x0200: sectionTabs.selectNext(*context); break;
+        case /*bLeftTrigger*/0xFFFFFF00:
+          if (pageTabs.width())
+            pageTabs.selectPrevious(*context);
+          break;
+        case /*bRightTrigger*/0xFFFFFF01:
+          if (pageTabs.width())
+            pageTabs.selectNext(*context);
+          break;
+        default: break;
+      }
       break;
     }
     default: break;
@@ -194,37 +223,47 @@ void MenuFrame::draw() {
     renderer.setFragmentSamplerStates(0, textureSampler.handlePtr(), 1);
     renderer.setActiveRenderTarget(swapChain.getRenderTargetView());
     
-    // draw page controls - backgrounds
+    // draw page background with gradient
     renderer.bindGraphicsPipeline(controlPipeline.handle());
-
     buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     buffers->bindControlBuffer(renderer, ControlBufferType::regular);
     backgroundMesh.draw(renderer);
+    renderer.bindGraphicsPipeline(iconPipeline.handle());
+    buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
+    buffers->bindIconBuffer(renderer, ControlBufferType::regular);
+    backgroundGradientMesh.draw(renderer);
+
+    // draw page controls - backgrounds
+    renderer.bindGraphicsPipeline(controlPipeline.handle());
+    buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     sectionTabs.drawBackground(*context, *buffers);
     if (pageTabs.width())
       pageTabs.drawBackground(*context, *buffers);
-
     bool drawForeground = activePage->drawBackgrounds(mouseX, mouseY);
     
     // draw page controls - icons
     renderer.bindGraphicsPipeline(iconPipeline.handle());
-
     buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     buffers->bindIconBuffer(renderer, ControlBufferType::regular);
     logoMesh.draw(context->renderer());
+    if (activePage->isControllerUsed()) {
+      sectionUpButtonMesh.draw(renderer);
+      sectionDownButtonMesh.draw(renderer);
+      if (pageTabs.width()) {
+        pagePreviousButton.draw(renderer);
+        pageNextButton.draw(renderer);
+      }
+    }
     sectionTabs.drawIcons(*context, mouseX, mouseY, *buffers);
-    
     activePage->drawIcons();
     
     // draw page controls - labels/titles
     renderer.bindGraphicsPipeline(labelPipeline.handle());
-
     buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     if (sectionTabs.width() >= Control::sectionWideTabWidth())
       sectionTabs.drawLabels(*context, mouseX, mouseY, *buffers);
     if (pageTabs.width())
       pageTabs.drawLabels(*context, mouseX, mouseY, *buffers);
-
     activePage->drawLabels();
 
     // draw foreground controls (open combo-box...)
@@ -320,49 +359,44 @@ void MenuFrame::resizeGraphicsPipelines() {
 void MenuFrame::createBackground() {
   const uint32_t width = context->clientWidth();
   const uint32_t height = context->clientHeight();
-  const uint32_t pageTabHeight = context->getFont(FontType::labels).XHeight()
-                               + (Control::pageTabPaddingY() << 1) + 3u;
-  
-  std::vector<ControlVertex> vertices(static_cast<size_t>(13 + 5));
-  GeometryGenerator::fillRadialGradientRectangleVertices(vertices.data() + 5, theme->backgroundColor(),
-                                                         theme->backgroundGradientColor(),
-                                                         (float)sectionTabs.width(), (float)width,
-                                                         -(float)pageTabHeight, -(float)height);
-  
-  const float* topLeftColor = vertices[5].color;
-  const float* bottomLeftColor = vertices[vertices.size() - 3].color;
-  GeometryGenerator::fillControlVertex(vertices[0], bottomLeftColor, (float)sectionTabs.width(), -(float)height);
-  GeometryGenerator::fillControlVertex(vertices[1], bottomLeftColor, 0.f,                        -(float)height);
-  GeometryGenerator::fillControlVertex(vertices[2], topLeftColor,    (float)sectionTabs.width(), -(float)(height >> 1));
-  GeometryGenerator::fillControlVertex(vertices[3], topLeftColor,    0.f,                        0.f);
-  GeometryGenerator::fillControlVertex(vertices[4], topLeftColor,    (float)width,               0.f);
-  
-  std::vector<uint32_t> indices{ 0,1,2,1,3,2,2,3,5,  3,6,5,3,4,6,4,7,6,
-                                 5,6,8,5,8,10,      6,7,9,7,11,9,      8,6,12,6,9,12,     8,12,10,9,11,12,
-                                 10,12,13,12,16,13, 10,13,15,13,16,15, 12,11,14,12,14,16, 11,17,14,14,17,16 };
+  const float* backColor = theme->backgroundColor();
+
+  std::vector<ControlVertex> vertices(static_cast<size_t>(4));
+  ControlVertex* vertexIt = vertices.data();
+  GeometryGenerator::fillControlVertex(*vertexIt,     backColor, 0.f,          0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), backColor, (float)width, 0.f);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), backColor, 0.f,          -(float)height);
+  GeometryGenerator::fillControlVertex(*(++vertexIt), backColor, (float)width, -(float)height);
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3 };
   backgroundMesh = ControlMesh(context->renderer(), std::move(vertices), indices,
                                context->pixelSizeX(), context->pixelSizeY(), 0, 0, width, height);
+
+  const uint32_t cropX = (width >> 4);
+  const uint32_t cropY = (height >> 5);
+  const int32_t gradientX = (int32_t)sectionTabs.width() - (int32_t)cropX;
+  backgroundGradientMesh = IconMesh(context->renderer(),
+                                    context->imageLoader().loadRadialGradient(theme->backgroundGradientColor()),
+                                    context->pixelSizeX(), context->pixelSizeY(),
+                                    gradientX, -(int32_t)cropY, width + cropX - gradientX, height + (cropY << 1));
 }
 
 void MenuFrame::moveBackground() {
   const uint32_t width = context->clientWidth();
   const uint32_t height = context->clientHeight();
-  const uint32_t pageTabHeight = context->getFont(FontType::labels).XHeight()
-                               + (Control::pageTabPaddingY() << 1) + 3u;
   
   auto vertices = backgroundMesh.relativeVertices();
-  GeometryGenerator::moveRadialGradientRectangleVertices(vertices.data() + 5,
-                                                         (float)sectionTabs.width(), (float)width,
-                                                         -(float)pageTabHeight, -(float)height);
-  vertices[0].position[0] = (float)sectionTabs.width();
-  vertices[0].position[1] = -(float)height;
-  vertices[1].position[1] = -(float)height;
-  vertices[2].position[0] = (float)sectionTabs.width();
-  vertices[2].position[1] = -(float)(height >> 1);
-  vertices[4].position[0] = (float)width;
-  
+  vertices[1].position[0] = (float)width;
+  vertices[2].position[1] = -(float)height;
+  vertices[3].position[0] = (float)width;
+  vertices[3].position[1] = -(float)height;
   backgroundMesh.update(context->renderer(), std::move(vertices), context->pixelSizeX(),
                         context->pixelSizeY(), 0, 0, width, height);
+  
+  const uint32_t cropX = (width >> 4);
+  const uint32_t cropY = (height >> 5);
+  const int32_t gradientX = (int32_t)sectionTabs.width() - (int32_t)cropX;
+  backgroundGradientMesh.resize(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                                gradientX, -(int32_t)cropY, width + cropX - gradientX, height + (cropY << 1));
 }
 
 
@@ -409,10 +443,10 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
     tabBarHeight -= activePage->tooltipHeight();
   const uint32_t sectionTabWidth = Control::sectionTabWidth(context->clientWidth());
   sectionTabs = VerticalTabControl(*context, 0, 0, sectionTabWidth, tabBarHeight, 9, logoAreaHeight,
-                                   theme->verticalTabControlColor(), theme->verticalTabBorderColor(),
-                                   sectionTabOptions, sectionTabCount, activeTabIndex, std::move(sectionChangeHandler));
+                                   theme->verticalTabControlColorParams(), sectionTabOptions, sectionTabCount,
+                                   activeTabIndex, std::move(sectionChangeHandler));
   
-
+  // top logo
   const uint32_t logoHeight = context->pandoraLogoImage()->height() / (uint32_t)ColorThemeType::COUNT;
   uint32_t logoWidth = (context->pandoraLogoImage()->rowBytes() >> 2);
   if (sectionTabs.width() < Control::sectionWideTabWidth())
@@ -423,6 +457,46 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
   logoMesh = IconMesh(context->renderer(), context->pandoraLogoImage(),
                       context->pixelSizeX(), context->pixelSizeY(), logoX, logoY, 0,
                       logoHeight*(uint32_t)theme->themeType(), logoWidth, logoHeight);
+
+  // bottom controller indicators
+  auto upButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonL1);
+  auto downButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonR1);
+  int32_t upButtonX, upButtonY, downButtonX, downButtonY;
+  if (sectionTabs.width() > upButtonIcon.width() + downButtonIcon.width() + 2u) {
+    upButtonX = (sectionTabs.width() - (upButtonIcon.width() + downButtonIcon.width() + 2u) + 1u) >> 1;
+    downButtonX = upButtonX + (int32_t)upButtonIcon.width() + 2;
+    upButtonY = downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.height() - (Control::comboBoxPaddingY() << 1) - 1u);
+  }
+  else {
+    upButtonX = downButtonX = (int32_t)((sectionTabs.width() - upButtonIcon.width()) >> 1);
+    downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.height() - Control::comboBoxPaddingY() + 2u);
+    upButtonY = downButtonY - (int32_t)downButtonIcon.height() - 2;
+  }
+  sectionUpButtonMesh = IconMesh(context->renderer(), upButtonIcon.texture(),
+                                 context->pixelSizeX(), context->pixelSizeY(), upButtonX, upButtonY,
+                                 upButtonIcon.offsetX(), upButtonIcon.offsetY(), upButtonIcon.width(), upButtonIcon.height());
+  sectionDownButtonMesh = IconMesh(context->renderer(), downButtonIcon.texture(),
+                                   context->pixelSizeX(), context->pixelSizeY(), downButtonX, downButtonY,
+                                   downButtonIcon.offsetX(), downButtonIcon.offsetY(), downButtonIcon.width(), downButtonIcon.height());
+}
+
+void MenuFrame::moveSectionTabs() {
+  sectionTabs.move(*context, 0, 0, context->clientHeight() - activePage->tooltipHeight());
+  logoMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                (sectionTabs.width() + 1u - logoMesh.width()) >> 1, (logoAreaHeight + 1u - logoMesh.height()) >> 1);
+
+  int32_t upButtonY, downButtonY;
+  if (sectionTabs.width() > sectionUpButtonMesh.width() + sectionDownButtonMesh.width() + 2u) {
+    upButtonY = downButtonY = (int32_t)(sectionTabs.height() - sectionUpButtonMesh.height() - (Control::comboBoxPaddingY() << 1) - 1u);
+  }
+  else {
+    downButtonY = (int32_t)(sectionTabs.height() - sectionUpButtonMesh.height() - Control::comboBoxPaddingY() + 2u);
+    upButtonY = downButtonY - (int32_t)sectionDownButtonMesh.height() - 2;
+  }
+  sectionUpButtonMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                           sectionUpButtonMesh.x(), upButtonY);
+  sectionDownButtonMesh.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                             sectionDownButtonMesh.x(), downButtonY);
 }
 
 // -----------------------------------------------------------------------------
@@ -494,9 +568,30 @@ void MenuFrame::createPageTabs(TabMode mode, uint32_t activeTabIndex, bool force
       default: pageTabs = TabControl{}; break;
     }
     this->tabMode = mode;
+
+    // create controller indicators
+    auto prevButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallL2);
+    const int32_t buttonY = (int32_t)((pageTabs.height() - prevButtonIcon.height() + 1u) >> 1);
+    pagePreviousButton = IconMesh(context->renderer(), prevButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
+                                  (int32_t)(sectionTabs.width() + Control::controlSideMargin()), buttonY,
+                                  prevButtonIcon.offsetX(), prevButtonIcon.offsetY(), prevButtonIcon.width(), prevButtonIcon.height());
+    auto nextButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallR2);
+    pageNextButton = IconMesh(context->renderer(), nextButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
+                              (int32_t)(context->clientWidth() - nextButtonIcon.width() - Control::controlSideMargin()), buttonY,
+                              nextButtonIcon.offsetX(), nextButtonIcon.offsetY(), nextButtonIcon.width(), nextButtonIcon.height());
   }
   else // change active tab
     pageTabs.selectIndex(*context, activeTabIndex);
+}
+
+void MenuFrame::movePageTabs() {
+  pageTabs.move(*context, (int32_t)sectionTabs.width(), 0, context->clientWidth() - sectionTabs.width());
+
+  const int32_t buttonY = (int32_t)((pageTabs.height() - pagePreviousButton.height() + 1u) >> 1);
+  pagePreviousButton.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                          (int32_t)(sectionTabs.width() + Control::controlSideMargin()), buttonY);
+  pageNextButton.move(context->renderer(), context->pixelSizeX(), context->pixelSizeY(),
+                      (int32_t)(context->clientWidth() - pageNextButton.width() - Control::controlSideMargin()), buttonY);
 }
 
 // -----------------------------------------------------------------------------
@@ -583,6 +678,6 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
     default: break;
   }
   activePage->setControllerUsed(isControllerUsed);
-  sectionTabs.move(*context, context->clientHeight() - activePage->tooltipHeight());
+  moveSectionTabs();
   pageToLoad = PageId::none;
 }

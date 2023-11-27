@@ -71,12 +71,12 @@ Popup::Popup(RendererContext& context, const ColorTheme& theme, const char16_t* 
                                            0.f, (float)width, -1.f, -(float)(titleBarHeight-1));
   vertexIt[1].position[0] -= (float)(titleBarHeight-1u);
   vertexIt += 4;
-  const float* backColor = theme.backgroundGradientColor();
-  const float backDarkColor[4]{ backColor[0]*0.85f, backColor[1]*0.85f, backColor[2]*0.85f, backColor[3] };
+  const float* backColor = theme.popupControlColor();
+  const float backDarkColor[4]{ backColor[0]*0.9f, backColor[1]*0.9f, backColor[2]*0.9f, backColor[3] };
   GeometryGenerator::fillVerticalRectangleVertices(vertexIt, backColor, backDarkColor, // content background
                                                    0.f, (float)width, -(float)titleBarHeight, -(float)(height() - buttonBarHeight));
   vertexIt += 4;
-  const float* titleBorderColor = theme.fieldsetControlColor();
+  const float* titleBorderColor = theme.popupBorderColor();
   GeometryGenerator::fillRectangleVertices(vertexIt, titleBorderColor,  // title underline
                                            0.f, (float)width, -(float)(titleBarHeight-1), -(float)titleBarHeight);
   vertexIt += 4;
