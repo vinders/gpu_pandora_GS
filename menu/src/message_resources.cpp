@@ -238,7 +238,7 @@ void MessageResources::fillMessagesEN() {
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature] = u"Screen curvature";
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature_tooltip] = u"TV screen curvature effect: move left to disable / move right for max curvature";
   
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Smoothing/upscaling";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Filters/upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
@@ -524,7 +524,7 @@ void MessageResources::fillMessagesFR() {
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature] = u"Screen curvature";
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature_tooltip] = u"TV screen curvature effect: move left to disable / move right for max curvature";
   
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Smoothing/upscaling";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Filters/upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
@@ -810,7 +810,7 @@ void MessageResources::fillMessagesDE() {
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature] = u"Screen curvature";
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature_tooltip] = u"TV screen curvature effect: move left to disable / move right for max curvature";
   
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Smoothing/upscaling";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Filters/upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";
@@ -1096,7 +1096,7 @@ void MessageResources::fillMessagesES() {
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature] = u"Screen curvature";
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature_tooltip] = u"TV screen curvature effect: move left to disable / move right for max curvature";
   
-  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Smoothing/upscaling";
+  smoothingUpscaling[(size_t)SmoothingUpscalingMessages::title] = u"Filters/upscaling";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::framebufferGroup] = u"Framebuffer settings";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution] = u"Internal resolution (X/Y)";
   smoothingUpscaling[(size_t)SmoothingUpscalingMessages::internalResolution_tooltip] = u"Framebuffer resolution multiplier (values above 4 (X) / 6 (Y): very slow and not supported by all GPUs)";

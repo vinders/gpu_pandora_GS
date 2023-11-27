@@ -64,11 +64,10 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR( 25, 72,108, 1.f, popupTitleBar)
       SET_THEME_COLOR( 23, 78,120, 1.f, popupBorder)
 
-      SET_THEME_COLOR( 16, 44, 66, 1.f, tabControlColors.colors[0]) // 22, 55, 80
+      SET_THEME_COLOR( 21, 46, 66, 1.f, tabControlColors.colors[0]) // 22, 55, 80
       SET_THEME_COLOR( 27, 69,101, 1.f, tabControlColors.colors[1])
-      SET_THEME_COLOR( 42, 94,134, 1.f, tabControlColors.colors[2])
-      SET_THEME_COLOR(101,148,183, 1.f, tabLabel)
-      SET_THEME_COLOR(146,187,218, 1.f, tabActiveLabel)
+      SET_THEME_COLOR( 85,133,170, 1.f, tabLabel)
+      SET_THEME_COLOR(145,192,229, 1.f, tabActiveLabel)
       SET_THEME_COLOR( 17, 36, 51, 1.f, verticalTabControlColors.colors[0]) // 28, 77,113
       SET_THEME_COLOR( 19, 39, 55, 1.f, verticalTabControlColors.colors[1]) // 28, 77,113
       SET_THEME_COLOR( 38, 88,124, 0.15f,verticalTabControlColors.colors[2])
@@ -134,11 +133,10 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR( 37,100, 27, 1.f, popupTitleBar)
       SET_THEME_COLOR( 34,104, 29, 1.f, popupBorder)
 
-      SET_THEME_COLOR( 22, 55, 80, 1.f, tabControlColors.colors[0])
-      SET_THEME_COLOR( 27, 69,101, 1.f, tabControlColors.colors[1])
-      SET_THEME_COLOR( 42, 94,134, 1.f, tabControlColors.colors[2])
-      SET_THEME_COLOR(101,148,183, 1.f, tabLabel)
-      SET_THEME_COLOR(146,187,218, 1.f, tabActiveLabel)
+      SET_THEME_COLOR( 33, 68, 29, 1.f, tabControlColors.colors[0])
+      SET_THEME_COLOR( 40, 96, 29, 1.f, tabControlColors.colors[1])
+      SET_THEME_COLOR( 95,166, 86, 1.f, tabLabel)
+      SET_THEME_COLOR(158,216,147, 1.f, tabActiveLabel)
       SET_THEME_COLOR( 26, 68, 22, 0.25f, verticalTabControlColors.colors[0])
       SET_THEME_COLOR( 26, 68, 22, 0.25f, verticalTabControlColors.colors[1])
       SET_THEME_COLOR( 35, 82, 31, 0.35f, verticalTabControlColors.colors[2])
@@ -204,11 +202,10 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR( 27, 95, 46, 1.f, popupTitleBar)
       SET_THEME_COLOR( 27,107, 48, 1.f, popupBorder)
 
-      SET_THEME_COLOR( 22, 55, 80, 1.f, tabControlColors.colors[0])
-      SET_THEME_COLOR( 27, 69,101, 1.f, tabControlColors.colors[1])
-      SET_THEME_COLOR( 42, 94,134, 1.f, tabControlColors.colors[2])
-      SET_THEME_COLOR(101,148,183, 1.f, tabLabel)
-      SET_THEME_COLOR(146,187,218, 1.f, tabActiveLabel)
+      SET_THEME_COLOR( 31, 65, 39, 1.f, tabControlColors.colors[0])
+      SET_THEME_COLOR( 33, 92, 43, 1.f, tabControlColors.colors[1])
+      SET_THEME_COLOR( 90,161,106, 1.f, tabLabel)
+      SET_THEME_COLOR(150,211,160, 1.f, tabActiveLabel)
       SET_THEME_COLOR( 20, 53, 29, 0.5f, verticalTabControlColors.colors[0])
       SET_THEME_COLOR( 20, 53, 29, 0.5f, verticalTabControlColors.colors[1])
       SET_THEME_COLOR( 28, 66, 38, 0.65f,verticalTabControlColors.colors[2])
@@ -247,7 +244,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       break;
     }
     case ColorThemeType::gold: {
-      SET_MULTIPLIER(0.7f,0.65f,0.5f,0.2f,  disabledControl)
+      SET_MULTIPLIER(0.7f,0.675f,0.55f,0.3f,  disabledControl)
       SET_MULTIPLIER(1.35f,1.35f,1.35f,1.f, activeControl)
       SET_MULTIPLIER(1.25f,1.25f,1.25f,1.f, activeScrollControl)
       SET_THEME_COLOR( 92, 77, 44, 1.f,     coloredIcon)
@@ -274,11 +271,10 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(108, 83, 25, 1.f, popupTitleBar)
       SET_THEME_COLOR(117, 95, 34, 1.f, popupBorder)
 
-      SET_THEME_COLOR( 22, 55, 80, 1.f, tabControlColors.colors[0])
-      SET_THEME_COLOR( 27, 69,101, 1.f, tabControlColors.colors[1])
-      SET_THEME_COLOR( 42, 94,134, 1.f, tabControlColors.colors[2])
-      SET_THEME_COLOR(101,148,183, 1.f, tabLabel)
-      SET_THEME_COLOR(146,187,218, 1.f, tabActiveLabel)
+      SET_THEME_COLOR( 70, 59, 32, 1.f, tabControlColors.colors[0])
+      SET_THEME_COLOR(112, 90, 47, 1.f, tabControlColors.colors[1])
+      SET_THEME_COLOR(148,130, 90, 1.f, tabLabel)
+      SET_THEME_COLOR(208,192,154, 1.f, tabActiveLabel) // 185,172,141  // 204,191,161
       SET_THEME_COLOR( 37, 31, 20, 1.f,verticalTabControlColors.colors[0]) // 91, 67, 22  // 59, 56, 49 // 49, 47, 41 // 41, 37, 28
       SET_THEME_COLOR( 56, 45, 22, 1.f,verticalTabControlColors.colors[1]) // 47, 43, 34
       SET_THEME_COLOR( 91, 72, 37, 0.3f,verticalTabControlColors.colors[2]) // 59, 56, 49  // 75, 69, 53

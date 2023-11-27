@@ -74,11 +74,10 @@ namespace menu {
 
     inline const controls::TabControlColors& tabControlColorParams() const noexcept { return tabControlColors;  }
     inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; }    ///< Tab-control tab background color
-    inline const float* tabLineColor() const noexcept { return tabControlColors.colors[1]; }       ///< Tab-control bar color
-    inline const float* tabActiveLineColor() const noexcept { return tabControlColors.colors[2]; } ///< Tab-control bar active area color
+    inline const float* tabLineColor() const noexcept { return tabControlColors.colors[1]; }       ///< Tab-control bar active color
     inline const float* tabLabelColor() const noexcept { return tabLabel; }              ///< Tab-control tab text color
     inline const float* tabActiveLabelColor() const noexcept { return tabActiveLabel; }  ///< Tab-control active/hover tab text color
-    inline const controls::TabControlColors& verticalTabControlColorParams() const noexcept { return verticalTabControlColors;  }
+    inline const controls::VerticalTabControlColors& verticalTabControlColorParams() const noexcept { return verticalTabControlColors;  }
     inline const float* verticalTabControlColor() const noexcept { return verticalTabControlColors.colors[0]; }///< Vertical tab bar color
     inline const float* verticalTabBottomColor() const noexcept { return verticalTabControlColors.colors[1]; } ///< Vertical tab bar bottom color
     inline const float* verticalTabBorderColor() const noexcept { return verticalTabControlColors.colors[2]; } ///< Vertical tab border color
@@ -142,7 +141,7 @@ namespace menu {
     controls::TabControlColors tabControlColors;
     float tabLabel[4];
     float tabActiveLabel[4];
-    controls::TabControlColors verticalTabControlColors;
+    controls::VerticalTabControlColors verticalTabControlColors;
     float verticalTabLabel[4];
     float verticalTabActiveLabel[4];
     float verticalTabIcon[4];

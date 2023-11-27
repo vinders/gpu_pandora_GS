@@ -149,7 +149,8 @@ namespace menu {
     };
     using ComboBoxColors = ControlColors<3>;
     using RulerColors = ControlColors<4>;
-    using TabControlColors = ControlColors<3>;
+    using TabControlColors = ControlColors<2>;
+    using VerticalTabControlColors = ControlColors<3>;
     using KeyboardKeyColors = ControlColors<7>;
 
     // ---

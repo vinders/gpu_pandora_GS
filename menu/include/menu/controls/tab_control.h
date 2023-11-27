@@ -49,8 +49,7 @@ namespace menu {
 
       inline void release() noexcept {
         barMesh.release();
-        activeBarMesh.release();
-        tabLabelMeshes.clear();
+        tabMeshes.clear();
       }
 
       // -- accessors --
@@ -67,7 +66,7 @@ namespace menu {
 
       // -- operations --
 
-      void click(RendererContext& context, int32_t mouseX); ///< Report click to control (on mouse click with hover)
+      void click(RendererContext& context, int32_t mouseX, int32_t mouseY); ///< Report click to control (on mouse click with hover)
       void selectPrevious(RendererContext& context);  ///< Select previous tab if available (on keyboard/pad action)
       void selectNext(RendererContext& context);      ///< Select next tab if available (on keyboard/pad action)
       void selectIndex(RendererContext& context, uint32_t index); ///< Select tab at index if available
@@ -79,11 +78,7 @@ namespace menu {
       /// @brief Draw tab bar background
       /// @remarks - Use 'bindGraphicsPipeline' (for control backgrounds) before call.
       ///          - It's recommended to draw all controls using the same pipeline/uniform before using the other draw calls.
-      inline void drawBackground(RendererContext& context, RendererStateBuffers& buffers) {
-        buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
-        barMesh.draw(context.renderer());
-        activeBarMesh.draw(context.renderer());
-      }
+      void drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers);
       /// @brief Draw tab labels
       /// @remarks - Use 'bindGraphicsPipeline' (for control labels) before call.
       ///          - It's recommended to draw all labels using the same pipeline/uniform before using the other draw calls.
@@ -92,11 +87,30 @@ namespace menu {
     private:
       void init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
                 const char16_t** tabLabels, size_t tabCount);
+      void updateSelection(RendererContext& context, uint32_t index);
 
     private:
+      struct TabMesh final { // selectable value stored
+        TabMesh(int32_t y, uint32_t height, display::controls::ControlMesh&& background, display::controls::TextMesh&& name)
+          : backgroundMesh(std::move(background)), nameMesh(std::move(name)), y(y), height(height) {}
+        TabMesh() = default;
+        TabMesh(const TabMesh&) = default;
+        TabMesh(TabMesh&&) noexcept = default;
+        TabMesh& operator=(const TabMesh&) = default;
+        TabMesh& operator=(TabMesh&&) noexcept = default;
+        ~TabMesh() noexcept {
+          backgroundMesh.release();
+          nameMesh.release();
+        }
+
+        display::controls::ControlMesh backgroundMesh;
+        display::controls::TextMesh nameMesh;
+        int32_t y = 0;
+        uint32_t height = 0;
+      };
+
       display::controls::ControlMesh barMesh;
-      display::controls::ControlMesh activeBarMesh;
-      std::vector<display::controls::TextMesh> tabLabelMeshes;
+      std::vector<TabMesh> tabMeshes;
       uint32_t selectedIndex = 0;
 
       std::function<void(uint32_t)> onChange;

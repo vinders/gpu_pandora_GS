@@ -27,7 +27,7 @@ using namespace menu;
 #define ARROW_SIZE 7
 
 void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t tabWidth, uint32_t barHeight,
-                              uint32_t paddingY, uint32_t paddingTop, const controls::TabControlColors& colors,
+                              uint32_t paddingY, uint32_t paddingTop, const controls::VerticalTabControlColors& colors,
                               const VerticalTabOption* tabs, size_t tabCount) {
   // vertical bar
   std::vector<ControlVertex> vertices(static_cast<size_t>(14));

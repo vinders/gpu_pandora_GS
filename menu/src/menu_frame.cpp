@@ -195,7 +195,7 @@ bool MenuFrame::onMouseEvent(Window*, MouseEvent event, int32_t x, int32_t y, in
         if (y >= (int32_t)pageTabs.height())
           activePage->mouseDown(x, y, (MouseButton)index);
         else if (y >= 0)
-          pageTabs.click(*context, x);
+          pageTabs.click(*context, x, y);
       }
       else if (x >= 0)
         sectionTabs.click(*context, y);
@@ -238,7 +238,7 @@ void MenuFrame::draw() {
     buffers->bindFixedLocationBuffer(renderer, ScissorRectangle(0, 0, context->clientWidth(), context->clientHeight()));
     sectionTabs.drawBackground(*context, *buffers);
     if (pageTabs.width())
-      pageTabs.drawBackground(*context, *buffers);
+      pageTabs.drawBackground(*context, mouseX, mouseY, *buffers);
     bool drawForeground = activePage->drawBackgrounds(mouseX, mouseY);
     
     // draw page controls - icons
@@ -513,7 +513,7 @@ static PageTabSizes computePageTabSizes(uint32_t tabCount, uint32_t pageWidth, u
   tabSizes.paddingX = (pageWidth >= 800u) ? (uint32_t)(availableSpacePerTab*0.15f) : availableSpacePerTab/10u;
   if (tabSizes.paddingX > Control::maxPageTabPaddingX())
     tabSizes.paddingX = Control::maxPageTabPaddingX();
-  tabSizes.paddingY = (pageHeight >= 600u) ? Control::pageTabPaddingY() : (Control::pageTabPaddingY() - 2u);
+  tabSizes.paddingY = (pageHeight >= 600u) ? Control::pageTabPaddingY() : (Control::pageTabPaddingY() - 1u);
 
   availableSpacePerTab -= (tabSizes.paddingX << 1);
   tabSizes.tabWidth = (availableSpacePerTab >= Control::maxPageTabWidth())

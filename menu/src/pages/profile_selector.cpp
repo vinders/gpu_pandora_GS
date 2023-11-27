@@ -64,7 +64,7 @@ static TileGrid computeTileGrid(uint32_t width, uint32_t height, uint32_t fontHe
   grid.gridWidth = grid.rowCount*(grid.tileWidth + 1u) - 1u;
 
   const int32_t remainingHeight = (int32_t)height - (int32_t)((grid.tileHeight+1u)*grid.lineCount);
-  const uint32_t otherPagesTabsHeight = fontHeight + (Control::pageTabPaddingY() << 1) + 1u;
+  const uint32_t otherPagesTabsHeight = fontHeight + (Control::pageTabPaddingY() << 1);
   grid.offsetY = (remainingHeight > (int32_t)(otherPagesTabsHeight << 1)) ? (int32_t)otherPagesTabsHeight : 0;
   return grid;
 }

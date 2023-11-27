@@ -24,249 +24,217 @@ using namespace menu;
 
 // -- init/resize geometry -- --------------------------------------------------
 
-static std::vector<ControlVertex> generateTabBarGeometry(uint32_t barWidth, uint32_t tabHeight, uint32_t gradientWidth,
-                                                         const float* tabsColor, const float barColor[4],
-                                                         std::vector<uint32_t>* outIndices) {
-  std::vector<ControlVertex> vertices;
-  ControlVertex* vertexIt;
-  
-  if (tabsColor) { // tabs background
-    vertices.resize(28);
-    vertexIt = vertices.data();
-    const float tabsColorTransparent[4]{ tabsColor[0], tabsColor[1], tabsColor[2], 0.f };
-    GeometryGenerator::fillVerticalRectangleVertices(vertexIt, tabsColorTransparent, tabsColor,
-                                                     0.f, (float)barWidth, 0.f, -(float)(tabHeight + 1u));
-    vertexIt += 4;
-  }
-  else { // active tab bar
-    vertices.resize(27);
-    vertexIt = vertices.data();
-  }
-
-  const float borderColor[4]{ barColor[0]*0.75f, barColor[1]*0.75f, barColor[2]*0.75f, barColor[3] };
-  const float borderColorTransparent[4]{ borderColor[0], borderColor[1], borderColor[2], 0.f };
-  GeometryGenerator::fillRectangleVertices(vertexIt, borderColor, (float)gradientWidth, (float)(barWidth - gradientWidth),
-                                           -(float)tabHeight, -(float)(tabHeight + 2u));  // tab bar border
-  vertexIt += 4;
-  GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, borderColorTransparent, borderColor, // left gradient border
-                                                     0.f, (float)gradientWidth, -(float)tabHeight, -(float)(tabHeight + 2u));
-  vertexIt += 4;
-  GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, borderColor, borderColorTransparent, // right gradient border
-                                                     (float)(barWidth - gradientWidth), (float)barWidth,
-                                                     -(float)tabHeight, -(float)(tabHeight + 2u));
-  vertexIt += 4;
-
-  const float barColorTransparent[4]{ barColor[0], barColor[1], barColor[2], 0.f };
-  GeometryGenerator::fillRectangleVertices(vertexIt, barColor, (float)gradientWidth, (float)(barWidth - gradientWidth),
-                                           -(float)tabHeight, -(float)(tabHeight + 1u));  // tab bar center
-  vertexIt += 4;
-  GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, barColorTransparent, barColor, // left gradient center
-                                                     0.f, (float)gradientWidth, -(float)(tabHeight), -(float)(tabHeight + 1u));
-  vertexIt += 4;
-  GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, barColor, barColorTransparent, // right gradient center
-                                                     (float)(barWidth - gradientWidth), (float)barWidth,
-                                                     -(float)tabHeight, -(float)(tabHeight + 1u));
-
-  if (!tabsColor) { // active tab bar -> add arrow
-    barWidth >>= 1; // compute bar center
-    vertexIt += 4;
-    GeometryGenerator::fillControlVertex(*vertexIt,     barColor, (float)barWidth, -(float)(tabHeight - 3u));
-    GeometryGenerator::fillControlVertex(*(++vertexIt), barColor, (float)(barWidth + 8u), -(float)(tabHeight + 1u));
-    GeometryGenerator::fillControlVertex(*(++vertexIt), barColor, (float)(barWidth - 8u), -(float)(tabHeight + 1u));
-
-    if (outIndices)
-      *outIndices = std::vector<uint32_t>{ 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11,  12,13,14, 14,13,15,
-                                          16,17,18, 18,17,19,  20,21,22, 22,21,23,  24,25,26 };
-  }
-  else if (outIndices)
-    *outIndices = std::vector<uint32_t>{ 0,1,2, 2,1,3,  4,5,6, 6,5,7,  8,9,10, 10,9,11,  12,13,14, 14,13,15,
-                                        16,17,18, 18,17,19,  20,21,22, 22,21,23,  24,25,26, 26,25,27 };
-  return vertices;
-}
-
-// ---
+static constexpr const uint32_t maxTabWidth = 212u;
+static constexpr const float cornerColorFactor = 1.25f;
 
 void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
                       const char16_t** tabLabels, size_t tabCount) {
   auto& font = context.getFont(FontType::labels);
-  uint32_t tabHeight = font.XHeight() + (paddingY << 1);
-
-  // tab labels
-  const int32_t tabY = y + (int32_t)paddingY + 2;
-  int32_t tabX = x + (int32_t)paddingX;
-  tabLabelMeshes.reserve(tabCount);
-  while (tabCount) {
-#   if !defined(_CPP_REVISION) || _CPP_REVISION != 14
-    const auto& mesh = tabLabelMeshes.emplace_back(context.renderer(), font, *tabLabels,
-                                                   context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
-#   else
-    tabLabelMeshes.emplace_back(*context.renderer, font, *tabLabels, context.pixelSizeX, context.pixelSizeY, tabX, tabY);
-    const auto& mesh = tabLabelMeshes.back();
-#   endif
-    tabX += (mesh.width() >= minTabWidth) ? mesh.width() : minTabWidth;
-    tabX += (paddingX << 1);
-
-    ++tabLabels;
-    --tabCount;
-  }
-  tabX -= paddingX;
+  const uint32_t tabHeight = font.XHeight() + (paddingY << 1);
+  uint32_t tabWidth = (barWidth - tabHeight) / (uint32_t)tabCount;
+  if (tabWidth >= maxTabWidth)
+    tabWidth = (tabWidth > maxTabWidth + 8u) ? maxTabWidth : maxTabWidth - 8u;
   
-  // center labels
-  const int32_t offsetTabsX = ((int32_t)barWidth - (tabX - x)) >> 1;
-  for (auto& mesh : tabLabelMeshes) {
-    uint32_t tabLabelX = mesh.x() + offsetTabsX;
-    if (mesh.width() < minTabWidth)
-      tabLabelX += (int32_t)((minTabWidth - mesh.width()) >> 1);
-    mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabLabelX, mesh.y());
-  }
+  // create background bar
+  std::vector<ControlVertex> vertices(static_cast<size_t>(4 + 4));
+  const float* backgroundColor = colors.colors[0];
+  const float transparentColor[4]{ backgroundColor[0], backgroundColor[1], backgroundColor[2], 0.1f*backgroundColor[3] };
+  const float gradientColor[4]{ backgroundColor[0], backgroundColor[1], backgroundColor[2], 0.5f*backgroundColor[3] }; 
+  const uint32_t barMeshWidth = barWidth - tabHeight; // slanted tabs
+  GeometryGenerator::fillVerticalRectangleVertices(vertices.data(), transparentColor, gradientColor,
+                                                   0.f, (float)barMeshWidth, 0.f, -(float)(tabHeight - 1u));
+  GeometryGenerator::fillRectangleVertices(vertices.data() + 4, backgroundColor, 0.f, (float)barMeshWidth,
+                                           -(float)(tabHeight - 1u), -(float)tabHeight);
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3, 4,5,6,6,5,7 };
 
-  // tab bar
-  std::vector<uint32_t> indices;
-  auto vertices = generateTabBarGeometry(barWidth, tabHeight, (barWidth >= 800u) ? 200u : (barWidth >> 2),
-                                         colors.colors[0], colors.colors[1], &indices);
   barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                        x, y, barWidth, tabHeight + 1u);
+                        x + (int32_t)tabHeight, y, barMeshWidth, tabHeight);
 
-  const uint32_t activeBarWidth = minTabWidth + (paddingX << 1);
-  vertices = generateTabBarGeometry(activeBarWidth, tabHeight, paddingX, nullptr, colors.colors[2], &indices);
-  const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                              activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1) - (int32_t)(activeBarWidth >> 1),
-                              y, activeBarWidth, tabHeight + 3u);
+  // create tabs
+  const int32_t tabLabelY = y + (int32_t)paddingY + 2;
+  int32_t tabX = x;
+  tabMeshes.reserve(tabCount);
+  indices = { 0,1,2,2,1,3 };
+  for (uint32_t index = 0; index < (uint32_t)tabCount; ++index, ++tabLabels, tabX += tabWidth) {
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(4u));
+    GeometryGenerator::fillRectangleVertices(vertices.data(), (index != selectedIndex) ? backgroundColor : colors.colors[1],
+                                             0.f, (float)tabWidth, 0.f, -(float)tabHeight);
+    vertices[2].position[0] += (float)tabHeight; // slanted
+    vertices[3].position[0] += (float)tabHeight;
+    vertices[3].color[0] *= cornerColorFactor;
+    vertices[3].color[1] *= cornerColorFactor;
+    vertices[3].color[2] *= cornerColorFactor;
+    ControlMesh tabBackground(context.renderer(), std::move(vertices), indices, context.pixelSizeX(),
+                              context.pixelSizeY(), tabX, y, tabWidth, tabHeight);
+
+    TextMesh tabLabel(context.renderer(), font, *tabLabels, context.pixelSizeX(), context.pixelSizeY(),
+                      tabX + (int32_t)((tabWidth + tabHeight) >> 1), tabLabelY, TextAlignment::center);
+
+    tabMeshes.emplace_back(y, tabHeight, std::move(tabBackground), std::move(tabLabel));
+  }
 }
 
 // ---
 
 void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth) {
-  if (!tabLabelMeshes.empty()) {
-    const auto& lastLabel = tabLabelMeshes.back();
-    const int32_t tabY = y + (int32_t)paddingY + 2;
-    int32_t tabX = (((int32_t)barWidth - (lastLabel.x() + (int32_t)lastLabel.width() - tabLabelMeshes[0].x())) >> 1);
-    for (auto& mesh : tabLabelMeshes) {
-      if (mesh.width() >= minTabWidth) {
-        mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
-        tabX += mesh.width();
-      }
-      else {
-        tabX += (minTabWidth >> 1);
-        mesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), tabX, tabY);
-        tabX += (minTabWidth >> 1);
-      }
-      tabX += (paddingX << 1);
+  const uint32_t tabHeight = barMesh.height();
+  const uint32_t barMeshWidth = barWidth - tabHeight;
+  std::vector<ControlVertex> vertices = barMesh.relativeVertices();
+  vertices[1].position[0] = (float)barMeshWidth;
+  vertices[3].position[0] = (float)barMeshWidth;
+  vertices[5].position[0] = (float)barMeshWidth;
+  vertices[7].position[0] = (float)barMeshWidth;
+  barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                 x + (int32_t)tabHeight, y, barMeshWidth, barMesh.height());
+
+  if (!tabMeshes.empty()) {
+    uint32_t tabWidth = (barWidth - tabHeight) / (uint32_t)tabMeshes.size();
+    if (tabWidth >= maxTabWidth)
+      tabWidth = (tabWidth > maxTabWidth + 8u) ? maxTabWidth : maxTabWidth - 8u;
+
+    int32_t tabX = x;
+    const int32_t tabLabelY = y + (int32_t)paddingY + 2;
+    for (uint32_t index = 0; index < (uint32_t)tabMeshes.size(); ++index, tabX += tabWidth) {
+      auto& tabMesh = tabMeshes[index];
+      vertices = tabMesh.backgroundMesh.relativeVertices();
+      vertices[1].position[0] = (float)tabWidth;
+      vertices[3].position[0] = (float)(tabWidth + tabHeight);
+      tabMesh.backgroundMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                                    tabX, y, tabWidth, tabMesh.backgroundMesh.height());
+      tabMesh.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
+                            tabX + (int32_t)((tabWidth + tabHeight) >> 1) - (int32_t)(tabMesh.nameMesh.width() >> 1), tabLabelY);
     }
   }
+}
 
-  if (!barMesh.relativeVertices().empty()) {
-    const uint32_t tabHeight = tabLabelMeshes[0].height() + (paddingY << 1);
-    const float* tabsColor = barMesh.relativeVertices()[0].color;
-    const float* barColor = barMesh.relativeVertices()[barMesh.relativeVertices().size() - 2u].color;
-    auto vertices = generateTabBarGeometry(barWidth, tabHeight, (barWidth >= 800u) ? 200u : (barWidth >> 2),
-                                           tabsColor, barColor, nullptr);
-    barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
-                   x, y, barWidth, barMesh.height());
+void TabControl::updateSelection(RendererContext& context, uint32_t index) {
+  if (!tabMeshes.empty()) {
+    auto& oldSelectedMesh = tabMeshes[selectedIndex].backgroundMesh;
+    auto& newSelectedMesh = tabMeshes[index].backgroundMesh;
+    selectedIndex = index;
 
-    const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-    activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                       activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), y);
+    float activeColor[4]; float regularColor[4];
+    memcpy(activeColor, oldSelectedMesh.relativeVertices()[0].color, sizeof(float)*4u);
+    memcpy(regularColor, newSelectedMesh.relativeVertices()[0].color, sizeof(float)*4u);
+
+    std::vector<ControlVertex> vertices = oldSelectedMesh.relativeVertices();
+    for (auto& vertex : vertices)
+      memcpy(vertex.color, regularColor, sizeof(float)*4u);
+    vertices[3].color[0] *= cornerColorFactor;
+    vertices[3].color[1] *= cornerColorFactor;
+    vertices[3].color[2] *= cornerColorFactor;
+    oldSelectedMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                           oldSelectedMesh.x(), oldSelectedMesh.y(), oldSelectedMesh.width(), oldSelectedMesh.height());
+
+    vertices = newSelectedMesh.relativeVertices();
+    for (auto& vertex : vertices)
+      memcpy(vertex.color, activeColor, sizeof(float)*4u);
+    newSelectedMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                           newSelectedMesh.x(), newSelectedMesh.y(), newSelectedMesh.width(), newSelectedMesh.height());
+
+    if (onChange)
+      onChange(selectedIndex);
   }
 }
 
 
 // -- operations -- ------------------------------------------------------------
 
-void TabControl::click(RendererContext& context, int32_t mouseX) {
-  int32_t currentIndex = -1;
-  for (const auto& mesh : tabLabelMeshes) {
-    if (mouseX < mesh.x() - (int32_t)paddingX)
-      break;
-    ++currentIndex;
-  }
+void TabControl::click(RendererContext& context, int32_t mouseX, int32_t mouseY) {
+  if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
+    mouseX -= (mouseY - barMesh.y()); // slanted hover detection
 
-  if (currentIndex == -1)
-    return;
-  if (currentIndex + 1 >= (int32_t)tabLabelMeshes.size()) {
-    const auto& lastTabLabel = tabLabelMeshes.back();
-    if (mouseX >= lastTabLabel.x() + (int32_t)lastTabLabel.width() + (int32_t)paddingX)
-      return;
+    int32_t hoverIndex = -1, index = 0;
+    for (auto& mesh : tabMeshes) {
+      if (mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width()) {
+        hoverIndex = index;
+        break;
+      }
+      ++index;
+    }
+    if (hoverIndex > -1)
+      updateSelection(context, (uint32_t)hoverIndex);
   }
-  if (selectedIndex == (uint32_t)currentIndex)
-    return;
-  selectedIndex = (uint32_t)currentIndex;
-
-  const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
-  if (onChange)
-    onChange(selectedIndex);
 }
 
 // ---
 
 void TabControl::selectPrevious(RendererContext& context) {
-  if (selectedIndex != 0)
-    --selectedIndex;
-  else
-    selectedIndex = (uint32_t)tabLabelMeshes.size() - 1u;
-
-  const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
-  if (onChange)
-    onChange(selectedIndex);
+  uint32_t newIndex = (selectedIndex != 0) ? (selectedIndex - 1u) : ((uint32_t)tabMeshes.size() - 1u);
+  updateSelection(context, (uint32_t)newIndex);
 }
 
 void TabControl::selectNext(RendererContext& context) {
-  if (selectedIndex + 1u < (uint32_t)tabLabelMeshes.size())
-    ++selectedIndex;
-  else
-    selectedIndex = 0;
-
-  const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-  activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                     activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
-  if (onChange)
-    onChange(selectedIndex);
+  uint32_t newIndex = (selectedIndex + 1u < (uint32_t)tabMeshes.size()) ? (selectedIndex + 1u) : 0;
+  updateSelection(context, (uint32_t)newIndex);
 }
 
 void TabControl::selectIndex(RendererContext& context, uint32_t index) {
-  if (index < (uint32_t)tabLabelMeshes.size()) {
-    this->selectedIndex = index;
-
-    const auto& activeTabLabel = tabLabelMeshes[selectedIndex];
-    activeBarMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
-                       activeTabLabel.x() + (int32_t)(activeTabLabel.width() >> 1), activeBarMesh.y());
+  if (index < (uint32_t)tabMeshes.size()) {
+    updateSelection(context, index);
   }
 }
 
 
 // -- rendering -- -------------------------------------------------------------
 
-void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
-  uint32_t currentIndex = 0;
-  int32_t hoverIndex = -1;
-  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tab);
-  if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) {
-    for (auto& mesh : tabLabelMeshes) {
-      if (mouseX >= mesh.x() - (int32_t)paddingX && mouseX < mesh.x() + (int32_t)mesh.width() + (int32_t)paddingX) {
-        hoverIndex = (int32_t)currentIndex;
-      }
-      else if (currentIndex != selectedIndex)
-        mesh.draw(context.renderer());
-      ++currentIndex;
-    }
-  }
-  else {
-    for (auto& mesh : tabLabelMeshes) {
-      if (currentIndex != selectedIndex)
-        mesh.draw(context.renderer());
-      ++currentIndex;
-    }
-  }
+void TabControl::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
+  buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
+  barMesh.draw(context.renderer());
 
-  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tabActive);
-  tabLabelMeshes[selectedIndex].draw(context.renderer());
-  if (hoverIndex >= 0 && hoverIndex != (int32_t)selectedIndex)
-    tabLabelMeshes[hoverIndex].draw(context.renderer());
+  if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
+    mouseX -= (mouseY - barMesh.y()); // slanted hover detection
+
+    int32_t hoverIndex = -1, index = 0;
+    for (auto& mesh : tabMeshes) {
+      if (mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
+        hoverIndex = index;
+      else 
+        mesh.backgroundMesh.draw(context.renderer());
+      ++index;
+    }
+    if (hoverIndex > -1) {
+      buffers.bindControlBuffer(context.renderer(), ControlBufferType::active);
+      tabMeshes[hoverIndex].backgroundMesh.draw(context.renderer());
+    }
+  }
+  else { // no hover
+    for (auto& mesh : tabMeshes)
+      mesh.backgroundMesh.draw(context.renderer());
+  }
+}
+
+void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
+  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tab);
+  if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
+    mouseX -= (mouseY - barMesh.y()); // slanted hover detection
+
+    int32_t hoverIndex = -1;
+    uint32_t index = 0;
+    for (auto& mesh : tabMeshes) {
+      if (index != selectedIndex) {
+        if (mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
+          hoverIndex = (int32_t)index;
+        else
+          mesh.nameMesh.draw(context.renderer());
+      }
+      ++index;
+    }
+    buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tabActive);
+    tabMeshes[selectedIndex].nameMesh.draw(context.renderer());
+    if (hoverIndex > -1)
+      tabMeshes[hoverIndex].nameMesh.draw(context.renderer());
+  }
+  else { // no hover
+    uint32_t index = 0;
+    for (auto& mesh : tabMeshes) {
+      if (index != selectedIndex)
+        mesh.nameMesh.draw(context.renderer());
+      ++index;
+    }
+    buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tabActive);
+    tabMeshes[selectedIndex].nameMesh.draw(context.renderer());
+  }
 }
 
 
