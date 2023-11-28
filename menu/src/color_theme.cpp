@@ -174,7 +174,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       memcpy(tileColors.colors[(uint32_t)TileColors::themeColor], comboBoxControlColors.colors[0], sizeof(float)*4u);
       break;
     }
-    case ColorThemeType::scifi: {
+    /*case ColorThemeType::scifi: {
       SET_MULTIPLIER(0.5f,0.7f,0.65f,0.2f,  disabledControl)
       SET_MULTIPLIER(1.35f,1.35f,1.35f,1.f, activeControl)
       SET_MULTIPLIER(1.25f,1.25f,1.25f,1.f, activeScrollControl)
@@ -242,7 +242,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(210,210,210, 1.f, keyboardKeyControlColors.colors[6])
       SET_THEME_COLOR( 58,150, 83, 1.f, tileColors.colors[(uint32_t)TileColors::themeColor])
       break;
-    }
+    }*/
     case ColorThemeType::gold: {
       SET_MULTIPLIER(0.7f,0.675f,0.55f,0.3f,  disabledControl)
       SET_MULTIPLIER(1.35f,1.35f,1.35f,1.f, activeControl)

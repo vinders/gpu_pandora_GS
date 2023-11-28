@@ -21,7 +21,7 @@ namespace menu {
   enum class ColorThemeType : uint32_t { ///< Menu color theme type
     blue = 0, ///< blue background, blue controls, gradients
     green,    ///< green background, green controls, gradients
-    scifi,    ///< dark background, green controls, gradient boxes
+    //scifi,    ///< dark background, green controls, gradient boxes
     gold,   ///< dark background, yellow controls, gradient boxes
     COUNT
   };
@@ -73,8 +73,8 @@ namespace menu {
     inline const float* popupBorderColor() const noexcept { return popupBorder; }        ///< Popup border color (title bar border and button area)
 
     inline const controls::TabControlColors& tabControlColorParams() const noexcept { return tabControlColors;  }
-    inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; }    ///< Tab-control tab background color
-    inline const float* tabLineColor() const noexcept { return tabControlColors.colors[1]; }       ///< Tab-control bar active color
+    inline const float* tabControlColor() const noexcept { return tabControlColors.colors[0]; } ///< Tab-control tab background color
+    inline const float* tabLineColor() const noexcept { return tabControlColors.colors[1]; }    ///< Tab-control bar active color
     inline const float* tabLabelColor() const noexcept { return tabLabel; }              ///< Tab-control tab text color
     inline const float* tabActiveLabelColor() const noexcept { return tabActiveLabel; }  ///< Tab-control active/hover tab text color
     inline const controls::VerticalTabControlColors& verticalTabControlColorParams() const noexcept { return verticalTabControlColors;  }

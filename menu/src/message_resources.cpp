@@ -106,7 +106,7 @@ void MessageResources::fillMessagesEN() {
   generalSettings[(size_t)GeneralSettingsMessages::theme] = u"Menu theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Blue theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Green theme";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-fi theme";
+  //generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-fi theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Gold theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choose color theme for the user interface";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Language";
@@ -392,7 +392,7 @@ void MessageResources::fillMessagesFR() {
   generalSettings[(size_t)GeneralSettingsMessages::theme] = u"Thème des menus";
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Thème bleu";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Thème vert";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Thème sci-fi";
+  //generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Thème sci-fi";
   generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Thème or";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Choisir le thème de couleurs de l'interface graphique";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Langue";
@@ -678,7 +678,7 @@ void MessageResources::fillMessagesDE() {
   generalSettings[(size_t)GeneralSettingsMessages::theme] = u"Menüthema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Blaues Thema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Grünes Thema";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-Fi Theme";
+  //generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Sci-Fi Theme";
   generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Gelbes Thema";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Farbthema für die Benutzeroberfläche";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Sprache";
@@ -964,7 +964,7 @@ void MessageResources::fillMessagesES() {
   generalSettings[(size_t)GeneralSettingsMessages::theme] = u"Tema del menú";
   generalSettings[(size_t)GeneralSettingsMessages::theme_blue] = u"Tema azul";
   generalSettings[(size_t)GeneralSettingsMessages::theme_green] = u"Tema verde";
-  generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Tema sci-fi";
+  //generalSettings[(size_t)GeneralSettingsMessages::theme_scifi] = u"Tema sci-fi";
   generalSettings[(size_t)GeneralSettingsMessages::theme_gold] = u"Tema amarillo";
   generalSettings[(size_t)GeneralSettingsMessages::theme_tooltip] = u"Elija el tema para la interfaz de usuario";
   generalSettings[(size_t)GeneralSettingsMessages::language] = u"Idioma";

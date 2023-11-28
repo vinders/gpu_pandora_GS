@@ -25,39 +25,34 @@ using namespace menu;
 // -- init/resize geometry -- --------------------------------------------------
 
 static constexpr const uint32_t maxTabWidth = 212u;
+static constexpr const uint32_t gradientWidth = (maxTabWidth >> 1);
 static constexpr const float cornerColorFactor = 1.25f;
 
 void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth, const TabControlColors& colors,
                       const char16_t** tabLabels, size_t tabCount) {
+  if (tabCount == 0)
+    return;
   auto& font = context.getFont(FontType::labels);
   const uint32_t tabHeight = font.XHeight() + (paddingY << 1);
   uint32_t tabWidth = (barWidth - tabHeight) / (uint32_t)tabCount;
   if (tabWidth >= maxTabWidth)
     tabWidth = (tabWidth > maxTabWidth + 8u) ? maxTabWidth : maxTabWidth - 8u;
-  
-  // create background bar
-  std::vector<ControlVertex> vertices(static_cast<size_t>(4 + 4));
-  const float* backgroundColor = colors.colors[0];
-  const float transparentColor[4]{ backgroundColor[0], backgroundColor[1], backgroundColor[2], 0.1f*backgroundColor[3] };
-  const float gradientColor[4]{ backgroundColor[0], backgroundColor[1], backgroundColor[2], 0.5f*backgroundColor[3] }; 
-  const uint32_t barMeshWidth = barWidth - tabHeight; // slanted tabs
-  GeometryGenerator::fillVerticalRectangleVertices(vertices.data(), transparentColor, gradientColor,
-                                                   0.f, (float)barMeshWidth, 0.f, -(float)(tabHeight - 1u));
-  GeometryGenerator::fillRectangleVertices(vertices.data() + 4, backgroundColor, 0.f, (float)barMeshWidth,
-                                           -(float)(tabHeight - 1u), -(float)tabHeight);
-  std::vector<uint32_t> indices{ 0,1,2,2,1,3, 4,5,6,6,5,7 };
 
-  barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
-                        x + (int32_t)tabHeight, y, barMeshWidth, tabHeight);
+  const float* idleTabColor = colors.colors[0];
+  const float* activeTabColor = colors.colors[1];
+  std::vector<ControlVertex> vertices;
+  std::vector<uint32_t> indices{ 0,1,2,2,1,3 };
 
   // create tabs
   const int32_t tabLabelY = y + (int32_t)paddingY + 2;
-  int32_t tabX = x;
+  const uint32_t totalTabsWidth = tabWidth*(uint32_t)tabCount + tabHeight;
+  int32_t tabX = (barWidth > totalTabsWidth + Control::scrollbarWidth())
+               ? x + (int32_t)((barWidth - Control::scrollbarWidth() - totalTabsWidth) >> 1)
+               : x + (int32_t)((barWidth - totalTabsWidth) >> 1);
   tabMeshes.reserve(tabCount);
-  indices = { 0,1,2,2,1,3 };
   for (uint32_t index = 0; index < (uint32_t)tabCount; ++index, ++tabLabels, tabX += tabWidth) {
     vertices = std::vector<ControlVertex>(static_cast<size_t>(4u));
-    GeometryGenerator::fillRectangleVertices(vertices.data(), (index != selectedIndex) ? backgroundColor : colors.colors[1],
+    GeometryGenerator::fillRectangleVertices(vertices.data(), (index != selectedIndex) ? idleTabColor : activeTabColor,
                                              0.f, (float)tabWidth, 0.f, -(float)tabHeight);
     vertices[2].position[0] += (float)tabHeight; // slanted
     vertices[3].position[0] += (float)tabHeight;
@@ -72,28 +67,39 @@ void TabControl::init(RendererContext& context, int32_t x, int32_t y, uint32_t b
 
     tabMeshes.emplace_back(y, tabHeight, std::move(tabBackground), std::move(tabLabel));
   }
+
+  // create underline bar (with gradients)
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(8));
+  const float transparentColor[4]{ activeTabColor[0], activeTabColor[1], activeTabColor[2], 0.f };
+  GeometryGenerator::fillHorizontalRectangleVertices(vertices.data(), transparentColor, activeTabColor,
+                                                     (float)tabHeight, (float)(tabHeight + gradientWidth),
+                                                     -(float)(tabHeight - 1u), -(float)tabHeight);
+  GeometryGenerator::fillHorizontalRectangleVertices(vertices.data() + 4, activeTabColor, transparentColor,
+                                                     (float)(totalTabsWidth - tabHeight - gradientWidth), (float)(totalTabsWidth - tabHeight),
+                                                     -(float)(tabHeight - 1u), -(float)tabHeight);
+  indices = std::vector<uint32_t>{ 0,1,2,2,1,3, 1,4,3,3,4,6, 4,5,6,6,5,7 };
+
+  barMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
+                        tabMeshes[0].backgroundMesh.x(), y, totalTabsWidth, tabHeight);
 }
 
 // ---
 
 void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t barWidth) {
-  const uint32_t tabHeight = barMesh.height();
-  const uint32_t barMeshWidth = barWidth - tabHeight;
-  std::vector<ControlVertex> vertices = barMesh.relativeVertices();
-  vertices[1].position[0] = (float)barMeshWidth;
-  vertices[3].position[0] = (float)barMeshWidth;
-  vertices[5].position[0] = (float)barMeshWidth;
-  vertices[7].position[0] = (float)barMeshWidth;
-  barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
-                 x + (int32_t)tabHeight, y, barMeshWidth, barMesh.height());
-
   if (!tabMeshes.empty()) {
+    const uint32_t tabHeight = barMesh.height();
     uint32_t tabWidth = (barWidth - tabHeight) / (uint32_t)tabMeshes.size();
     if (tabWidth >= maxTabWidth)
       tabWidth = (tabWidth > maxTabWidth + 8u) ? maxTabWidth : maxTabWidth - 8u;
 
-    int32_t tabX = x;
+    std::vector<ControlVertex> vertices;
+
+    // tabs
     const int32_t tabLabelY = y + (int32_t)paddingY + 2;
+    const uint32_t totalTabsWidth = tabWidth*(uint32_t)tabMeshes.size() + tabHeight;
+    int32_t tabX = (barWidth > totalTabsWidth + Control::scrollbarWidth())
+                 ? x + (int32_t)((barWidth - Control::scrollbarWidth() - totalTabsWidth) >> 1)
+                 : x + (int32_t)((barWidth - totalTabsWidth) >> 1);
     for (uint32_t index = 0; index < (uint32_t)tabMeshes.size(); ++index, tabX += tabWidth) {
       auto& tabMesh = tabMeshes[index];
       vertices = tabMesh.backgroundMesh.relativeVertices();
@@ -104,6 +110,13 @@ void TabControl::move(RendererContext& context, int32_t x, int32_t y, uint32_t b
       tabMesh.nameMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),
                             tabX + (int32_t)((tabWidth + tabHeight) >> 1) - (int32_t)(tabMesh.nameMesh.width() >> 1), tabLabelY);
     }
+
+    // underline bar (with gradients)
+    vertices = barMesh.relativeVertices();
+    GeometryGenerator::moveRectangleVerticesX(vertices.data(), (float)tabHeight, (float)(tabHeight + gradientWidth));
+    GeometryGenerator::moveRectangleVerticesX(vertices.data() + 4, (float)(totalTabsWidth - tabHeight - gradientWidth), (float)(totalTabsWidth - tabHeight));
+    barMesh.update(context.renderer(), std::move(vertices), context.pixelSizeX(), context.pixelSizeY(),
+                   tabMeshes[0].backgroundMesh.x(), y, totalTabsWidth, tabHeight);
   }
 }
 
@@ -179,33 +192,38 @@ void TabControl::selectIndex(RendererContext& context, uint32_t index) {
 // -- rendering -- -------------------------------------------------------------
 
 void TabControl::drawBackground(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
-  buffers.bindControlBuffer(context.renderer(), ControlBufferType::regular);
-  barMesh.draw(context.renderer());
+  auto& renderer = context.renderer();
+  buffers.bindControlBuffer(renderer, ControlBufferType::regular);
+  mouseX -= (mouseY - barMesh.y()); // slanted hover detection
 
   if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
-    mouseX -= (mouseY - barMesh.y()); // slanted hover detection
-
     int32_t hoverIndex = -1, index = 0;
     for (auto& mesh : tabMeshes) {
-      if (mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
+      if (index != selectedIndex
+      && mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
         hoverIndex = index;
-      else 
-        mesh.backgroundMesh.draw(context.renderer());
+      else
+        mesh.backgroundMesh.draw(renderer);
       ++index;
     }
+
     if (hoverIndex > -1) {
-      buffers.bindControlBuffer(context.renderer(), ControlBufferType::active);
-      tabMeshes[hoverIndex].backgroundMesh.draw(context.renderer());
+      buffers.bindControlBuffer(renderer, ControlBufferType::active);
+      tabMeshes[hoverIndex].backgroundMesh.draw(renderer);
+      buffers.bindControlBuffer(renderer, ControlBufferType::regular);
     }
   }
   else { // no hover
     for (auto& mesh : tabMeshes)
-      mesh.backgroundMesh.draw(context.renderer());
+      mesh.backgroundMesh.draw(renderer);
   }
+  barMesh.draw(renderer);
 }
 
 void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mouseY, RendererStateBuffers& buffers) {
-  buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tab);
+  auto& renderer = context.renderer();
+  buffers.bindLabelBuffer(renderer, LabelBufferType::tab);
+
   if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
     mouseX -= (mouseY - barMesh.y()); // slanted hover detection
 
@@ -216,24 +234,24 @@ void TabControl::drawLabels(RendererContext& context, int32_t mouseX, int32_t mo
         if (mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
           hoverIndex = (int32_t)index;
         else
-          mesh.nameMesh.draw(context.renderer());
+          mesh.nameMesh.draw(renderer);
       }
       ++index;
     }
-    buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tabActive);
-    tabMeshes[selectedIndex].nameMesh.draw(context.renderer());
+    buffers.bindLabelBuffer(renderer, LabelBufferType::tabActive);
+    tabMeshes[selectedIndex].nameMesh.draw(renderer);
     if (hoverIndex > -1)
-      tabMeshes[hoverIndex].nameMesh.draw(context.renderer());
+      tabMeshes[hoverIndex].nameMesh.draw(renderer);
   }
   else { // no hover
     uint32_t index = 0;
     for (auto& mesh : tabMeshes) {
       if (index != selectedIndex)
-        mesh.nameMesh.draw(context.renderer());
+        mesh.nameMesh.draw(renderer);
       ++index;
     }
-    buffers.bindLabelBuffer(context.renderer(), LabelBufferType::tabActive);
-    tabMeshes[selectedIndex].nameMesh.draw(context.renderer());
+    buffers.bindLabelBuffer(renderer, LabelBufferType::tabActive);
+    tabMeshes[selectedIndex].nameMesh.draw(renderer);
   }
 }
 

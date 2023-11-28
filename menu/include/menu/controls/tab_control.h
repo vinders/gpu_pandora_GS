@@ -109,8 +109,8 @@ namespace menu {
         uint32_t height = 0;
       };
 
-      display::controls::ControlMesh barMesh;
       std::vector<TabMesh> tabMeshes;
+      display::controls::ControlMesh barMesh;
       uint32_t selectedIndex = 0;
 
       std::function<void(uint32_t)> onChange;

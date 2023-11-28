@@ -106,7 +106,7 @@ namespace menu {
     theme,
     theme_blue,
     theme_green,
-    theme_scifi,
+    //theme_scifi,
     theme_gold,
     theme_tooltip,
     language,
