@@ -388,3 +388,64 @@ void GeometryGenerator::fillCircleIndices(uint32_t* outIndexIt, uint32_t firstIn
   *(++outIndexIt) = currentIndex - 1u;
   *(++outIndexIt) = currentIndex + 1u;
 }
+
+// ---
+
+void GeometryGenerator::fillCircleVerticesAA(ControlVertex* outVertexIt, const float rgba[4],
+                                             uint32_t circleVertexCount, double radius, float centerX, float centerY, bool isNarrower) noexcept {
+  const double sector = 2.0*M_PI / (double)circleVertexCount;
+  ControlVertex* topIt = outVertexIt;
+  ControlVertex* bottomIt = topIt + ((intptr_t)circleVertexCount - 1);
+  
+  // outer edge (rounded rectangle)
+  const double edgePortionOffset = radius*0.2;
+  const double edgePortionRadius = radius*0.775;
+  const float edgePortionRgba[4]{ rgba[0], rgba[1], rgba[2], rgba[3]*0.125f };
+  fillControlVertex(*topIt,    edgePortionRgba, centerX, centerY + (float)edgePortionOffset + (float)edgePortionRadius); // top/bottom vertices
+  fillControlVertex(*bottomIt, edgePortionRgba, centerX, centerY - (float)edgePortionOffset - (float)edgePortionRadius);
+  ++topIt;
+  --bottomIt;
+
+  for (double i = M_PI_2 - sector; topIt <= bottomIt; i -= sector, ++topIt, --bottomIt) {
+    double coordX = cos(i)*edgePortionRadius;
+    double coordY = sin(i)*edgePortionRadius;
+    fillControlVertex(*topIt,          edgePortionRgba, centerX + (float)edgePortionOffset + (float)coordX, centerY + (float)edgePortionOffset + (float)coordY);
+    fillControlVertex(*(++topIt),      edgePortionRgba, centerX - (float)edgePortionOffset - (float)coordX, centerY + (float)edgePortionOffset + (float)coordY);
+    if (topIt != bottomIt) {
+      fillControlVertex(*bottomIt,     edgePortionRgba, centerX - (float)edgePortionOffset - (float)coordX, centerY - (float)edgePortionOffset - (float)coordY);
+      fillControlVertex(*(--bottomIt), edgePortionRgba, centerX + (float)edgePortionOffset + (float)coordX, centerY - (float)edgePortionOffset - (float)coordY);
+    }
+  }
+  topIt = outVertexIt + (intptr_t)circleVertexCount;
+
+  // semi-transparent circle
+  const float halfRgba[4]{ rgba[0], rgba[1], rgba[2], rgba[3]*0.55f };
+  fillCircleVertices(topIt, halfRgba, circleVertexCount, radius, centerX, centerY);
+  topIt += (intptr_t)circleVertexCount;
+  bottomIt = topIt + ((intptr_t)circleVertexCount - 1);
+  
+  // 1/4-circle calculation ]PI;0] -> generate top and bottom 1/2-clovers
+  fillControlVertex(*topIt,    rgba, centerX, centerY + (float)radius); // top/bottom vertices
+  fillControlVertex(*bottomIt, rgba, centerX, centerY - (float)radius);
+  ++topIt;
+  --bottomIt;
+
+  const double solidRadius = isNarrower ? radius - 0.35 : radius;
+  double radiusX = radius - 1.25;
+  double radiusY = solidRadius;
+  for (double i = M_PI_2 - sector; topIt <= bottomIt; i -= sector, ++topIt, --bottomIt) {
+    double coordX = cos(i)*radiusX;
+    double coordY = sin(i)*radiusY;
+    fillControlVertex(*topIt,          rgba, centerX + (float)coordX, centerY + (float)coordY);
+    fillControlVertex(*(++topIt),      rgba, centerX - (float)coordX, centerY + (float)coordY);
+    if (topIt != bottomIt) {
+      fillControlVertex(*bottomIt,     rgba, centerX - (float)coordX, centerY - (float)coordY);
+      fillControlVertex(*(--bottomIt), rgba, centerX + (float)coordX, centerY - (float)coordY);
+    }
+    auto topBottomItOffset = bottomIt - topIt;
+    if (topBottomItOffset <= (circleVertexCount >> 1) && radiusY == solidRadius) {
+      radiusX = solidRadius;
+      radiusY = radius - 1.5;
+    }
+  }
+}

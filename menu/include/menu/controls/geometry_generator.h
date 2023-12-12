@@ -227,17 +227,42 @@ namespace menu {
       /// @brief Generate filled circle (in <circleVertexCount> menu control vertices)
       /// @param outVertexIt       Must point to an array of at least <circleVertexCount> control vertices
       /// @param circleVertexCount Number of vertices around the circle
-      ///                          (note: total vertex count = circleVertexCount)
       static void fillCircleVertices(display::controls::ControlVertex* outVertexIt, const float rgba[4],
                                      uint32_t circleVertexCount, double radius, float centerX, float centerY) noexcept;
+      /// @brief Generate filled anti-aliased circle (in getCircleVertexAACount(<circleVertexCount>) menu control vertices)
+      /// @param outVertexIt       Must point to an array of at least getCircleVertexAACount(<circleVertexCount>) control vertices
+      /// @param circleVertexCount Number of vertices around the circle (total vertex count needed: twice this value)
+      static void fillCircleVerticesAA(display::controls::ControlVertex* outVertexIt, const float rgba[4],
+                                     uint32_t circleVertexCount, double radius, float centerX, float centerY, bool isNarrower) noexcept;
+      /// @brief Count vertex indices required to draw an anti-aliased circle
+      static constexpr inline uint32_t getCircleVertexAACount(uint32_t circleVertexCount) noexcept {
+        return circleVertexCount*3u;
+      }
+
       /// @brief Generate filled circle vertex indices (in <getCircleVertexIndexCount(circleVertexCount)> vertex indices)
       /// @param outIndexIt        Must point to an array of at least <getCircleVertexIndexCount(circleVertexCount)> indices
       /// @param circleVertexCount Number of vertices around the circle
       ///                          (note: total vertex count = circleVertexCount)
       static void fillCircleIndices(uint32_t* outIndexIt, uint32_t firstVertexIndex, uint32_t circleVertexCount) noexcept;
       /// @brief Count vertex indices required to draw a circle
-      static inline uint32_t getCircleVertexIndexCount(uint32_t circleVertexCount) noexcept {
+      static constexpr inline uint32_t getCircleVertexIndexCount(uint32_t circleVertexCount) noexcept {
         return (circleVertexCount-2u)*3u;
+      }
+      /// @brief Generate filled anti-aliased circle vertex indices (in <getCircleVertexIndexAACount(circleVertexCount)> vertex indices)
+      /// @param outIndexIt        Must point to an array of at least <getCircleVertexIndexAACount(circleVertexCount)> indices
+      /// @param circleVertexCount Number of vertices around the circle
+      ///                          (note: total vertex count = circleVertexCount)
+      static inline void fillCircleIndicesAA(uint32_t* outIndexIt, uint32_t firstVertexIndex, uint32_t circleVertexCount) noexcept {
+        auto circleOffset = (intptr_t)getCircleVertexIndexCount(circleVertexCount);
+        fillCircleIndices(outIndexIt, firstVertexIndex, circleVertexCount);
+        outIndexIt += circleOffset; firstVertexIndex += circleVertexCount;
+        fillCircleIndices(outIndexIt, firstVertexIndex, circleVertexCount);
+        outIndexIt += circleOffset; firstVertexIndex += circleVertexCount;
+        fillCircleIndices(outIndexIt, firstVertexIndex, circleVertexCount);
+      }
+      /// @brief Count vertex indices required to draw an anti-aliased circle
+      static constexpr inline uint32_t getCircleVertexIndexAACount(uint32_t circleVertexCount) noexcept {
+        return getCircleVertexIndexCount(circleVertexCount)*3u;
       }
     };
   }

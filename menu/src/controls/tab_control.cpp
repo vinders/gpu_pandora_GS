@@ -199,7 +199,7 @@ void TabControl::drawBackground(RendererContext& context, int32_t mouseX, int32_
   if (mouseY >= barMesh.y() && mouseY < barMesh.y() + (int32_t)barMesh.height()) { // tab hover
     int32_t hoverIndex = -1, index = 0;
     for (auto& mesh : tabMeshes) {
-      if (index != selectedIndex
+      if (index != (int32_t)selectedIndex
       && mouseX >= mesh.backgroundMesh.x() && mouseX < mesh.backgroundMesh.x() + (int32_t)mesh.backgroundMesh.width())
         hoverIndex = index;
       else

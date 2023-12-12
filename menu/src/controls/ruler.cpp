@@ -107,21 +107,21 @@ void Ruler::init(RendererContext& context, const char16_t* label, const char16_t
                            fixedRulerWidth, rulerHeight);
 
   // create thumb (circle)
-  vertices = std::vector<ControlVertex>(static_cast<size_t>((THUMB_CIRCLE_VERTICES) * 3));
+  constexpr const uint32_t circleVertexCount = GeometryGenerator::getCircleVertexAACount(THUMB_CIRCLE_VERTICES);
+  vertices = std::vector<ControlVertex>(static_cast<size_t>(circleVertexCount) * 2u);
   const double radius = (double)(thumbWidth >> 1);
 
-  GeometryGenerator::fillCircleVertices(vertices.data(), colors.colors[1], THUMB_CIRCLE_VERTICES,           // border (outline)
-                                        radius, (float)radius, -(float)radius);
+  GeometryGenerator::fillCircleVerticesAA(vertices.data(), colors.colors[1], THUMB_CIRCLE_VERTICES,          // border (outline)
+                                          radius, (float)radius, -(float)radius, false);
   const float* thumbColor = colors.colors[2];
-  GeometryGenerator::fillCircleVertices(vertices.data() + (intptr_t)THUMB_CIRCLE_VERTICES, thumbColor,// background
-                                        THUMB_CIRCLE_VERTICES, radius-1.0, (float)radius, -(float)radius);
+  GeometryGenerator::fillCircleVerticesAA(vertices.data() + (intptr_t)circleVertexCount, thumbColor,// background
+                                          THUMB_CIRCLE_VERTICES, radius-1.0, (float)radius, -(float)radius, true);
 
-  indices = std::vector<uint32_t>(static_cast<size_t>((THUMB_CIRCLE_VERTICES-2)*3 * 3));
-  GeometryGenerator::fillCircleIndices(indices.data(), 0, THUMB_CIRCLE_VERTICES);
-  GeometryGenerator::fillCircleIndices(indices.data() + (intptr_t)((THUMB_CIRCLE_VERTICES-2)*3),
-                                       THUMB_CIRCLE_VERTICES, THUMB_CIRCLE_VERTICES);
-  GeometryGenerator::fillCircleIndices(indices.data() + (intptr_t)((THUMB_CIRCLE_VERTICES-2)*3 * 2),
-                                       THUMB_CIRCLE_VERTICES*2, THUMB_CIRCLE_VERTICES);
+  constexpr const uint32_t circleIndexCount = GeometryGenerator::getCircleVertexIndexAACount(THUMB_CIRCLE_VERTICES);
+  indices = std::vector<uint32_t>(static_cast<size_t>(circleIndexCount) * 2u);
+  GeometryGenerator::fillCircleIndicesAA(indices.data(), 0, THUMB_CIRCLE_VERTICES);
+  GeometryGenerator::fillCircleIndicesAA(indices.data() + (intptr_t)circleIndexCount,
+                                         circleVertexCount, THUMB_CIRCLE_VERTICES);
 
   thumbMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                           controlMesh.x() + (int32_t)thumbOffset, y, thumbWidth, thumbWidth);
