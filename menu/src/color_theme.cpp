@@ -171,7 +171,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(220,220,220, 1.f, keyboardKeyControlColors.colors[4])
       SET_THEME_COLOR(240,240,240, 1.f, keyboardKeyControlColors.colors[5])
       SET_THEME_COLOR(210,210,210, 1.f, keyboardKeyControlColors.colors[6])
-      memcpy(tileColors.colors[(uint32_t)TileColors::themeColor], comboBoxControlColors.colors[0], sizeof(float)*4u);
+      SET_THEME_COLOR( 87,123, 45, 1.f, tileColors.colors[(uint32_t)TileColors::themeColor])
       break;
     }
     /*case ColorThemeType::scifi: {

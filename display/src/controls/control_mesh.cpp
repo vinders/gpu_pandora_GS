@@ -46,10 +46,10 @@ ControlMesh::ControlMesh(Renderer& renderer, std::vector<ControlVertex>&& vertic
   // GPU buffer storage
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
                                                   vertices.size()*sizeof(ControlVertex),
-                                                  vertices.data());
-  indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
+                                                  vertices.data(), false);
+  indexBuffer = Buffer<ResourceUsage::immutable>(renderer, BufferType::vertexIndex,
                                                  indices.size()*sizeof(uint32_t),
-                                                 indices.data());
+                                                 indices.data(), false);
 }
 
 void ControlMesh::update(Renderer& renderer, std::vector<ControlVertex>&& vertices,
@@ -87,7 +87,7 @@ void ControlMesh::move(Renderer& renderer, const float pxSizeX, const float pxSi
   // GPU buffer storage
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
                                                   vertices.size()*sizeof(ControlVertex),
-                                                  vertices.data());
+                                                  vertices.data(), false);
 }
 
 // ---

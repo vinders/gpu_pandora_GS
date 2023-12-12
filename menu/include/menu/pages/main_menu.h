@@ -16,6 +16,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <functional>
 #include <hardware/display_monitor.h>
 #include "menu/color_theme.h"
 #include "menu/config_profile.h"
@@ -35,11 +36,14 @@ namespace menu {
     public:
       MainMenu(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
                const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
-               int32_t x, int32_t y, uint32_t width, uint32_t height, uint32_t activeProfileId, std::vector<ConfigProfile>& profiles)
+               int32_t x, int32_t y, uint32_t width, uint32_t height,
+               uint32_t activeProfileId, std::vector<ConfigProfile>& profiles,
+               std::function<void(MenuOperation)> onMenuAction)
         : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false),
           profiles(&profiles),
           activeProfileId(activeProfileId),
-          theme(theme) {
+          theme(theme),
+          onMenuAction(std::move(onMenuAction)) {
         init(localizedText, x, y, width, height);
       }
       ~MainMenu() noexcept override;
@@ -58,7 +62,6 @@ namespace menu {
     private:
       void init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width, uint32_t height);
       void onButtonAction(uint32_t id);
-      void onTileAction(uint32_t id, controls::TileAction type);
 
       void adaptButtonStyle(controls::Button& button, const controls::Control* activeControl);
       void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
@@ -83,6 +86,7 @@ namespace menu {
       controls::Popup resetPopup;
 
       std::shared_ptr<ColorTheme> theme = nullptr;
+      std::function<void(MenuOperation)> onMenuAction;
     };
   }
 }

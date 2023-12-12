@@ -61,9 +61,9 @@ static void toSpecialLabelColor(float target[4], const float background[4], cons
 RendererStateBuffers::RendererStateBuffers(Renderer& renderer, const ColorTheme& theme) {
   // vertex slot 1 - scroll position
   ScrollUniform topLocation{ {0.f,0.f,0.f,0.f} };
-  fixedPosition = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation);
-  scrollPosition = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation);
-  scrollPositionStaging = Buffer<ResourceUsage::staging>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation);
+  fixedPosition = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation, false);
+  scrollPosition = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation, false);
+  scrollPositionStaging = Buffer<ResourceUsage::staging>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation, false);
   
   updateColorBuffers(renderer, theme);
 }
@@ -78,78 +78,78 @@ void RendererStateBuffers::updateScrollBuffer(float pixelSizeY, uint32_t scrollL
 void RendererStateBuffers::updateColorBuffers(Renderer& renderer, const ColorTheme& theme) {
   // vertex slot 0 - control color modifier / fragment slot 0 - icon color modifier
   MeshColorUniform colorData{ {1.f,1.f,1.f,1.f} };
-  controlBuffers[(size_t)ControlBufferType::regular] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::regular] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   colorData.color[2] = colorData.color[1] = colorData.color[0] = 1.5f;
-  controlBuffers[(size_t)ControlBufferType::selectedTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::selectedTile] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.disabledControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::disabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.activeControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::active] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.activeScrollControlModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::activeScroll] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::activeScroll] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.coloredIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::coloredIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::coloredIcon] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.disabledIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::disabledIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::disabledIcon] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.activeIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::activeIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::activeIcon] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.verticalTabIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::regularTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::regularTabIcon] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.verticalActiveTabIconModifier(), sizeof(float)*4);
-  controlBuffers[(size_t)ControlBufferType::activeTabIcon] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  controlBuffers[(size_t)ControlBufferType::activeTabIcon] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   
   // fragment slot 0 - text background color
   memcpy(colorData.color, theme.regularLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::regular] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::regular] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.disabledLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::disabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::disabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.activeLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::active] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::active] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.tileLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::tile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::tile] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.activeTileLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::activeTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::activeTile] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.selectedTileLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::selectedTile] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::selectedTile] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   
   memcpy(colorData.color, theme.titleLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::title] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::title] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.fieldsetLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::fieldset] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::fieldset] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.tabLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::tab] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::tab] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.tabActiveLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::tabActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::tabActive] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.verticalTabLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::verticalTab] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::verticalTab] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.verticalTabActiveLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::verticalTabActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::verticalTabActive] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::button] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::button] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   toSpecialLabelColor(colorData.color, theme.labelReferenceColor(), theme.regularLabelColor(), theme.disabledLabelColor());
-  labelBuffers[(size_t)LabelBufferType::buttonDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::buttonDisabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.buttonLabelColor(), sizeof(float)*4);
   toSpecialLabelColor(colorData.color, theme.labelReferenceColor(), theme.regularLabelColor(), theme.activeLabelColor());
-  labelBuffers[(size_t)LabelBufferType::buttonActive] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::buttonActive] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
 
   memcpy(colorData.color, theme.textBoxLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::textInput] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::textInput] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   toSpecialLabelColor(colorData.color, theme.textBoxControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
-  labelBuffers[(size_t)LabelBufferType::textInputDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::textInputDisabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   
   memcpy(colorData.color, theme.comboBoxLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::comboBoxValue] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::comboBoxValue] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   toSpecialLabelColor(colorData.color, theme.comboBoxControlColor(), theme.regularLabelColor(), theme.disabledLabelColor());
-  labelBuffers[(size_t)LabelBufferType::comboBoxValueDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::comboBoxValueDisabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   memcpy(colorData.color, theme.comboBoxDropdownLabelColor(), sizeof(float)*4);
-  labelBuffers[(size_t)LabelBufferType::dropdownValue] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::dropdownValue] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
 
   colorData.color[2] = colorData.color[1] = colorData.color[0] = 0.1f;
   colorData.color[3] = 1.f;
-  labelBuffers[(size_t)LabelBufferType::keyboardKey] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::keyboardKey] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
   colorData.color[3] = theme.disabledControlModifier()[3];
-  labelBuffers[(size_t)LabelBufferType::keyboardKeyDisabled] = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(colorData), &colorData);
+  labelBuffers[(size_t)LabelBufferType::keyboardKeyDisabled] = Buffer<ResourceUsage::immutable>(renderer, BufferType::uniform, sizeof(colorData), &colorData, false);
 }
 
 void RendererStateBuffers::release() noexcept {

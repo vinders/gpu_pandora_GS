@@ -44,9 +44,9 @@ void OsdSettings::init(const ColorTheme& theme, const MessageResources& localize
                     visibilityOptions, sizeof(visibilityOptions)/sizeof(*visibilityOptions), 1, clockVisibility);
   builder.setEnabler(isClockEnabled);
 
-  ComboBoxOption formatOptions[]{ ComboBoxOption(u"HH:MM (00-24)", 0/*TMP*/),
-                                  ComboBoxOption(u"H:MM (0-24)", 1/*TMP*/),
-                                  ComboBoxOption(u"H:MM (0-12 AM/PM)", 2/*TMP*/) };
+  ComboBoxOption formatOptions[]{ ComboBoxOption(u"HH:MM (00-23)", 0/*TMP*/),
+                                  ComboBoxOption(u"H:MM (0-23)", 1/*TMP*/),
+                                  ComboBoxOption(u"H:MM (0-11 AM/PM)", 2/*TMP*/) };
   builder.addSlider(0, localizedText.getMessage(OsdSettingsMessages::clockFormat), nullptr, Control::pageControlWidth(),
                     formatOptions, sizeof(formatOptions)/sizeof(*formatOptions), 1, clockFormat);
 

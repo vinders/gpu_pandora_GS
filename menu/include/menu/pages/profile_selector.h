@@ -17,6 +17,7 @@ GNU General Public License for more details (LICENSE file).
 #include <cstring>
 #include <memory>
 #include <vector>
+#include <functional>
 #include "menu/color_theme.h"
 #include "menu/config_profile.h"
 #include "menu/message_resources.h"
@@ -34,14 +35,18 @@ namespace menu {
       ProfileSelector(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
                       const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
                       int32_t x, int32_t y, uint32_t width, uint32_t height,
-                      uint32_t activeProfileId, std::vector<ConfigProfile>& profiles)
+                      uint32_t activeProfileId, std::vector<ConfigProfile>& profiles,
+                      std::function<void(uint32_t profileId, bool isEditing)> onSelection)
         : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false, buttonBarHeight()),
-        theme(theme),
-        profiles(&profiles),
-        activeProfileId(activeProfileId) {
+          theme(theme),
+          profiles(&profiles),
+          activeProfileId(activeProfileId),
+          onSelection(std::move(onSelection)) {
         init(localizedText, x, y, width, height);
       }
       ~ProfileSelector() noexcept override;
+
+      inline uint32_t activeProfile() const noexcept { return activeProfileId; } ///< Get selected profile ID
 
       // -- window event --
 
@@ -57,13 +62,13 @@ namespace menu {
     private:
       void init(const MessageResources& localizedText, int32_t x, int32_t y, uint32_t width, uint32_t height);
       void onButtonAction(uint32_t id);
-      void onTileAction(uint32_t id, controls::TileAction type);
-      void onProfileRemoved(uint32_t popupAction);
+      void onTileAction(uint32_t profileId, controls::TileAction type);
+      void onProfileRemoved(uint32_t profileId);
       void drawPageBackgrounds(int32_t mouseX, int32_t mouseY) override;
       void drawPageLabels() override;
       static constexpr inline uint32_t buttonBarHeight() noexcept { return 33; }
 
-      uint32_t getProfileIndex(uint32_t id) const noexcept;
+      uint32_t getProfileIndex(uint32_t profileId) const noexcept;
       static constexpr inline uint32_t notFound() noexcept { return 0xFFFFFFFFu; }
 
     private:
@@ -87,6 +92,7 @@ namespace menu {
       controls::Label deleteProfileControllerInfo;
 
       controls::Popup confirmationPopup;
+      std::function<void(uint32_t profileId, bool isEditing)> onSelection;
     };
   }
 }

@@ -67,9 +67,9 @@ TextMesh::TextMesh(Renderer& renderer, Font& font, const char16_t* text,
   
   if (!vertices.empty()) {
     vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                    vertices.size()*sizeof(TextVertex), vertices.data());
+                                                    vertices.size()*sizeof(TextVertex), vertices.data(), false);
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                   indices.size()*sizeof(uint32_t), indices.data());
+                                                   indices.size()*sizeof(uint32_t), indices.data(), false);
   }
 }
 
@@ -102,7 +102,7 @@ void TextMesh::move(Renderer& renderer, const float pxSizeX, const float pxSizeY
     currentX += (int32_t)(curGlyph->advance >> 6);
   }
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  vertices.size()*sizeof(TextVertex), vertices.data());
+                                                  vertices.size()*sizeof(TextVertex), vertices.data(), false);
 }
 
 void TextMesh::cloneAtLocation(video_api::Renderer& renderer, const float pxSizeX, const float pxSizeY,
@@ -114,7 +114,7 @@ void TextMesh::cloneAtLocation(video_api::Renderer& renderer, const float pxSize
   outClone.height_ = this->height_;
   outClone.indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
                                                           outClone.indices.size()*sizeof(uint32_t),
-                                                          outClone.indices.data());
+                                                          outClone.indices.data(), false);
   outClone.move(renderer, pxSizeX, pxSizeY, x, y);
 }
 
@@ -151,9 +151,9 @@ bool TextMesh::push(video_api::Renderer& renderer, Font& font, const float pxSiz
     indices.emplace_back(vertexCount + 3);
 
     vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                    vertices.size()*sizeof(TextVertex), vertices.data());
+                                                    vertices.size()*sizeof(TextVertex), vertices.data(), false);
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                   indices.size()*sizeof(uint32_t), indices.data());
+                                                   indices.size()*sizeof(uint32_t), indices.data(), false);
   }
   width_ += static_cast<uint32_t>((int32_t)glyph.width + glyph.offsetLeft);
   glyphs.emplace_back(&glyph);
@@ -206,10 +206,10 @@ bool TextMesh::insertBefore(video_api::Renderer& renderer, Font& font, const flo
     indices.emplace_back(vertexCount + 3);
 
     indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                   indices.size()*sizeof(uint32_t), indices.data());
+                                                   indices.size()*sizeof(uint32_t), indices.data(), false);
   }
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  vertices.size()*sizeof(TextVertex), vertices.data());
+                                                  vertices.size()*sizeof(TextVertex), vertices.data(), false);
   glyphs.insert(glyphAfter, &glyph);
   return true;
 }
@@ -236,9 +236,9 @@ void TextMesh::pop(video_api::Renderer& renderer) {
 
     if (!vertices.empty()) {
       vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                      vertices.size()*sizeof(TextVertex), vertices.data());
+                                                      vertices.size()*sizeof(TextVertex), vertices.data(), false);
       indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                     indices.size()*sizeof(uint32_t), indices.data());
+                                                     indices.size()*sizeof(uint32_t), indices.data(), false);
     }
     else {
       vertexBuffer.release();
@@ -275,11 +275,11 @@ void TextMesh::removeAt(video_api::Renderer& renderer, const float pxSizeX, uint
 
     if (!indices.empty())
       indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                     indices.size()*sizeof(uint32_t), indices.data());
+                                                     indices.size()*sizeof(uint32_t), indices.data(), false);
   }
   if (!vertices.empty()) {
     vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                    vertices.size()*sizeof(TextVertex), vertices.data());
+                                                    vertices.size()*sizeof(TextVertex), vertices.data(), false);
   }
   else {
     vertexBuffer.release();

@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details (LICENSE file).
 *******************************************************************************/
 #include <cassert>
+#include <unordered_set>
 #include "menu/pages/profile_selector.h"
 
 using namespace video_api;
@@ -251,10 +252,10 @@ void ProfileSelector::move(int32_t x, int32_t y, uint32_t width, uint32_t height
 
 // ---
 
-uint32_t ProfileSelector::getProfileIndex(uint32_t id) const noexcept {
+uint32_t ProfileSelector::getProfileIndex(uint32_t profileId) const noexcept {
   uint32_t index = 0;
   for (const auto& profile : profileTiles) {
-    if (profile.id() == id)
+    if (profile.id() == profileId)
       break;
     ++index;
   }
@@ -263,8 +264,22 @@ uint32_t ProfileSelector::getProfileIndex(uint32_t id) const noexcept {
 
 void ProfileSelector::onButtonAction(uint32_t id) {
   switch (id) {
-    case CREATE_PROFILE_ID: break;
-    case EDIT_PROFILE_ID: break;
+    case CREATE_PROFILE_ID: {
+      uint32_t nextId = 0;
+      std::unordered_set<uint32_t> existingIds;
+      for (const auto& profile : *profiles)
+        existingIds.emplace(profile.id);
+      while (existingIds.find(nextId) != existingIds.end()) // find first unused ID
+        ++nextId;
+
+      profiles->emplace_back(nextId, nullptr, TileColors::themeColor);
+      onSelection(nextId, true);
+      break;
+    }
+    case EDIT_PROFILE_ID: {
+      onSelection(this->activeProfileId, true);
+      break;
+    }
     case DELETE_PROFILE_ID: {
       if (profileTiles.size() > (size_t)1u) {
         setActivePopup(confirmationPopup, [this](uint32_t action) {
@@ -278,18 +293,20 @@ void ProfileSelector::onButtonAction(uint32_t id) {
   }
 }
 
-void ProfileSelector::onTileAction(uint32_t id, TileAction type) {
+void ProfileSelector::onTileAction(uint32_t profileId, TileAction type) {
   switch (type) {
     case TileAction::select:
-      activeProfileId = id;
+      activeProfileId = profileId;
+      onSelection(profileId, false);
       break;
     case TileAction::edit:
+      onSelection(profileId, true);
       break;
     case TileAction::remove: {
       if (profileTiles.size() > (size_t)1u) {
-        setActivePopup(confirmationPopup, [this, id](uint32_t action) {
+        setActivePopup(confirmationPopup, [this, profileId](uint32_t action) {
           if (action == 0)
-            this->onProfileRemoved(id);
+            this->onProfileRemoved(profileId);
         });
       }
       break;
@@ -298,15 +315,15 @@ void ProfileSelector::onTileAction(uint32_t id, TileAction type) {
   }
 }
 
-void ProfileSelector::onProfileRemoved(uint32_t id) {
-  auto index = getProfileIndex(id);
+void ProfileSelector::onProfileRemoved(uint32_t profileId) {
+  auto index = getProfileIndex(profileId);
   if (index == notFound())
     return;
 
   registerControls(std::vector<ControlRegistration>{}); // unregister before removal
   profiles->erase(profiles->begin() + (intptr_t)index);
   profileTiles.erase(profileTiles.begin() + (intptr_t)index);
-  if (activeProfileId == id)
+  if (activeProfileId == profileId)
     activeProfileId = profileTiles[(index != 0u) ? (index - 1u) : 0u].id();
 
   isDeleteEnabled = (profileTiles.size() > (size_t)1u);

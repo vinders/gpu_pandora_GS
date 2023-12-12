@@ -30,7 +30,7 @@ using namespace menu;
 
 #define GAMMA_PREVIEW_WIDTH  Control::pageControlWidth()
 #define GAMMA_PREVIEW_HEIGHT (Control::pageLineHeight() + (Control::pageLineHeight() >> 2))
-#define GAMMA_SAMPLE_COLOR_COMP 12.5/255.0
+#define GAMMA_SAMPLE_COLOR_COMP 13.75/255.0
 
 void AdvancedEffects::generateGammaPreview(const float* fieldsetControlRgba, int32_t x, int32_t y, double gamma) {
   std::vector<ControlVertex> vertices(static_cast<size_t>(20u));

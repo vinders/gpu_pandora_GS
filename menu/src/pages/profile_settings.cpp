@@ -27,41 +27,6 @@ using namespace menu::pages;
 using namespace menu;
 
 
-// -- helpers -- ---------------------------------------------------------------
-
-#define DEFAULT_NAME_BUFFER_SIZE 20
-
-static void setDefaultProfileName(uint32_t profileId, char16_t buffer[DEFAULT_NAME_BUFFER_SIZE]) {
-  const char16_t defaultPrefix[] = u"Profile #";
-  memcpy(buffer, defaultPrefix, sizeof(defaultPrefix));
-
-  // append profile ID
-  char16_t* it = buffer + (static_cast<intptr_t>(sizeof(defaultPrefix)/sizeof(char16_t)) - 1u);
-  if (profileId >= 10u) {
-    it += (profileId < 10000u)
-        ? ((profileId < 100u) ? 1 : ((profileId < 1000u) ? 3 : 4) )
-        : ((profileId < 1000000u)
-           ? ((profileId < 100000u) ? 5 : 6)
-           : ((profileId < 100000000u)
-              ? ((profileId < 10000000u) ? 7 : 8)
-              : ((profileId < 1000000000u) ? 9 : 10)));
-    *it = u'\0';
-    --it;
-    while (profileId) {
-      *it = u'0' + static_cast<char16_t>(profileId % 10u);
-      profileId /= 10u;
-      --it;
-    }
-  }
-  else {
-    *it = u'0' + static_cast<char16_t>(profileId);
-    *(++it) = u'\0';
-  }
-}
-
-
-// -- page -- ------------------------------------------------------------------
-
 #define PROFILE_NAME_ID  1
 #define TILE_COLOR_ID    2
 #define APPLY_PRESET_ID  3

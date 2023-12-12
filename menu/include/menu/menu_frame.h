@@ -42,13 +42,6 @@ namespace menu {
     general,
     profile
   };
-  enum class CloseOperation : uint32_t { ///< Type of operation to perform when closing menu
-    resume = 0,
-    loadState,
-    saveState,
-    resetGame,
-    exitGame
-  };
 
   // ---
   
@@ -57,7 +50,7 @@ namespace menu {
   public:
     MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context,
               pandora::video::Window& window, std::vector<ConfigProfile>&& profiles, uint32_t activeProfileId,
-              std::function<void(CloseOperation)> onClose, bool isControllerUsed);
+              std::function<void(pages::MenuOperation)> onClose, bool isControllerUsed);
     MenuFrame() = default;
     MenuFrame(const MenuFrame&) = delete;
     MenuFrame(MenuFrame&&) = delete;
@@ -88,6 +81,7 @@ namespace menu {
     void resizeGraphicsPipelines();
     void createBackground();
     void moveBackground();
+    void onProfileSelection(uint32_t profileId, bool isEditing);
     
     void createSectionTabs(uint32_t activeTabIndex);
     void moveSectionTabs();
@@ -126,9 +120,10 @@ namespace menu {
     MenuMode sectionMode = MenuMode::configDialog;
     
     uint32_t activeProfileId = 0;
+    uint32_t editedProfileId = 0;
     std::vector<ConfigProfile> profiles;
     std::vector<menu::ConfigProfile> presets;
     pandora::hardware::DisplayMonitor::Handle displayMonitor;
-    std::function<void(CloseOperation)> onClose;
+    std::function<void(pages::MenuOperation)> onClose;
   };
 }

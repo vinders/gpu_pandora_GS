@@ -92,12 +92,6 @@ static inline void fillSaveSlotOptions(ComboBoxOption* saveSlots, uint32_t saveS
 
 // -- page -- ------------------------------------------------------------------
 
-#define RESUME_ID     1
-#define LOAD_STATE_ID 2
-#define SAVE_STATE_ID 3
-#define RESET_GAME_ID 4
-#define EXIT_GAME_ID  5
-
 #define HOVER_BORDER_RADIUS 3.f
 static constexpr const uint32_t saveSlotCount = 6;
 static constexpr const uint32_t recentTileCount = 5;
@@ -117,19 +111,24 @@ void MainMenu::init(const MessageResources& localizedText, int32_t x, int32_t y,
   ButtonStyleProperties buttonStyle(ButtonStyle::fromTopLeft, FontType::labels, ControlIconType::none, theme->buttonControlColor(),
                                     theme->buttonBorderColor(), theme->buttonBorderSize(), buttonWidth, buttonPaddingX, buttonPaddingY);
   int32_t currentLineY = y + grid.offsetY + (int32_t)buttonPaddingY;
-  resume = Button(*context, localizedText.getMessage(MainMenuMessages::resume), grid.controlX, currentLineY, buttonStyle, RESUME_ID, buttonActionHandler);
+  resume = Button(*context, localizedText.getMessage(MainMenuMessages::resume), grid.controlX, currentLineY, buttonStyle,
+                  (uint32_t)MenuOperation::resume, buttonActionHandler);
   registry.emplace_back(resume, true, nullptr, 0, activeButtonWidth - buttonWidth);
   currentLineY += grid.buttonHeight + buttonSpacingY;
-  loadState = Button(*context, localizedText.getMessage(MainMenuMessages::loadState), grid.controlX, currentLineY, buttonStyle, LOAD_STATE_ID, buttonActionHandler);
+  loadState = Button(*context, localizedText.getMessage(MainMenuMessages::loadState), grid.controlX, currentLineY, buttonStyle,
+                     (uint32_t)MenuOperation::loadState, buttonActionHandler);
   registry.emplace_back(loadState, true, nullptr, 0, activeButtonWidth - buttonWidth);
   currentLineY += grid.buttonHeight + buttonSpacingY;
-  saveState = Button(*context, localizedText.getMessage(MainMenuMessages::saveState), grid.controlX, currentLineY, buttonStyle, SAVE_STATE_ID, buttonActionHandler);
+  saveState = Button(*context, localizedText.getMessage(MainMenuMessages::saveState), grid.controlX, currentLineY, buttonStyle,
+                     (uint32_t)MenuOperation::saveState, buttonActionHandler);
   registry.emplace_back(saveState, true, nullptr, 0, activeButtonWidth - buttonWidth);
   currentLineY += grid.buttonHeight + buttonSpacingY;
-  resetGame = Button(*context, localizedText.getMessage(MainMenuMessages::resetGame), grid.controlX, currentLineY, buttonStyle, RESET_GAME_ID, buttonActionHandler);
+  resetGame = Button(*context, localizedText.getMessage(MainMenuMessages::resetGame), grid.controlX, currentLineY, buttonStyle,
+                     (uint32_t)MenuOperation::resetGame, buttonActionHandler);
   registry.emplace_back(resetGame, true, nullptr, 0, activeButtonWidth - buttonWidth);
   currentLineY += grid.buttonHeight + buttonSpacingY;
-  exitGame = Button(*context, localizedText.getMessage(MainMenuMessages::exitGame), grid.controlX, currentLineY, buttonStyle, EXIT_GAME_ID, buttonActionHandler);
+  exitGame = Button(*context, localizedText.getMessage(MainMenuMessages::exitGame), grid.controlX, currentLineY, buttonStyle,
+                    (uint32_t)MenuOperation::exitGame, buttonActionHandler);
   registry.emplace_back(exitGame, true, nullptr, 0, activeButtonWidth - buttonWidth);
   currentLineY += grid.buttonHeight + Control::pageLineHeight();
 
@@ -248,27 +247,14 @@ void MainMenu::move(int32_t x, int32_t y, uint32_t width, uint32_t height) {
 // ---
 
 void MainMenu::onButtonAction(uint32_t id) {
-  switch (id) {
-    case RESUME_ID: break;
-    case LOAD_STATE_ID: break;
-    case SAVE_STATE_ID: break;
-    case RESET_GAME_ID:
-      setActivePopup(resetPopup, [this](uint32_t action) {
-        if (action == 0)
-          ;//...
-      });
-      break;
-    case EXIT_GAME_ID: break;
+  if ((MenuOperation)id == MenuOperation::resetGame) {
+    setActivePopup(resetPopup, [this](uint32_t action) {
+      if (action == 0)
+        onMenuAction(MenuOperation::resetGame);
+    });
   }
-
-
-    
-}
-
-void MainMenu::onTileAction(uint32_t id, TileAction type) {
-  if (type == TileAction::select) {
-    //...
-  }
+  else
+    onMenuAction((MenuOperation)id);
 }
 
 

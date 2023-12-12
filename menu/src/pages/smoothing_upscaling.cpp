@@ -459,13 +459,24 @@ void SmoothingUpscaling::onValueChange(uint32_t id, uint32_t value) {
       break;
     }
     case SCREEN_UPSCALING_FACTOR_ID: {
+      bool isInternalResChanged = false;
       uint32_t upscalingFactor = (screenUpscalingFactor.getSelectedIndex() >= 0) ? *screenUpscalingFactor.getSelectedValue() : 1;
-      if (upscalingFactor > MAX_TEXTURE_SIZE / (internalResolutionX.valueInteger() * MAX_FRAMEBUFFER_SIZE_X))
+      if (upscalingFactor > MAX_TEXTURE_SIZE / (internalResolutionX.valueInteger() * MAX_FRAMEBUFFER_SIZE_X)) {
         internalResolutionX.replaceValueInteger(*context, MAX_TEXTURE_SIZE / (upscalingFactor * MAX_FRAMEBUFFER_SIZE_X));
-      if (upscalingFactor > MAX_TEXTURE_SIZE / (internalResolutionY.valueInteger() * MAX_FRAMEBUFFER_SIZE_Y))
+        isInternalResChanged = true;
+      }
+      if (upscalingFactor > MAX_TEXTURE_SIZE / (internalResolutionY.valueInteger() * MAX_FRAMEBUFFER_SIZE_Y)) {
         internalResolutionY.replaceValueInteger(*context, MAX_TEXTURE_SIZE / (upscalingFactor * MAX_FRAMEBUFFER_SIZE_Y));
+        isInternalResChanged = true;
+      }
 
       char16_t resolutionValue[INT_RES_VALUE_BUFFER_SIZE];
+      if (isInternalResChanged) {
+        fillFramebufferResolutionInfo(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(), *localizedText, resolutionValue);
+        framebufferResolutionInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText),
+                                             resolutionValue, context->pixelSizeX(), context->pixelSizeY(),
+                                             framebufferResolutionInfo.x(), framebufferResolutionInfo.y());
+      }
       fillDisplaySizeValue(internalResolutionX.valueInteger(), internalResolutionY.valueInteger(),
                            value, *localizedText, resolutionValue);
       displaySizeInfo = TextMesh(context->renderer(), context->getFont(FontType::inputText), resolutionValue, context->pixelSizeX(), context->pixelSizeY(),

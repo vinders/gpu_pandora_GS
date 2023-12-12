@@ -71,7 +71,7 @@ void MessageResources::fillMessagesEN() {
   mainMenu[(size_t)MainMenuMessages::resetPopupTitle] = u"Reset game";
   mainMenu[(size_t)MainMenuMessages::resetPopupMessage] = u"This operation will completely restart the game";
   
-  generalSettings[(size_t)GeneralSettingsMessages::title] = u"General settings";
+  generalSettings[(size_t)GeneralSettingsMessages::title] = u"General options";
   generalSettings[(size_t)GeneralSettingsMessages::windowGroup] = u"Window settings"; // ---
   generalSettings[(size_t)GeneralSettingsMessages::displayMode] = u"Display mode";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_fullscreen] = u"Fullscreen";
@@ -178,7 +178,7 @@ void MessageResources::fillMessagesEN() {
   profileSelector[(size_t)ProfileSelectorMessages::removePopupTitle] = u"Delete profile";
   profileSelector[(size_t)ProfileSelectorMessages::removePopupMessage] = u"Please confirm the removal of this profile";
   
-  profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile settings";
+  profileSettings[(size_t)ProfileSettingsMessages::title] = u"Profile options";
   profileSettings[(size_t)ProfileSettingsMessages::profileIdGroup] = u"Profile identification";
   profileSettings[(size_t)ProfileSettingsMessages::profileName] = u"Profile name";
   profileSettings[(size_t)ProfileSettingsMessages::profileName_tooltip] = u"Choose a name to identify this profile (and sort it in the profile selector)";

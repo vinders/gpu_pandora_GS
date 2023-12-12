@@ -54,8 +54,8 @@ static const char16_t* GetVirtualKeyboardKeyName(uint32_t virtualKeyCode) noexce
     case _P_VK_END:       return u"END";
     case _P_VK_HOME:      return u"HOME";
     case _P_VK_INSERT:    return u"INS";
-    case _P_VK_PG_DOWN:   return u"PAGE DOWN";
-    case _P_VK_PG_UP:     return u"PAGE UP";
+    case _P_VK_PG_DOWN:   return u"PG DOWN";
+    case _P_VK_PG_UP:     return u"PG UP";
     case _P_VK_ARROW_DOWN:  return u"DOWN";
     case _P_VK_ARROW_LEFT:  return u"LEFT";
     case _P_VK_ARROW_RIGHT: return u"RIGHT";

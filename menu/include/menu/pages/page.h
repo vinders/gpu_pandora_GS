@@ -30,7 +30,7 @@ GNU General Public License for more details (LICENSE file).
 namespace menu {
   namespace controls { class KeyBinding; class Popup; }
   namespace pages {
-    enum class PageId : uint32_t {
+    enum class PageId : uint32_t { ///< Menu page identifier
       none = 0,
       mainMenu,
       profileSelector,
@@ -43,6 +43,13 @@ namespace menu {
       profileScreenStretching,
       profileSmoothingUpscaling,
       profileAdvancedEffects
+    };
+    enum class MenuOperation : uint32_t { ///< Type of operation to perform when closing menu
+      resume = 0,
+      loadState,
+      saveState,
+      resetGame,
+      exitGame
     };
     
     // ---

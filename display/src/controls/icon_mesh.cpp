@@ -33,11 +33,11 @@ void IconMesh::initFullImage(Renderer& renderer, const float pxSizeX, const floa
   };
   memcpy(this->vertices, iconVertices, 4*sizeof(IconVertex));
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  4*sizeof(IconVertex), iconVertices);
+                                                  4*sizeof(IconVertex), iconVertices, false);
   
   uint32_t indices[6] { 0,1,2, 2,1,3 };
-  indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                 6*sizeof(uint32_t), indices);
+  indexBuffer = Buffer<ResourceUsage::immutable>(renderer, BufferType::vertexIndex,
+                                                 6*sizeof(uint32_t), indices, false);
 }
 
 IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
@@ -69,11 +69,11 @@ IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
   };
   memcpy(this->vertices, iconVertices, 4*sizeof(IconVertex));
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  4*sizeof(IconVertex), iconVertices);
+                                                  4*sizeof(IconVertex), iconVertices, false);
   
   uint32_t indices[6] { 0,1,2, 2,1,3 };
-  indexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertexIndex,
-                                                 6*sizeof(uint32_t), indices);
+  indexBuffer = Buffer<ResourceUsage::immutable>(renderer, BufferType::vertexIndex,
+                                                 6*sizeof(uint32_t), indices, false);
 }
 
 // ---
@@ -94,14 +94,14 @@ void IconMesh::regenerate(Renderer& renderer, const float pxSizeX, const float p
   (++vertexIt)->position[0] = right; vertexIt->position[1] = bottom;
   
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  4*sizeof(IconVertex), vertices);
+                                                  4*sizeof(IconVertex), vertices, false);
 }
 
 void IconMesh::invertX(video_api::Renderer& renderer) {
   for (auto& vertex : vertices)
     vertex.coords[0] = -vertex.coords[0];
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
-                                                  4*sizeof(IconVertex), vertices);
+                                                  4*sizeof(IconVertex), vertices, false);
 }
 
 // ---

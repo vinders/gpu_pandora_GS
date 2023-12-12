@@ -123,10 +123,10 @@ namespace menu {
     video_api::Buffer<video_api::ResourceUsage::staging> scrollPositionStaging;
     
     // vertex slot 0 - control color modifier / fragment slot 0 - icon color modifier
-    std::array<video_api::Buffer<video_api::ResourceUsage::staticGpu>,
+    std::array<video_api::Buffer<video_api::ResourceUsage::immutable>,
                                  (size_t)ControlBufferType::COUNT> controlBuffers;
     //fragment slot 0 - text background color
-    std::array<video_api::Buffer<video_api::ResourceUsage::staticGpu>,
+    std::array<video_api::Buffer<video_api::ResourceUsage::immutable>,
                                  (size_t)LabelBufferType::COUNT> labelBuffers;
   };
 }

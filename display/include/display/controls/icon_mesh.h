@@ -121,7 +121,7 @@ namespace display {
     
     private:
       video_api::Buffer<video_api::ResourceUsage::staticGpu> vertexBuffer;
-      video_api::Buffer<video_api::ResourceUsage::staticGpu> indexBuffer;
+      video_api::Buffer<video_api::ResourceUsage::immutable> indexBuffer;
       std::shared_ptr<video_api::Texture2D> texture = nullptr;
       IconVertex vertices[4]{};
       int32_t x_ = 0;

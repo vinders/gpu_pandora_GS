@@ -40,12 +40,13 @@ static constexpr const uint32_t logoAreaHeight = 48;
 
 MenuFrame::MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context_,
                      Window& window, std::vector<ConfigProfile>&& profiles, uint32_t activeProfileId,
-                     std::function<void(CloseOperation)> onClose, bool isControllerUsed)
+                     std::function<void(MenuOperation)> onClose, bool isControllerUsed)
   : context(std::move(context_)),
     theme(std::make_shared<menu::ColorTheme>(menu::ColorThemeType::blue)),
     localization(std::make_shared<menu::MessageResources>(menu::LocalizationType::en)),
     sectionMode(mode),
     activeProfileId(activeProfileId),
+    editedProfileId(activeProfileId),
     profiles(std::move(profiles)),
     displayMonitor(window.displayMonitor().handle()),
     onClose(std::move(onClose)) {
@@ -212,6 +213,20 @@ bool MenuFrame::onMouseEvent(Window*, MouseEvent event, int32_t x, int32_t y, in
   isInvalidated = true; // all mouse events trigger a re-draw
   return false;
 }
+
+void MenuFrame::onProfileSelection(uint32_t profileId, bool isEditing) {
+  if (isEditing) {
+    sectionTabs.selectIndex(*context, 2u);
+    editedProfileId = profileId;
+    pageToLoad = PageId::profileSettings;
+  }
+  else {
+    activeProfileId = editedProfileId = profileId;
+    onClose(MenuOperation::resume);
+  }
+}
+
+// ---
 
 void MenuFrame::draw() {
   if (isInvalidated) {
@@ -414,8 +429,8 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
     sectionTabOptions[2] = VerticalTabOption(localization->getMessage(CommonMessages::profileSettings), ControlIconType::tabProfile);
     sectionChangeHandler = [this](uint32_t tabIndex) {
       switch (tabIndex) {
-        case 0: this->pageToLoad = PageId::generalSettings; break;
-        case 1: this->pageToLoad = PageId::profileSelector; break;
+        case 0: this->pageToLoad = PageId::generalSettings; editedProfileId = activeProfileId; break;
+        case 1: this->pageToLoad = PageId::profileSelector; editedProfileId = activeProfileId; break;
         case 2: this->pageToLoad = PageId::profileSettings; break;
         default: break;
       }
@@ -429,10 +444,10 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
     sectionTabOptions[3] = VerticalTabOption(localization->getMessage(CommonMessages::globalSettings), ControlIconType::tabSettings);
     sectionChangeHandler = [this](uint32_t tabIndex) {
       switch (tabIndex) {
-        case 0: this->pageToLoad = PageId::mainMenu; break;
-        case 1: this->pageToLoad = PageId::profileSelector; break;
+        case 0: this->pageToLoad = PageId::mainMenu; editedProfileId = activeProfileId; break;
+        case 1: this->pageToLoad = PageId::profileSelector; editedProfileId = activeProfileId; break;
         case 2: this->pageToLoad = PageId::profileSettings; break;
-        case 3: this->pageToLoad = PageId::generalSettings; break;
+        case 3: this->pageToLoad = PageId::generalSettings; editedProfileId = activeProfileId; break;
         default: break;
       }
     };
@@ -606,14 +621,15 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
       createPageTabs(TabMode::none, 0);
       activePage = std::make_unique<MainMenu>(context, buffers, theme, *localization,
                                               pageX, 0, pageWidth, context->clientHeight(),
-                                              activeProfileId, profiles);
+                                              activeProfileId, profiles, onClose);
       break;
     }
     case PageId::profileSelector: {
       createPageTabs(TabMode::none, 0);
       activePage = std::make_unique<ProfileSelector>(context, buffers, theme, *localization,
                                                      pageX, 0, pageWidth, context->clientHeight(),
-                                                     activeProfileId, profiles);
+                                                     activeProfileId, profiles,
+                                                     std::bind(&MenuFrame::onProfileSelection,this,std::placeholders::_1,std::placeholders::_2));
       break;
     }
     // general pages
@@ -651,7 +667,7 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
       activePage = std::make_unique<ProfileSettings>(context, buffers, theme, *localization,
                                                      pageX, (int32_t)pageTabs.height(), pageWidth,
                                                      context->clientHeight() - pageTabs.height(),
-                                                     activeProfileId, profiles, presets);
+                                                     editedProfileId, profiles, presets);
       break;
     }
     case PageId::profileScreenStretching: {

@@ -73,7 +73,7 @@ namespace display {
       
     private:
       video_api::Buffer<video_api::ResourceUsage::staticGpu> vertexBuffer;
-      video_api::Buffer<video_api::ResourceUsage::staticGpu> indexBuffer;
+      video_api::Buffer<video_api::ResourceUsage::immutable> indexBuffer;
       std::vector<ControlVertex> verticesRelPos;
       uint32_t indexCount = 0;
       int32_t x_ = 0;
