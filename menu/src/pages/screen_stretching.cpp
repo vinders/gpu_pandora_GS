@@ -378,7 +378,7 @@ void ScreenStretching::drawIcons() {
   centerY.drawIcon(*context, *buffers, (hoverControl == &centerY));
 
   buffers->bindScrollLocationBuffer(context->renderer(), ScissorRectangle(ratioPreviewScreen.x()+1, ratioPreviewScreen.y()+1 - scrollLevel(),
-                                                                          ratioPreviewScreen.width()-2, ratioPreviewScreen.height()-2 - scrollLevel()));
+                                                                          ratioPreviewScreen.width()-2, ratioPreviewScreen.height()-2));
   buffers->bindIconBuffer(context->renderer(), ControlBufferType::regular);
   ratioPreviewImage.draw(context->renderer());
 }
