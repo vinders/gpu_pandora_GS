@@ -158,7 +158,7 @@ void ColorTheme::updateTheme(ColorThemeType type) noexcept {
       SET_THEME_COLOR(195,228,149, 1.f, comboBoxControlColors.colors[2])
       SET_THEME_COLOR( 41, 72,  8, 1.f, comboBoxLabel)
       SET_THEME_COLOR( 50, 74, 19, 1.f, comboBoxDropdownLabel)
-      SET_THEME_COLOR( 44, 92, 40, 1.f, rulerControlColors.colors[0])
+      SET_THEME_COLOR( 54,107, 48, 1.f, rulerControlColors.colors[0]) // 44, 92, 40
       SET_THEME_COLOR( 57, 88, 49, 1.f, rulerControlColors.colors[1])
       SET_THEME_COLOR(200,200,200, 1.f, rulerControlColors.colors[2])
       SET_THEME_COLOR(119,166, 12, 1.f, rulerControlColors.colors[3])
