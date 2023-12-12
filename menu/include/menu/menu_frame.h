@@ -123,7 +123,7 @@ namespace menu {
     uint32_t editedProfileId = 0;
     std::vector<ConfigProfile> profiles;
     std::vector<menu::ConfigProfile> presets;
-    pandora::hardware::DisplayMonitor::Handle displayMonitor;
+    pandora::hardware::DisplayMonitor::Handle windowMonitor;
     std::function<void(pages::MenuOperation)> onClose;
   };
 }

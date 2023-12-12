@@ -30,6 +30,10 @@ namespace menu {
         : value_(value) {
         updateName(label);
       }
+      explicit ComboBoxOption(const wchar_t* label, ComboValue value) noexcept
+        : value_(value) {
+        updateName(label);
+      }
       ComboBoxOption() noexcept { *name_ = u'\0'; }
       ComboBoxOption(const ComboBoxOption&) = default;
       ComboBoxOption(ComboBoxOption&&) noexcept = default;
@@ -48,6 +52,17 @@ namespace menu {
           memcpy(name_, label, length*sizeof(char16_t));
         }
         name_[length] = u'\0';
+      }
+      inline void updateName(const wchar_t* label) noexcept {
+        char16_t* destIt = name_;
+        const char16_t* endIt = name_ + (intptr_t)maxLength;
+        if (label != nullptr) {
+          for (const wchar_t* srcIt = label; *srcIt && destIt < endIt; ++srcIt, ++destIt) {
+            if (*srcIt <= (wchar_t)0xFFFF)
+              *destIt = (char16_t)*srcIt;
+          }
+        }
+        *destIt = u'\0';
       }
 
     private:

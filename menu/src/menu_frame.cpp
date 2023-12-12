@@ -48,7 +48,7 @@ MenuFrame::MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context_,
     activeProfileId(activeProfileId),
     editedProfileId(activeProfileId),
     profiles(std::move(profiles)),
-    displayMonitor(window.displayMonitor().handle()),
+    windowMonitor(window.displayMonitor().handle()),
     onClose(std::move(onClose)) {
   assert(this->context != nullptr);
   initGraphicsPipelines(window);
@@ -100,7 +100,7 @@ MenuFrame::~MenuFrame() noexcept {
 bool MenuFrame::onWindowEvent(Window* sender, WindowEvent event, uint32_t, int32_t, int32_t, void*) {
   switch (event) {
     case WindowEvent::monitorChanged:
-      displayMonitor = sender->displayMonitor().handle();
+      windowMonitor = sender->displayMonitor().handle();
       isInvalidated = true;
       break;
     default: isInvalidated = true; break;
@@ -640,8 +640,7 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
         createPageTabs(TabMode::general, pageTabs.activeTabIndex(), true);
       };
       createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings);
-      activePage = std::make_unique<GeneralSettings>(context, buffers, theme, localization,
-                                                     DisplayMonitor(displayMonitor, true),
+      activePage = std::make_unique<GeneralSettings>(context, buffers, theme, localization, windowMonitor,
                                                      pageX, (int32_t)pageTabs.height(), pageWidth,
                                                      context->clientHeight() - pageTabs.height(),
                                                      std::move(onThemeChange));

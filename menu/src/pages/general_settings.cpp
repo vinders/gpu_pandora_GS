@@ -149,17 +149,20 @@ static constexpr inline uint32_t GetWindowWidth(uint32_t windowHeight, bool isWi
 }
 
 static uint32_t GetFullscreenResolutionValues(const std::vector<ScreenResolution>& fullscreenResolutions,
-                                          std::vector<ComboBoxOption>& outResolutionOptions) {
+                                              ScreenResolution previousSize, std::vector<ComboBoxOption>& outResolutionOptions) {
   outResolutionOptions.reserve(fullscreenResolutions.size());
 
-  uint32_t index = 0;
+  uint32_t selectedIndex = 0, currentIndex = 0;
   char16_t formattedResolution[RESOLUTION_BUFFER_SIZE];
   for (const auto& resolution : fullscreenResolutions) {
+    if (resolution == previousSize)
+      selectedIndex = currentIndex;
+
     formatResolution(resolution.width, resolution.height, formattedResolution);
-    outResolutionOptions.emplace_back(formattedResolution, (ComboValue)index);
-    ++index;
+    outResolutionOptions.emplace_back(formattedResolution, (ComboValue)currentIndex);
+    ++currentIndex;
   }
-  return 0;
+  return selectedIndex;
 }
 
 static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, uint32_t previousRate,
@@ -181,23 +184,33 @@ static uint32_t GetFullscreenRateValues(std::vector<uint32_t>& fullscreenRates, 
 // -- page -- ------------------------------------------------------------------
 
 #define DISPLAY_MODE_ID       1
-#define FULLSCREEN_SIZE_ID    2
-#define WINDOW_HEIGHT_ID      3
-#define WIDESCREEN_MODE_ID    4
-#define FRAMERATE_LIMIT_ID    5
-#define FIXED_FRAMERATE_ID    6
-#define INTERFACE_COLOR_ID    7
-#define INTERFACE_LANGUAGE_ID 8
+#define SCREEN_SELECT_ID      2
+#define FULLSCREEN_SIZE_ID    3
+#define WINDOW_HEIGHT_ID      4
+#define WIDESCREEN_MODE_ID    5
+#define FRAMERATE_LIMIT_ID    6
+#define FIXED_FRAMERATE_ID    7
+#define INTERFACE_COLOR_ID    8
+#define INTERFACE_LANGUAGE_ID 9
+
+#define SECONDARY_COMBOBOX_WIDTH 105
+#define DEFAULT_DISPLAY_RATE 60000
 
 GeneralSettings::GeneralSettings(std::shared_ptr<RendererContext> context_, std::shared_ptr<RendererStateBuffers> buffers_,
                                  const std::shared_ptr<ColorTheme>& theme_, const std::shared_ptr<MessageResources>& localizedText_,
-                                 const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
+                                 DisplayMonitor::Handle requestedMonitor, int32_t x, int32_t y,
                                  uint32_t width, uint32_t height, std::function<void()> onThemeChange_)
   : Page(std::move(context_), std::move(buffers_), *theme_, x, y, width, height, true, true),
+    availableMonitors(DisplayMonitor::listAvailableMonitors()),
     theme(theme_),
     localizedText(localizedText_),
     onThemeChange(std::move(onThemeChange_)) {
+  DisplayMonitor monitor(requestedMonitor, true);
+  targetMonitor = monitor.handle(); // requested -or- primary (if not found)
   listFullscreenModes(monitor, fullscreenResolutions, fullscreenRatesPerSize);
+  if (availableMonitors.empty())
+    availableMonitors.emplace_back(std::move(monitor));
+
   init(x, y, width);
 }
 
@@ -209,7 +222,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   builder.addTitle(localizedText->getMessage(GeneralSettingsMessages::title), title);
 
   // window group
-  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::windowGroup), 3, 0, windowGroup);
+  builder.addFieldset(localizedText->getMessage(GeneralSettingsMessages::windowGroup), (availableMonitors.size() > (size_t)1u) ? 4 : 3, 0, windowGroup);
   isFullscreenMode = true;
   isWindowMode = enableWidescreenMode = false;
 
@@ -219,17 +232,39 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
   builder.addSlider(DISPLAY_MODE_ID, localizedText->getMessage(GeneralSettingsMessages::displayMode),
                     localizedText->getMessage(GeneralSettingsMessages::displayMode_tooltip), Control::pageControlWidth(),
                     displayModeOptions, sizeof(displayModeOptions)/sizeof(*displayModeOptions), 0, displayMode);
+
+  if (availableMonitors.size() > (size_t)1u) {
+    uint32_t screenSelectIndex = 0, currentScreenIndex = 0;
+    std::vector<ComboBoxOption> screenSelectOptions;
+    screenSelectOptions.reserve(availableMonitors.size());
+    for (auto& monitor : availableMonitors) {
+      if (monitor.handle() == targetMonitor)
+        screenSelectIndex = currentScreenIndex;
+
+      const wchar_t* screenName = monitor.attributes().id.data();
+      if (screenName) { // skip system/path prefix
+        while (*screenName && (*screenName == L'\\' || *screenName == L'/' || *screenName == L'.' || *screenName == L':'))
+          ++screenName;
+      }
+      screenSelectOptions.emplace_back(screenName, (ComboValue)currentScreenIndex);
+      ++currentScreenIndex;
+    }
+
+    builder.addComboBox(SCREEN_SELECT_ID, localizedText->getMessage(GeneralSettingsMessages::screenSelection),
+                        localizedText->getMessage(GeneralSettingsMessages::screenSelection_tooltip), Control::pageControlWidth(),
+                        screenSelectOptions.data(), screenSelectOptions.size(), screenSelectIndex, screenSelection);
+  }
   
   std::vector<ComboBoxOption> fullscreenSizeOptions, fullscreenRateOptions;
-  uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, fullscreenSizeOptions);
-  uint32_t selectedRateIndex = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], 60000, fullscreenRateOptions);
+  uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, ScreenResolution{}, fullscreenSizeOptions);
+  uint32_t selectedRateIndex = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex], DEFAULT_DISPLAY_RATE, fullscreenRateOptions);
   constexpr const uint32_t windowHeightValue = 720u;
 
   builder.setEnabler(isFullscreenMode);
   builder.addDoubleComboBox(FULLSCREEN_SIZE_ID, localizedText->getMessage(GeneralSettingsMessages::resolution),
                             localizedText->getMessage(GeneralSettingsMessages::resolution_tooltip),
                             fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedResolutionIndex, fullscreenSize,
-                            0, 105, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedRateIndex, fullscreenRate);
+                            0, SECONDARY_COMBOBOX_WIDTH, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedRateIndex, fullscreenRate);
   builder.setEnabler(isWindowMode);
   builder.addResolutionTextBox(WINDOW_HEIGHT_ID, localizedText->getMessage(GeneralSettingsMessages::windowSize),
                                localizedText->getMessage(GeneralSettingsMessages::windowSize_tooltip),
@@ -297,7 +332,7 @@ void GeneralSettings::init(int32_t x, int32_t y, uint32_t width) {
     languageOptions[i] = ComboBoxOption(LocalizationTypeHelper::toLanguageName((LocalizationType)i), (ComboValue)i);
   }
   builder.addComboBox(INTERFACE_LANGUAGE_ID, localizedText->getMessage(GeneralSettingsMessages::language),
-                      localizedText->getMessage(GeneralSettingsMessages::language_tooltip), 105u,
+                      localizedText->getMessage(GeneralSettingsMessages::language_tooltip), SECONDARY_COMBOBOX_WIDTH,
                       languageOptions, sizeof(languageOptions)/sizeof(*languageOptions), (uint32_t)localizedText->language(), interfaceLanguage);
 
   // control registration
@@ -310,6 +345,7 @@ GeneralSettings::~GeneralSettings() noexcept {
 
   windowGroup.release();
   displayMode.release();
+  screenSelection.release();
   fullscreenSize.release();
   fullscreenRate.release();
   windowHeight.release();
@@ -346,6 +382,8 @@ void GeneralSettings::move(int32_t x, int32_t y, uint32_t width, uint32_t height
   mover.moveFieldset(windowGroup);
 
   mover.moveSlider(displayMode);
+  if (screenSelection.width())
+    mover.moveComboBox(screenSelection);
   mover.moveDoubleComboBox(fullscreenSize, fullscreenRate);
 
   const int32_t windowSizeOffsetX = windowSizeInfo.x() - windowHeight.controlX();
@@ -393,11 +431,30 @@ void GeneralSettings::onValueChange(uint32_t id, uint32_t value) {
       isWindowMode = (value == 2/*TMP*/);
       break;
     }
+    case SCREEN_SELECT_ID: {
+      const auto* previousSizeIndex = fullscreenSize.getSelectedValue(); // copy old size before clearing current list
+      ScreenResolution previousSize = previousSizeIndex ? fullscreenResolutions[*previousSizeIndex] : ScreenResolution{};
+
+      fullscreenResolutions.clear();
+      fullscreenRatesPerSize.clear();
+      listFullscreenModes(availableMonitors[value], fullscreenResolutions, fullscreenRatesPerSize);
+      targetMonitor = availableMonitors[value].handle();
+
+      std::vector<ComboBoxOption> fullscreenSizeOptions, fullscreenRateOptions;
+      uint32_t selectedResolutionIndex = GetFullscreenResolutionValues(fullscreenResolutions, previousSize, fullscreenSizeOptions);
+      fullscreenSize.replaceValues(*context, fullscreenSizeOptions.data(), fullscreenSizeOptions.size(), selectedResolutionIndex);
+
+      const auto* previousRate = fullscreenRate.getSelectedValue();
+      uint32_t selectedRateIndex = GetFullscreenRateValues(fullscreenRatesPerSize[selectedResolutionIndex],
+                                                           previousRate ? *previousRate : DEFAULT_DISPLAY_RATE, fullscreenRateOptions);
+      fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedRateIndex);
+      break;
+    }
     case FULLSCREEN_SIZE_ID: {
       std::vector<ComboBoxOption> fullscreenRateOptions;
-      const auto* currentRate = fullscreenRate.getSelectedValue();
+      const auto* previousRate = fullscreenRate.getSelectedValue();
       uint32_t selectedFullRate = GetFullscreenRateValues(fullscreenRatesPerSize[value],
-                                                          currentRate ? *currentRate : 60000, fullscreenRateOptions);
+                                                          previousRate ? *previousRate : DEFAULT_DISPLAY_RATE, fullscreenRateOptions);
       fullscreenRate.replaceValues(*context, fullscreenRateOptions.data(), fullscreenRateOptions.size(), selectedFullRate);
       break;
     }
@@ -485,6 +542,8 @@ void GeneralSettings::drawPageBackgrounds(int32_t mouseX, int32_t mouseY) {
   framerateLimit.drawBackground(*context, mouseX, *buffers, (hoverControl == &framerateLimit));
   interfaceColor.drawBackground(*context, mouseX, *buffers, (hoverControl == &interfaceColor));
 
+  if (screenSelection.width())
+    screenSelection.drawBackground(*context, *buffers, (hoverControl == &screenSelection));
   fullscreenSize.drawBackground(*context, *buffers, (hoverControl == &fullscreenSize));
   fullscreenRate.drawBackground(*context, *buffers, (hoverControl == &fullscreenRate));
   interfaceLanguage.drawBackground(*context, *buffers, (hoverControl == &interfaceLanguage));
@@ -512,6 +571,8 @@ void GeneralSettings::drawPageLabels() {
   framerateLimit.drawLabels(*context, *buffers, (hoverControl == &framerateLimit));
   interfaceColor.drawLabels(*context, *buffers, (hoverControl == &interfaceColor));
 
+  if (screenSelection.width())
+    screenSelection.drawLabels(*context, *buffers, (hoverControl == &screenSelection));
   fullscreenSize.drawLabels(*context, *buffers, (hoverControl == &fullscreenSize));
   fullscreenRate.drawLabels(*context, *buffers, (hoverControl == &fullscreenRate));
   interfaceLanguage.drawLabels(*context, *buffers, (hoverControl == &interfaceLanguage));

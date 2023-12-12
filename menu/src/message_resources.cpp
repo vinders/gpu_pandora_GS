@@ -78,6 +78,8 @@ void MessageResources::fillMessagesEN() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_borderless] = u"Borderless";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Window mode";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modes: fullscreen / borderless (fullscreen window) / window (resizable)";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection] = u"Screen selection";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection_tooltip] = u"Select the screen on which the game should be displayed (if available)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Fullscreen resolution";
   generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Display resolution (pixels) and refresh rate (Hz) in fullscreen mode";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Window size";
@@ -216,7 +218,7 @@ void MessageResources::fillMessagesEN() {
   screenStretching[(size_t)ScreenStretchingMessages::aspectRatio_tooltip] = u"Default stretching/cropping modes";
   screenStretching[(size_t)ScreenStretchingMessages::keepRatio] = u"Keep ratio";
   screenStretching[(size_t)ScreenStretchingMessages::stretch] = u"stretch";
-  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left keep aspect ratio / move right to fully stretch";
+  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left to keep aspect ratio / move right to fully stretch";
   screenStretching[(size_t)ScreenStretchingMessages::entire] = u"Uncropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropped] = u"cropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropping_tooltip] = u"Cropping strength: move left to display the whole frame / move right to fully crop it";
@@ -232,7 +234,7 @@ void MessageResources::fillMessagesEN() {
   screenStretching[(size_t)ScreenStretchingMessages::centerY_tooltip] = u"Fix mis-centered screen positions (common in many PAL games ported from NTSC)";
   screenStretching[(size_t)ScreenStretchingMessages::mirror_none] = u"No mirroring";
   screenStretching[(size_t)ScreenStretchingMessages::mirror_mirrorX] = u"Mirror horizontally";
-  screenStretching[(size_t)ScreenStretchingMessages::mirror_tooltip] = u"Frame mirroring (e.g. for game phases where controls are inverted)";
+  screenStretching[(size_t)ScreenStretchingMessages::mirror_tooltip] = u"Frame mirroring (e.g. for game phases where controls are inverted, or to rediscover games differently)";
   screenStretching[(size_t)ScreenStretchingMessages::blackBorders] = u"Add black borders (X/Y)";
   screenStretching[(size_t)ScreenStretchingMessages::blackBorders_tooltip] = u"Prevent border flickering, by adding black borders (values: horizontal/vertical)";
   screenStretching[(size_t)ScreenStretchingMessages::screenCurvature] = u"Screen curvature";
@@ -318,11 +320,11 @@ void MessageResources::fillMessagesEN() {
   advancedEffects[(size_t)AdvancedEffectsMessages::lumaSharpen_tooltip] = u"Increase overall image sharpness with unsharp masking (move left to disable)";
   advancedEffects[(size_t)AdvancedEffectsMessages::specialGameFixesGroup] = u"Special game fixes";
   advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead] = u"Low compatibility frameread";
-  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility to fix transitions in some games (Legend of Dragoon, RPGMaker)";
+  advancedEffects[(size_t)AdvancedEffectsMessages::lowCompatibilityFrameRead_tooltip] = u"Fake low compatibility: fix transitions in some games (Legend of Dragoon, RPGMaker)";
   advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves] = u"Ignore small frame moves";
   advancedEffects[(size_t)AdvancedEffectsMessages::ignoreSmallFramebufferMoves_tooltip] = u"Ignore small framebuffer moves: reduces jittering (Final Fantasy VII and VIII)";
-  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake 'GPU busy' states";
-  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle 'GPU busy' flags after drawing";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates] = u"Fake GPU busy states";
+  advancedEffects[(size_t)AdvancedEffectsMessages::fakeGpuBusyStates_tooltip] = u"Toggle GPU busy flag after drawing: prevent lock ups in some games (Dukes of Hazzard, Hot Wheels Turbo Racing...)";
 }
 
 void MessageResources::fillMessagesFR() {
@@ -364,6 +366,8 @@ void MessageResources::fillMessagesFR() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_borderless] = u"Sans bordure";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Mode fenêtré";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modes : plein écran / sans bordure (fenêtre plein écran) / mode fenêtré (taille libre)";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection] = u"Choix de l'écran";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection_tooltip] = u"Choix de l'écran sur lequel le jeu doit s'afficher (si disponible)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Résolution plein écran";
   generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Résolution d'affichage (pixels) et rafraîchissement (Hz) en mode plein écran";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Taille de fenêtre";
@@ -502,7 +506,7 @@ void MessageResources::fillMessagesFR() {
   screenStretching[(size_t)ScreenStretchingMessages::aspectRatio_tooltip] = u"Default stretching/cropping modes";
   screenStretching[(size_t)ScreenStretchingMessages::keepRatio] = u"Keep ratio";
   screenStretching[(size_t)ScreenStretchingMessages::stretch] = u"stretch";
-  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left keep aspect ratio / move right to fully stretch";
+  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left to keep aspect ratio / move right to fully stretch";
   screenStretching[(size_t)ScreenStretchingMessages::entire] = u"Uncropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropped] = u"cropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropping_tooltip] = u"Cropping strength: move left to display the whole frame / move right to fully crop it";
@@ -650,6 +654,8 @@ void MessageResources::fillMessagesDE() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_borderless] = u"Randlos";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Fenster";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modi: Vollbild / Randlos (Vollbildfenster) / Fenster (veränderbares)";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection] = u"Bildschirmauswahl";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection_tooltip] = u"Der Bildschirm, auf dem das Spiel angezeigt werden soll (falls verfügbar)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Vollbildauflösung";
   generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Anzeigeauflösung (Pixel) und Bildwiederholfrequenz (Hz) im Vollbildmodus";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Fenstergröße";
@@ -788,7 +794,7 @@ void MessageResources::fillMessagesDE() {
   screenStretching[(size_t)ScreenStretchingMessages::aspectRatio_tooltip] = u"Default stretching/cropping modes";
   screenStretching[(size_t)ScreenStretchingMessages::keepRatio] = u"Keep ratio";
   screenStretching[(size_t)ScreenStretchingMessages::stretch] = u"stretch";
-  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left keep aspect ratio / move right to fully stretch";
+  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left to keep aspect ratio / move right to fully stretch";
   screenStretching[(size_t)ScreenStretchingMessages::entire] = u"Uncropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropped] = u"cropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropping_tooltip] = u"Cropping strength: move left to display the whole frame / move right to fully crop it";
@@ -936,6 +942,8 @@ void MessageResources::fillMessagesES() {
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_borderless] = u"Sin bordes";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_window] = u"Ventana";
   generalSettings[(size_t)GeneralSettingsMessages::displayMode_tooltip] = u"Modos: pantalla completa / sin bordes (ventana de pantalla completa) / ventana (redimensionable)";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection] = u"Selección de pantalla";
+  generalSettings[(size_t)GeneralSettingsMessages::screenSelection_tooltip] = u"La pantalla en la que se debe mostrar el juego (si está disponible)";
   generalSettings[(size_t)GeneralSettingsMessages::resolution] = u"Resolución de la pantalla";
   generalSettings[(size_t)GeneralSettingsMessages::resolution_tooltip] = u"Resolución de pantalla (píxeles) y frecuencia de actualización (Hz) en modo de pantalla completa";
   generalSettings[(size_t)GeneralSettingsMessages::windowSize] = u"Tamaño de ventana";
@@ -1074,7 +1082,7 @@ void MessageResources::fillMessagesES() {
   screenStretching[(size_t)ScreenStretchingMessages::aspectRatio_tooltip] = u"Default stretching/cropping modes";
   screenStretching[(size_t)ScreenStretchingMessages::keepRatio] = u"Keep ratio";
   screenStretching[(size_t)ScreenStretchingMessages::stretch] = u"stretch";
-  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left keep aspect ratio / move right to fully stretch";
+  screenStretching[(size_t)ScreenStretchingMessages::stretching_tooltip] = u"Stretching strength: move left to keep aspect ratio / move right to fully stretch";
   screenStretching[(size_t)ScreenStretchingMessages::entire] = u"Uncropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropped] = u"cropped";
   screenStretching[(size_t)ScreenStretchingMessages::cropping_tooltip] = u"Cropping strength: move left to display the whole frame / move right to fully crop it";

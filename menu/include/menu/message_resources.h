@@ -78,6 +78,8 @@ namespace menu {
     displayMode_borderless,
     displayMode_window,
     displayMode_tooltip,
+    screenSelection,
+    screenSelection_tooltip,
     resolution,
     resolution_tooltip,
     windowSize,

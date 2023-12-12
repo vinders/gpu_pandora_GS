@@ -39,6 +39,11 @@ namespace menu {
       ScreenResolution& operator=(const ScreenResolution&) = default;
       ~ScreenResolution() noexcept = default;
 
+      constexpr inline bool operator==(const ScreenResolution& rhs) const noexcept {
+        return (width == rhs.width && height == rhs.height);
+      }
+      constexpr inline bool operator!=(const ScreenResolution& rhs) const noexcept { return !operator==(rhs); }
+
       uint32_t width = 0;
       uint32_t height = 0;
     };
@@ -49,7 +54,7 @@ namespace menu {
     public:
       GeneralSettings(std::shared_ptr<RendererContext> context, std::shared_ptr<RendererStateBuffers> buffers,
                       const std::shared_ptr<ColorTheme>& theme, const std::shared_ptr<MessageResources>& localizedText,
-                      const pandora::hardware::DisplayMonitor& monitor, int32_t x, int32_t y,
+                      pandora::hardware::DisplayMonitor::Handle targetMonitor, int32_t x, int32_t y,
                       uint32_t width, uint32_t height, std::function<void()> onThemeChange = nullptr);
       ~GeneralSettings() noexcept override;
 
@@ -77,12 +82,15 @@ namespace menu {
       // window/display mode
       controls::Fieldset windowGroup;
       controls::Slider displayMode;
+      controls::ComboBox screenSelection;
       controls::ComboBox fullscreenSize;
       controls::ComboBox fullscreenRate;
       controls::TextBox windowHeight;
       display::controls::TextMesh windowSizeInfo;
+      pandora::hardware::DisplayMonitor::Handle targetMonitor = nullptr;
       bool isFullscreenMode = false;
       bool isWindowMode = false;
+      std::vector<pandora::hardware::DisplayMonitor> availableMonitors;
       std::vector<ScreenResolution> fullscreenResolutions;
       std::vector<std::vector<uint32_t> > fullscreenRatesPerSize;
 
