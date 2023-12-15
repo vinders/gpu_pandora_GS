@@ -26,6 +26,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId ProfileSettings::PageType() const noexcept { return PageId::profileSettings; }
+
 
 #define PROFILE_NAME_ID  1
 #define TILE_COLOR_ID    2

@@ -36,6 +36,8 @@ namespace menu {
       }
       ~OsdSettings() noexcept override;
 
+      PageId PageType() const noexcept override;
+
       // -- window event --
 
       /// @brief Report page resize event

@@ -43,7 +43,8 @@ namespace menu {
                     const char* ratioPreviewId, const char* radialGradientId,
                     uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId) {
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId),
+      fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
       pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
@@ -58,7 +59,8 @@ namespace menu {
                     const wchar_t* ratioPreviewId, const wchar_t* radialGradientId,
                     uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId) {
+      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId),
+      fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
       pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
@@ -71,7 +73,8 @@ namespace menu {
                     const char* fontDirectoryPath, const char* iconSpritePath, const char* tabSpritePath,
                     const char* pandoraLogoPath, const char* ratioPreviewPath,
                     uint32_t clientWidth, uint32_t clientHeight)
-    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpritePath, tabSpritePath) {
+    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpritePath, tabSpritePath),
+      fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
       initFonts(fontDirectoryPath);
       pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId);
@@ -104,8 +107,11 @@ namespace menu {
     inline const display::Font& getFont(FontType fontType) const noexcept { return *fonts[(size_t)fontType]; }
     inline display::Font& getFont(FontType fontType) noexcept { return *fonts[(size_t)fontType]; }
     
-    inline uint32_t clientWidth() const noexcept { return clientWidth_; }   ///< Window client width (pixels)
-    inline uint32_t clientHeight() const noexcept { return clientHeight_; } ///< Window client height (pixels)
+    inline uint32_t clientWidth() const noexcept { return clientWidth_; }   ///< Window client width (pixels) -- scaled
+    inline uint32_t clientHeight() const noexcept { return clientHeight_; } ///< Window client height (pixels) -- scaled
+    inline uint32_t originalWidth() const noexcept { return originalWidth_; }   ///< Window client width (pixels) -- original
+    inline uint32_t originalHeight() const noexcept { return originalHeight_; } ///< Window client height (pixels) -- original
+    inline uint32_t scaling() const noexcept { return scaling_; }    ///< Window content scaling (factor for high-DPI)
     inline float pixelSizeX() const noexcept { return pixelSizeX_; } ///< Horizontal pixel size in shader coords
     inline float pixelSizeY() const noexcept { return pixelSizeY_; } ///< Vertical pixel size in shader coords
     
@@ -120,7 +126,11 @@ namespace menu {
     std::shared_ptr<video_api::Texture2D> ratioPreview = nullptr;
     uint32_t clientWidth_ = 0;
     uint32_t clientHeight_ = 0;
+    uint32_t originalWidth_ = 0;
+    uint32_t originalHeight_ = 0;
+    uint32_t scaling_ = 1;
     float pixelSizeX_ = 1.f;
     float pixelSizeY_ = 1.f;
+    const char* fontDirectoryPath = "./";
   };
 }

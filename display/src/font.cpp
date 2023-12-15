@@ -56,7 +56,9 @@ std::string getSystemFontPath() {
 static FT_Library freetypeInstance = nullptr;
 static int32_t freetypeUsageCount = 0;
 
-Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, uint32_t customWidthPixels) {
+Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, uint32_t customWidthPixels, uint32_t scaling)
+  : scaling(scaling) {
+  assert(scaling != 0);
   if (freetypeInstance == nullptr) { // init library
     if (FT_Init_FreeType(&freetypeInstance) || freetypeInstance == nullptr)
       throw std::runtime_error("Font: could not init FreeType Library");
@@ -67,6 +69,11 @@ Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, 
   if (FT_New_Face(freetypeInstance, baseFontPath, 0, &baseFace) || baseFace == nullptr)
     throw std::runtime_error("Font: failed to load font");
   baseFontFace = baseFace;
+
+  if (scaling > 1u) {
+    heightPixels = heightPixels*scaling - (scaling >> 1);
+    customWidthPixels = customWidthPixels ? customWidthPixels*scaling - (scaling >> 2) : 0;
+  }
   FT_Set_Pixel_Sizes(baseFace, customWidthPixels, heightPixels);
 
   FT_Face systemFace = nullptr; // optional fallback (if available)
@@ -83,7 +90,7 @@ Font::Font(Renderer& renderer, const char* baseFontPath, uint32_t heightPixels, 
   // load "unknown" glyph (or create it, if not available)
   if (readGlyphFromFont(renderer, UnknownGlyphCode()) == glyphs.end())
     generateUnknownGlyph(renderer, heightPixels);
-  xHeight = getGlyph(renderer, U'x').bearingTop;
+  xHeight = (uint32_t)(getGlyph(renderer, U'x').bearingTop + 0.25f); // rounding at .75 instead of .5 (font eye proportionally bigger with greater sizes)
   clearBuffer();
 }
 
@@ -145,11 +152,11 @@ Font::GlyphMap::iterator Font::readGlyphFromFont(Renderer& renderer, char32_t co
     return glyphs.emplace(code, std::make_unique<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
                                                             faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
                                                             faceGlyph->bitmap_left, faceGlyph->bitmap_top,
-                                                            faceGlyph->advance.x)).first;
+                                                            faceGlyph->advance.x >> 6, scaling)).first;
   }
   return glyphs.emplace(code, std::make_unique<FontGlyph>(Texture2D{}, faceGlyph->bitmap.width, faceGlyph->bitmap.rows,
                                                           faceGlyph->bitmap_left, faceGlyph->bitmap_top,
-                                                          faceGlyph->advance.x)).first;
+                                                          faceGlyph->advance.x >> 6, scaling)).first;
   // don't clear buffer here: if a bunch of characters are loaded, we don't want to realloc everytime
   // -> cleared initially at the end of the constructor + cleared using clearBuffer()
 }
@@ -164,5 +171,5 @@ void Font::generateUnknownGlyph(Renderer& renderer, uint32_t heightPixels) {
 
   Texture2DParams params(width, height, DataFormat::rgba8_sRGB, 1, 1, 0, ResourceUsage::staticGpu, 1);
   glyphs.emplace(UnknownGlyphCode(), std::make_unique<FontGlyph>(Texture2D(renderer, params, (const uint8_t**)&buffer),
-                                                                 width, height, 1, height, (width << 6)));
+                                                                 width, height, scaling, height, width, scaling));
 }

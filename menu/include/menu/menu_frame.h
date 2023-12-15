@@ -85,9 +85,9 @@ namespace menu {
     
     void createSectionTabs(uint32_t activeTabIndex);
     void moveSectionTabs();
-    void createPageTabs(TabMode mode, uint32_t activeTabIndex, bool forceRegen = false);
+    void createPageTabs(TabMode mode, uint32_t activeTabIndex, bool forceRegen);
     void movePageTabs();
-    void createPage(pages::PageId id, bool isControllerUsed);
+    void createPage(pages::PageId id, bool isControllerUsed, bool forceRegen);
   
   private:
     std::shared_ptr<RendererContext> context = nullptr;
@@ -100,6 +100,7 @@ namespace menu {
     video_api::GraphicsPipeline iconPipeline;
     video_api::GraphicsPipeline labelPipeline;
     video_api::Sampler textureSampler;
+    video_api::Sampler iconSampler;
     
     display::controls::ControlMesh backgroundMesh;
     display::controls::IconMesh backgroundGradientMesh;

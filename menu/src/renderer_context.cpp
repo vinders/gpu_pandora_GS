@@ -55,11 +55,11 @@ void RendererContext::initFonts(const char* fontDirectoryPath) {
   // load UI fonts
   assert(this->renderer_ != nullptr);
   APPEND_FILENAME_TO_BUFFER(bufferSuffixIt, TITLES_FONT_FILENAME);
-  fonts[(size_t)FontType::titles].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 24u));
+  fonts[(size_t)FontType::titles].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 24u, 0, scaling_));
   APPEND_FILENAME_TO_BUFFER(bufferSuffixIt, LABELS_FONT_FILENAME);
-  fonts[(size_t)FontType::labels].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 15u));
+  fonts[(size_t)FontType::labels].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 15u, 0, scaling_));
   APPEND_FILENAME_TO_BUFFER(bufferSuffixIt, INPUT_FONT_FILENAME);
-  fonts[(size_t)FontType::inputText].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 13u));
+  fonts[(size_t)FontType::inputText].reset(new display::Font(*(this->renderer_), pathBuffer.get(), 13u, 0, scaling_));
 }
 
 void RendererContext::release() noexcept {
@@ -73,12 +73,38 @@ void RendererContext::release() noexcept {
   }
 }
 
+static inline uint32_t lowerOrEqualPowerOf2(uint32_t value) noexcept {
+  value = value | (value >> 1);
+  value = value | (value >> 2);
+  value = value | (value >> 4);
+  value = value | (value >> 8);
+  value = value | (value >> 16);
+  return value - (value >> 1);
+}
+
 bool RendererContext::onSizeChange(uint32_t clientWidth, uint32_t clientHeight) noexcept {
-  if (this->clientWidth_ != clientWidth || this->clientHeight_ != clientHeight) {
-    this->clientWidth_ = clientWidth;
-    this->clientHeight_ = clientHeight;
-    pixelSizeX_ = display::ToPixelSize(clientWidth);
-    pixelSizeY_ = display::ToPixelSize(clientHeight);
+  if (this->originalWidth_ != clientWidth || this->originalHeight_ != clientHeight) {
+    uint32_t oldScaling = scaling_;
+    uint32_t scalingX = clientWidth / 640u;
+    uint32_t scalingY = clientHeight / 540u;
+    scaling_ = lowerOrEqualPowerOf2((scalingX <= scalingY) ? scalingX : scalingY);
+
+    this->originalWidth_ = clientWidth;
+    this->originalHeight_ = clientHeight;
+    if (scaling_ <= 1u) {
+      this->clientWidth_ = clientWidth;
+      this->clientHeight_ = clientHeight;
+      scaling_ = 1u;
+    }
+    else {
+      this->clientWidth_ = (clientWidth + scaling_ - 1u) / scaling_;
+      this->clientHeight_ = (clientHeight + scaling_ - 1u) / scaling_;
+    }
+    pixelSizeX_ = display::ToPixelSize(this->clientWidth_);
+    pixelSizeY_ = display::ToPixelSize(this->clientHeight_);
+
+    if (oldScaling != scaling_)
+      initFonts(fontDirectoryPath);
     return true;
   }
   return false;

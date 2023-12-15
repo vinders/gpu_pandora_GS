@@ -58,7 +58,8 @@ static void toSpecialLabelColor(float target[4], const float background[4], cons
 
 // -- buffer creation/destruction -- -------------------------------------------
 
-RendererStateBuffers::RendererStateBuffers(Renderer& renderer, const ColorTheme& theme) {
+RendererStateBuffers::RendererStateBuffers(Renderer& renderer, const ColorTheme& theme, uint32_t scaling)
+  : scaling(scaling) {
   // vertex slot 1 - scroll position
   ScrollUniform topLocation{ {0.f,0.f,0.f,0.f} };
   fixedPosition = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::uniform, sizeof(fixedPosition), &topLocation, false);

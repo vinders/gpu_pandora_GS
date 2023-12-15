@@ -46,6 +46,8 @@ namespace menu {
       }
       ~ProfileSelector() noexcept override;
 
+      PageId PageType() const noexcept override;
+
       inline uint32_t activeProfile() const noexcept { return activeProfileId; } ///< Get selected profile ID
 
       // -- window event --

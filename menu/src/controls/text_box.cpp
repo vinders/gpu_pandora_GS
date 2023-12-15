@@ -195,15 +195,15 @@ void TextBox::move(RendererContext& context, int32_t x, int32_t labelY) {
 
 void TextBox::updateCaretLocation(RendererContext& context) {
   uint32_t currentLocation = 0;
-  int32_t currentX = inputMesh.x();
+  float currentX = (float)inputMesh.x();
   caretDrawCount = 0; // force draw caret
 
   for (const auto& glyph : inputMesh.meshGlyphs()) {
     if (currentLocation == caretLocation) {
-      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+      caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), (int32_t)currentX, caretMesh.y());
       return; // end here
     }
-    currentX += (int32_t)(glyph->advance >> 6);
+    currentX += glyph->advance;
     ++currentLocation;
   }
   // caret at the end
@@ -277,19 +277,18 @@ bool TextBox::click(RendererContext& context, int32_t mouseX, int32_t mouseY) {
       // detect caret location + move caret
       bool isCaretMoved = false;
       caretLocation = 0;
-      int32_t currentX = inputMesh.x();
+      float currentX = (float)inputMesh.x();
       for (const auto& glyph : inputMesh.meshGlyphs()) {
-        uint32_t charWidth = (glyph->advance >> 6);
-        if (mouseX <= currentX + (int32_t)(charWidth >> 1)) {
-          caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+        if (mouseX <= (int32_t)currentX + (int32_t)((uint32_t)glyph->advance >> 1)) {
+          caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), (int32_t)currentX, caretMesh.y());
           isCaretMoved = true;
           break;
         }
-        currentX += (int32_t)charWidth;
+        currentX += glyph->advance;
         ++caretLocation;
       }
       if (!isCaretMoved) // caret at the end
-        caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+        caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), (int32_t)currentX, caretMesh.y());
     }
   }
   else { // close

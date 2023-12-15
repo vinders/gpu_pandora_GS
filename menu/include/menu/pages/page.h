@@ -136,6 +136,8 @@ namespace menu {
     public:
       virtual ~Page() noexcept;
 
+      virtual PageId PageType() const noexcept = 0;
+
       // -- accessors --
 
       inline int32_t x() const noexcept { return x_; }

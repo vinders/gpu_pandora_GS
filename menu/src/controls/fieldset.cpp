@@ -38,7 +38,7 @@ Fieldset::Fieldset(RendererContext& context, const char16_t* label, const float 
   float backColor[4]{ color[0], color[1], color[2], 0.3f*color[3] };
   float transparentColor[4]{ color[0], color[1], color[2], 0.1f*color[3] };
   GeometryGenerator::fillHorizontalRectangleVertices(vertexIt, backColor, transparentColor, // title bar background
-                                                      0.f, (float)width, -1.f, -(float)(barHeight-1));
+                                                     0.f, (float)width, -1.f, -(float)(barHeight-1));
   vertexIt[1].position[0] -= (float)(barHeight-1u);
   vertexIt += 4;
   backColor[3] *= 0.25f;

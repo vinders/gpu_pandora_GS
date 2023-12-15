@@ -40,6 +40,8 @@ namespace menu {
       }
       ~ScreenStretching() noexcept override;
 
+      PageId PageType() const noexcept override;
+
       // -- window event --
 
       /// @brief Report page resize event

@@ -23,6 +23,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId SmoothingUpscaling::PageType() const noexcept { return PageId::profileSmoothingUpscaling; }
+
 
 // -- helpers -- ---------------------------------------------------------------
 

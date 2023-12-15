@@ -32,6 +32,8 @@ using namespace menu;
 # define SWITCH_FALLTHROUGH
 #endif
 
+PageId GeneralSettings::PageType() const noexcept { return PageId::generalSettings; }
+
 
 // -- helpers -- ---------------------------------------------------------------
 

@@ -22,20 +22,28 @@ namespace display {
   /// @brief Font character/symbol container: texture + size/offset info
   struct FontGlyph final {
     FontGlyph(video_api::Texture2D texture, int32_t width, int32_t height,
-              int32_t offsetLeft, int32_t bearingTop, uint32_t advance)
-    : texture(std::move(texture)), width(width), height(height),
-      offsetLeft(offsetLeft), bearingTop(bearingTop), advance(advance) {}
+              int32_t offsetLeft, int32_t bearingTop, uint32_t advance, uint32_t scaling = 1)
+    : texture(std::move(texture)), width((float)width), height((float)height),
+      offsetLeft((float)offsetLeft), bearingTop((float)bearingTop), advance((float)advance) {
+      if (scaling != 1) {
+        this->width /= (float)scaling;
+        this->height /= (float)scaling;
+        this->offsetLeft /= (float)scaling;
+        this->bearingTop /= (float)scaling;
+        this->advance /= (float)scaling;
+      }
+    }
     FontGlyph() = default;
     FontGlyph(FontGlyph&&) = default;
     FontGlyph& operator=(FontGlyph&&) = default;
     ~FontGlyph() noexcept = default;
 
     video_api::Texture2D texture; ///< Glyph texture -- may be empty for invisible glyphs (whitespaces...)
-    int32_t width = 0;      ///< width of glyph
-    int32_t height = 0;     ///< height of glyph
-    int32_t offsetLeft = 0; ///< offset from origin to left of glyph
-    int32_t bearingTop = 0; ///< offset from baseline to top of glyph
-    uint32_t advance = 0;   ///< offset to advance to next glyph
+    float width = 0.f;      ///< width of glyph
+    float height = 0.f;     ///< height of glyph
+    float offsetLeft = 0.f; ///< offset from origin to left of glyph
+    float bearingTop = 0.f; ///< offset from baseline to top of glyph
+    float advance = 0.f;   ///< offset to advance to next glyph
   };
 
   // ---
@@ -48,7 +56,7 @@ namespace display {
 
     /// @brief Load font face + preload ASCII characters
     Font(video_api::Renderer& renderer, const char* fontPath,
-         uint32_t heightPixels, uint32_t customWidthPixels = 0);
+         uint32_t heightPixels, uint32_t customWidthPixels = 0, uint32_t scaling = 1);
     Font(const Font&) = delete;
     Font(Font&&) noexcept = delete;
     Font& operator=(const Font&) = delete;
@@ -79,6 +87,7 @@ namespace display {
     GlyphMap glyphs;
     uint32_t* buffer = nullptr;
     size_t bufferSize = 0;
+    uint32_t scaling = 1;
     uint32_t xHeight = 0;
     void* baseFontFace = nullptr;   // main font used to retrieve glyphs
     void* systemFontFace = nullptr; // fallback for special glyphs (not found in base font)

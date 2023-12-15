@@ -24,6 +24,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId HotkeyBindings::PageType() const noexcept { return PageId::generalHotkeyBindings; }
+
 
 // -- page -- ------------------------------------------------------------------
 

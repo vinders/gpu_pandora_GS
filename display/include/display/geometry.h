@@ -25,8 +25,14 @@ namespace display {
   static constexpr inline float ToVertexPositionX(int32_t x, const float pixelSizeX) noexcept {
     return (float)x*pixelSizeX - 1.0f;
   }
+  static constexpr inline float ToVertexPositionX(float x, const float pixelSizeX) noexcept {
+    return x*pixelSizeX - 1.0f;
+  }
   static constexpr inline float ToVertexPositionY(int32_t y, const float pixelSizeY) noexcept {
     return 1.0f - (float)y*pixelSizeY;
+  }
+  static constexpr inline float ToVertexPositionY(float y, const float pixelSizeY) noexcept {
+    return 1.0f - y*pixelSizeY;
   }
   static constexpr inline float ToTextureCoord(uint32_t px, uint32_t textureSize) noexcept {
     return (float)px/(float)textureSize;

@@ -58,6 +58,8 @@ namespace menu {
                       uint32_t width, uint32_t height, std::function<void()> onThemeChange = nullptr);
       ~GeneralSettings() noexcept override;
 
+      PageId PageType() const noexcept override;
+
       // -- window event --
 
       /// @brief Report page resize event

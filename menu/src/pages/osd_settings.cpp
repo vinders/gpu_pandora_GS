@@ -22,6 +22,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId OsdSettings::PageType() const noexcept { return PageId::generalOsdSettings; }
+
 
 // -- page -- ------------------------------------------------------------------
 

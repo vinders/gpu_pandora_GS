@@ -64,7 +64,7 @@ namespace menu {
   /// @brief Menu rendering - control/icon/text state uniform buffers (shared by all menu pages)
   class RendererStateBuffers final {
   public:
-    RendererStateBuffers(video_api::Renderer& renderer, const ColorTheme& theme);
+    RendererStateBuffers(video_api::Renderer& renderer, const ColorTheme& theme, uint32_t scaling = 1);
     
     RendererStateBuffers() noexcept = default;
     RendererStateBuffers(const RendererStateBuffers&) = delete;
@@ -83,14 +83,26 @@ namespace menu {
     /// @brief Bind vertex uniform buffer for world position - fixed geometry
     inline void bindFixedLocationBuffer(video_api::Renderer& renderer,
                                         const video_api::ScissorRectangle& fullWindowArea) {
-      renderer.setScissorRectangle(fullWindowArea);
+      if (scaling == 1u)
+        renderer.setScissorRectangle(fullWindowArea);
+      else {
+        video_api::ScissorRectangle scaledArea(fullWindowArea.x()*scaling, fullWindowArea.y()*scaling,
+                                               fullWindowArea.width()*scaling, fullWindowArea.height()*scaling);
+        renderer.setScissorRectangle(scaledArea);
+      }
       renderer.bindVertexUniforms(1, fixedPosition.handlePtr(), 1);
       isFixedPosition = true;
     }
     /// @brief Bind vertex uniform buffer for world position - scrollable geometry
     inline void bindScrollLocationBuffer(video_api::Renderer& renderer,
                                          const video_api::ScissorRectangle& scrollableArea) {
-      renderer.setScissorRectangle(scrollableArea);
+      if (scaling == 1u)
+        renderer.setScissorRectangle(scrollableArea);
+      else {
+        video_api::ScissorRectangle scaledArea(scrollableArea.x()*scaling, scrollableArea.y()*scaling,
+                                               scrollableArea.width()*scaling, scrollableArea.height()*scaling);
+        renderer.setScissorRectangle(scaledArea);
+      }
       renderer.bindVertexUniforms(1, scrollPosition.handlePtr(), 1);
       isFixedPosition = false;
     }
@@ -105,6 +117,8 @@ namespace menu {
     
     // -- updates --
     
+    /// @brief Update page scaling (on size change)
+    inline void updateScaling(uint32_t scaling_) noexcept { this->scaling = scaling_; }
     /// @brief Update page scroll position in scroll uniform buffer (on scroll event)
     /// @param scrollLevelY  Scroll offset from top (pixels)
     void updateScrollBuffer(float pixelSizeY, uint32_t scrollLevelY);
@@ -116,6 +130,7 @@ namespace menu {
     ControlBufferType boundIconType = ControlBufferType::COUNT;
     LabelBufferType boundLabelType = LabelBufferType::COUNT;
     bool isFixedPosition = false;
+    uint32_t scaling = 1;
   
     // vertex slot 1 - scroll position
     video_api::Buffer<video_api::ResourceUsage::staticGpu> fixedPosition;

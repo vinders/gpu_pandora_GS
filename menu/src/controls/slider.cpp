@@ -53,11 +53,11 @@ void Slider::init(RendererContext& context, const char16_t* label, int32_t x, in
 
   std::vector<ControlVertex> vertices(static_cast<size_t>(15u));
   ControlVertex* vertexIt = vertices.data();
-  GeometryGenerator::fillObliqueRectangleVertices(vertexIt, shadowColor, 0.f, (float)(arrowWidth + 1), // left arrow shadow
+  GeometryGenerator::fillObliqueRectangleVertices(vertexIt, shadowColor, 0.49f, (float)(arrowWidth + 1), // left arrow shadow
                                                   -(float)((sliderHeight >> 1) - 1), -(float)(sliderHeight >> 1),
                                                   -(float)((sliderHeight >> 1) - 1));
   vertexIt += 4;
-  GeometryGenerator::fillControlVertex(*vertexIt,     shadowColor, 0.f, -(float)((sliderHeight >> 1) - 1)); // left arrow
+  GeometryGenerator::fillControlVertex(*vertexIt,     shadowColor, 0.5f, -(float)((sliderHeight >> 1) - 1)); // left arrow
   GeometryGenerator::fillControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), 0.f);
   GeometryGenerator::fillControlVertex(*(++vertexIt), arrowColor, (float)(arrowWidth + 1), -(float)(sliderHeight - 2));
 

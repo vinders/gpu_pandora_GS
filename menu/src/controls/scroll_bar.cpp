@@ -55,14 +55,14 @@ void ScrollBar::init(RendererContext& context, const float barColor[4], const fl
   indices.resize(3);
 
   vertices = std::vector<ControlVertex>(static_cast<size_t>(5u)); // arrow UP
-  GeometryGenerator::fillTriangleVertices(vertices.data(), arrowColor, (float)arrowPaddingX, -(float)arrowPaddingY,
-                                          (float)(width - (arrowPaddingX << 1)), (float)(width - (arrowPaddingY << 1) - 1u));
+  GeometryGenerator::fillTriangleVertices(vertices.data(), arrowColor, (float)arrowPaddingX, -(float)arrowPaddingY - 0.5f,
+                                          (float)(width - (arrowPaddingX << 1)), (float)(width - (arrowPaddingY << 1)) - 1.5f);
   upMesh = ControlMesh(context.renderer(), std::move(vertices), indices,
                        context.pixelSizeX(), context.pixelSizeY(), x, y, width, width);
 
   vertices = std::vector<ControlVertex>(static_cast<size_t>(5u)); // arrow DOWN
   GeometryGenerator::fillInvertedTriangleVertices(vertices.data(), arrowColor, (float)arrowPaddingX, -(float)(arrowPaddingY + 1u),
-                                                  (float)(width - (arrowPaddingX << 1)), (float)(width - (arrowPaddingY << 1) - 1u));
+                                                  (float)(width - (arrowPaddingX << 1)), (float)(width - (arrowPaddingY << 1)) - 1.5f);
   downMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                          x, thumbAreaY + (int32_t)thumbAreaHeight, width, width);
 }

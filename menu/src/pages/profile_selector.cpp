@@ -22,6 +22,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId ProfileSelector::PageType() const noexcept { return PageId::profileSelector; }
+
 
 // -- helpers -- ---------------------------------------------------------------
 

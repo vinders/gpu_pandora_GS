@@ -25,6 +25,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId AdvancedEffects::PageType() const noexcept { return PageId::profileAdvancedEffects; }
+
 
 // -- helpers -- ---------------------------------------------------------------
 

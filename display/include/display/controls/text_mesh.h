@@ -65,7 +65,7 @@ namespace display {
 
       inline int32_t x() const noexcept { return x_; } ///< Left X coord
       inline int32_t y() const noexcept { return y_; } ///< Top Y coord
-      inline uint32_t width() const noexcept { return width_; } ///< Total width
+      inline uint32_t width() const noexcept { return (uint32_t)(width_ + 0.5); } ///< Total width
       inline uint32_t height() const noexcept { return height_; } ///< X-height
       inline const std::vector<const FontGlyph*>& meshGlyphs() const noexcept { return glyphs; } ///< Current mesh glyphs
 
@@ -108,7 +108,7 @@ namespace display {
       std::vector<uint32_t> indices;
       int32_t x_ = 0;
       int32_t y_ = 0;
-      uint32_t width_ = 0;
+      double width_ = 0;
       uint32_t height_ = 0;
     };
   }

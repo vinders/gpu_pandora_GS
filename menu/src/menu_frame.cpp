@@ -56,7 +56,7 @@ MenuFrame::MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context_,
   // load first page
   createSectionTabs(0);
   createBackground(); // uses section tab width -> done after
-  createPage(PageId::mainMenu, isControllerUsed);
+  createPage(PageId::mainMenu, isControllerUsed, true);
   isInvalidated = true;
   
   // create presets
@@ -112,20 +112,34 @@ bool MenuFrame::onPositionEvent(Window* sender, PositionEvent event, uint32_t, u
   switch (event) {
     case PositionEvent::sizePositionChanged: {
       auto clientArea = sender->getClientSize();
+      auto previousScaling = context->scaling();
       if (context->onSizeChange(clientArea.width, clientArea.height)) { // size changed
         resizeGraphicsPipelines();
         
-        if (sectionTabs.width() != Control::sectionTabWidth(context->clientWidth()) + 1u) // section tab width changed -> rebuild
-          createSectionTabs(sectionTabs.activeTabIndex());
-        else // simple resize
-          moveSectionTabs();
-        moveBackground(); // uses section tab width -> done after
+        if (previousScaling == context->scaling()) {
+          if (sectionTabs.width() != Control::sectionTabWidth(context->clientWidth()) + 1u) // section tab width changed -> rebuild
+            createSectionTabs(sectionTabs.activeTabIndex());
+          else // simple resize
+            moveSectionTabs();
+          moveBackground(); // uses section tab width -> done after
 
-        if (pageTabs.width())
-          movePageTabs();
-        activePage->move((int32_t)sectionTabs.width(), (int32_t)pageTabs.height(), 
-                         clientArea.width - sectionTabs.width(),
-                         clientArea.height - pageTabs.height());
+          if (pageTabs.width())
+            movePageTabs();
+          activePage->move((int32_t)sectionTabs.width(), (int32_t)pageTabs.height(), 
+                           context->clientWidth() - sectionTabs.width(),
+                           context->clientHeight() - pageTabs.height());
+        }
+        else {
+          auto sectionIndex = sectionTabs.activeTabIndex();
+          sectionTabs.release();
+          pageTabs.release();
+          auto pageId = activePage->PageType();
+          bool isControllerUsed = activePage->isControllerUsed();
+          activePage = nullptr;
+
+          createSectionTabs(sectionIndex);
+          createPage(pageId, isControllerUsed, true);
+        }
       }
       isInvalidated = true; // always re-draw if position or size changes
       break;
@@ -181,6 +195,11 @@ bool MenuFrame::onControllerEvent(KeyboardEvent event, uint32_t virtualKeyCode, 
 }
 
 bool MenuFrame::onMouseEvent(Window*, MouseEvent event, int32_t x, int32_t y, int32_t index) {
+  if (context->scaling() != 1u) {
+    x /= (int32_t)context->scaling();
+    y /= (int32_t)context->scaling();
+  }
+
   switch (event) {
     case MouseEvent::mouseMove:
       this->mouseX = x;
@@ -232,7 +251,7 @@ void MenuFrame::draw() {
   if (isInvalidated) {
     // process page change here (not in handlers: we don't want to destroy an instance in use)
     if (pageToLoad != PageId::none)
-      createPage(pageToLoad, activePage->isControllerUsed());
+      createPage(pageToLoad, activePage->isControllerUsed(), false);
     
     auto& renderer = context->renderer();
     renderer.setFragmentSamplerStates(0, textureSampler.handlePtr(), 1);
@@ -303,14 +322,18 @@ void MenuFrame::draw() {
 void MenuFrame::initGraphicsPipelines(Window& window) {
   // UI state buffers (uniforms)
   auto& renderer = context->renderer();
-  buffers = std::make_shared<menu::RendererStateBuffers>(renderer, *theme);
+  buffers = std::make_shared<menu::RendererStateBuffers>(renderer, *theme, context->scaling());
   
   // framebuffers (swap-chain)
-  const uint32_t width = context->clientWidth();
-  const uint32_t height = context->clientHeight();
+  uint32_t width = context->originalWidth();
+  uint32_t height = context->originalHeight();
   swapChain = SwapChain(DisplaySurface(renderer, window.handle()),
                         SwapChainDescriptor(width, height, 2u, PresentMode::fifo),
                         DataFormat::rgba8_sRGB);
+  if (context->scaling() != 1u) {
+    width += width % context->scaling();
+    height += height % context->scaling();
+  }
   
   // graphics pipelines
   GraphicsPipeline::Builder builder(renderer);
@@ -348,16 +371,20 @@ void MenuFrame::initGraphicsPipelines(Window& window) {
                          .build();
 
   Sampler::Builder samplerBuilder(renderer.resourceManager());
-  TextureWrap textureWrapUVW[]{ TextureWrap::repeat, TextureWrap::repeat, TextureWrap::repeat };
+  TextureWrap textureWrapUVW[]{ TextureWrap::clampToEdge, TextureWrap::clampToEdge, TextureWrap::clampToEdge };
   textureSampler = samplerBuilder.createSampler(SamplerParams(TextureFilter::linear, TextureFilter::linear, TextureFilter::nearest,
                                                        textureWrapUVW, SamplerParams::highestLod(), SamplerParams::infiniteLod()));
-  //uint32_t sampleCount = renderer->isColorSampleCountAvailable(DataFormat::rgba8_sRGB, 4) ? 4 : 1;
 }
 
 void MenuFrame::resizeGraphicsPipelines() {
-  const uint32_t width = context->clientWidth();
-  const uint32_t height = context->clientHeight();
+  uint32_t width = context->originalWidth();
+  uint32_t height = context->originalHeight();
   swapChain.resize(width, height);
+  buffers->updateScaling(context->scaling());
+  if (context->scaling() != 1u) {
+    width += width % context->scaling();
+    height += height % context->scaling();
+  }
 
   Viewport viewport(width, height);
   ScissorRectangle scissor(0, 0, width, height);
@@ -585,15 +612,17 @@ void MenuFrame::createPageTabs(TabMode mode, uint32_t activeTabIndex, bool force
     this->tabMode = mode;
 
     // create controller indicators
-    auto prevButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallL2);
-    const int32_t buttonY = (int32_t)((pageTabs.height() - prevButtonIcon.height() + 1u) >> 1);
-    pagePreviousButton = IconMesh(context->renderer(), prevButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
-                                  (int32_t)(sectionTabs.width() + Control::controlSideMargin()), buttonY,
-                                  prevButtonIcon.offsetX(), prevButtonIcon.offsetY(), prevButtonIcon.width(), prevButtonIcon.height());
-    auto nextButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallR2);
-    pageNextButton = IconMesh(context->renderer(), nextButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
-                              (int32_t)(context->clientWidth() - nextButtonIcon.width() - Control::controlSideMargin()), buttonY,
-                              nextButtonIcon.offsetX(), nextButtonIcon.offsetY(), nextButtonIcon.width(), nextButtonIcon.height());
+    if (mode != TabMode::none) {
+      auto prevButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallL2);
+      const int32_t buttonY = (int32_t)((pageTabs.height() - prevButtonIcon.height() + 1u) >> 1);
+      pagePreviousButton = IconMesh(context->renderer(), prevButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
+                                    (int32_t)(sectionTabs.width() + Control::controlSideMargin()), buttonY,
+                                    prevButtonIcon.offsetX(), prevButtonIcon.offsetY(), prevButtonIcon.width(), prevButtonIcon.height());
+      auto nextButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallR2);
+      pageNextButton = IconMesh(context->renderer(), nextButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
+                                (int32_t)(context->clientWidth() - nextButtonIcon.width() - Control::controlSideMargin()), buttonY,
+                                nextButtonIcon.offsetX(), nextButtonIcon.offsetY(), nextButtonIcon.width(), nextButtonIcon.height());
+    }
   }
   else // change active tab
     pageTabs.selectIndex(*context, activeTabIndex);
@@ -611,21 +640,21 @@ void MenuFrame::movePageTabs() {
 
 // -----------------------------------------------------------------------------
 
-void MenuFrame::createPage(PageId id, bool isControllerUsed) {
+void MenuFrame::createPage(PageId id, bool isControllerUsed, bool forceRegen) {
   const int32_t pageX = (int32_t)sectionTabs.width();
   const uint32_t pageWidth = context->clientWidth() - sectionTabs.width();
   
   switch (id) {
     // main pages
     case PageId::mainMenu: {
-      createPageTabs(TabMode::none, 0);
+      createPageTabs(TabMode::none, 0, forceRegen);
       activePage = std::make_unique<MainMenu>(context, buffers, theme, *localization,
                                               pageX, 0, pageWidth, context->clientHeight(),
                                               activeProfileId, profiles, onClose);
       break;
     }
     case PageId::profileSelector: {
-      createPageTabs(TabMode::none, 0);
+      createPageTabs(TabMode::none, 0, forceRegen);
       activePage = std::make_unique<ProfileSelector>(context, buffers, theme, *localization,
                                                      pageX, 0, pageWidth, context->clientHeight(),
                                                      activeProfileId, profiles,
@@ -639,7 +668,7 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
         createBackground();
         createPageTabs(TabMode::general, pageTabs.activeTabIndex(), true);
       };
-      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings);
+      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings, forceRegen);
       activePage = std::make_unique<GeneralSettings>(context, buffers, theme, localization, windowMonitor,
                                                      pageX, (int32_t)pageTabs.height(), pageWidth,
                                                      context->clientHeight() - pageTabs.height(),
@@ -647,14 +676,14 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
       break;
     }
     case PageId::generalHotkeyBindings: {
-      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings);
+      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings, forceRegen);
       activePage = std::make_unique<HotkeyBindings>(context, buffers, *theme, *localization,
                                                     pageX, (int32_t)pageTabs.height(), pageWidth,
                                                     context->clientHeight() - pageTabs.height());
       break;
     }
     case PageId::generalOsdSettings: {
-      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings);
+      createPageTabs(TabMode::general, (uint32_t)id - (uint32_t)PageId::generalSettings, forceRegen);
       activePage = std::make_unique<OsdSettings>(context, buffers, *theme, *localization,
                                                  pageX, (int32_t)pageTabs.height(), pageWidth,
                                                  context->clientHeight() - pageTabs.height());
@@ -662,7 +691,7 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
     }
     // profile pages
     case PageId::profileSettings: {
-      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings);
+      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings, forceRegen);
       activePage = std::make_unique<ProfileSettings>(context, buffers, theme, *localization,
                                                      pageX, (int32_t)pageTabs.height(), pageWidth,
                                                      context->clientHeight() - pageTabs.height(),
@@ -670,21 +699,21 @@ void MenuFrame::createPage(PageId id, bool isControllerUsed) {
       break;
     }
     case PageId::profileScreenStretching: {
-      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings);
+      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings, forceRegen);
       activePage = std::make_unique<ScreenStretching>(context, buffers, *theme, *localization,
                                                       pageX, (int32_t)pageTabs.height(), pageWidth,
                                                       context->clientHeight() - pageTabs.height());
       break;
     }
     case PageId::profileSmoothingUpscaling: {
-      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings);
+      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings, forceRegen);
       activePage = std::make_unique<SmoothingUpscaling>(context, buffers, *theme, localization,
                                                         pageX, (int32_t)pageTabs.height(), pageWidth,
                                                         context->clientHeight() - pageTabs.height());
       break;
     }
     case PageId::profileAdvancedEffects: {
-      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings);
+      createPageTabs(TabMode::profile, (uint32_t)id - (uint32_t)PageId::profileSettings, forceRegen);
       activePage = std::make_unique<AdvancedEffects>(context, buffers, *theme, *localization,
                                                      pageX, (int32_t)pageTabs.height(), pageWidth,
                                                      context->clientHeight() - pageTabs.height());

@@ -24,6 +24,8 @@ using namespace menu::controls;
 using namespace menu::pages;
 using namespace menu;
 
+PageId ScreenStretching::PageType() const noexcept { return PageId::profileScreenStretching; }
+
 
 // -- ratio preview -- ---------------------------------------------------------
 
