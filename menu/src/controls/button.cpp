@@ -31,11 +31,11 @@ void Button::init(RendererContext& context, const char16_t* label, int32_t x, in
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
   if (style.icon != display::ControlIconType::none) {
-    iconData = context.imageLoader().getIcon(style.icon);
+    iconData = context.imageLoader().getIcon(style.icon, context.scaling());
 
     const bool isLabelEmpty = (label == nullptr || *label == (char16_t)0);
     if (iconData.texture() != nullptr)
-      iconWidthWithMargin = !isLabelEmpty ? iconData.width() + iconMarginRight() : iconData.width();
+      iconWidthWithMargin = !isLabelEmpty ? iconData.contentWidth() + iconMarginRight() : iconData.contentWidth();
     else if (isLabelEmpty) // icon not available + empty label -> set placeholder
       label = toDefaultLabel(style.icon);
   }
@@ -89,9 +89,10 @@ void Button::init(RendererContext& context, const char16_t* label, int32_t x, in
   // create icon (optional)
   if (iconData.texture() != nullptr) {
     const int32_t iconX = labelMesh.x() - (int32_t)iconWidthWithMargin;
-    const int32_t iconY = controlMesh.y() + ((int32_t)height - (int32_t)iconData.height())/2;
+    const int32_t iconY = controlMesh.y() + ((int32_t)height - (int32_t)iconData.contentHeight())/2;
     iconMesh = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                        iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
+                        iconX, iconY, iconData.offsetX(), iconData.offsetY(),
+                        iconData.textureWidth(), iconData.textureHeight(), iconData.scaling());
   }
 }
 

@@ -36,48 +36,58 @@ namespace menu {
     /// @param fontDirectoryPath  Absolute or relative directory to directory containing fonts
     ///                           (if not empty, must be finished with '/' or '\\')
 #   ifdef _WINDOWS
-    RendererContext(std::shared_ptr<video_api::Renderer> renderer,
-                    const char* fontDirectoryPath, const char* iconSpriteId, const char* iconSpriteAlphaId,
+    RendererContext(std::shared_ptr<video_api::Renderer> renderer, const char* fontDirectoryPath,
+                    const char* logoId, const char* logoAlphaId,
+                    const char* logo2xId, const char* logo2xAlphaId,
+                    const char* iconSpriteId, const char* iconSpriteAlphaId,
+                    const char* iconSprite2xId, const char* iconSprite2xAlphaId,
                     const char* tabSpriteId, const char* tabSpriteAlphaId,
-                    const char* pandoraLogoId, const char* pandoraLogoAlphaId,
+                    const char* tabSprite2xId, const char* tabSprite2xAlphaId,
                     const char* ratioPreviewId, const char* radialGradientId,
                     uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId),
+      imageLoader_(renderer_, logoId, logoAlphaId, logo2xId, logo2xAlphaId,
+                   iconSpriteId, iconSpriteAlphaId, iconSprite2xId, iconSprite2xAlphaId,
+                   tabSpriteId, tabSpriteAlphaId, tabSprite2xId, tabSprite2xAlphaId, radialGradientId),
       fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
-      initFonts(fontDirectoryPath);
-      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
+      initFonts();
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewId, nullptr);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
     }
-    RendererContext(std::shared_ptr<video_api::Renderer> renderer,
-                    const char* fontDirectoryPath, const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
+    RendererContext(std::shared_ptr<video_api::Renderer> renderer, const char* fontDirectoryPath,
+                    const wchar_t* logoId, const wchar_t* logoAlphaId,
+                    const wchar_t* logo2xId, const wchar_t* logo2xAlphaId,
+                    const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
+                    const wchar_t* iconSprite2xId, const wchar_t* iconSprite2xAlphaId,
                     const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId,
-                    const wchar_t* pandoraLogoId, const wchar_t* pandoraLogoAlphaId,
+                    const wchar_t* tabSprite2xId, const wchar_t* tabSprite2xAlphaId,
                     const wchar_t* ratioPreviewId, const wchar_t* radialGradientId,
                     uint32_t clientWidth, uint32_t clientHeight)
     : renderer_(std::move(renderer)),
-      imageLoader_(renderer_, iconSpriteId, iconSpriteAlphaId, tabSpriteId, tabSpriteAlphaId, radialGradientId),
+      imageLoader_(renderer_, logoId, logoAlphaId, logo2xId, logo2xAlphaId,
+                   iconSpriteId, iconSpriteAlphaId, iconSprite2xId, iconSprite2xAlphaId,
+                   tabSpriteId, tabSpriteAlphaId, tabSprite2xId, tabSprite2xAlphaId, radialGradientId),
       fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
-      initFonts(fontDirectoryPath);
-      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId, pandoraLogoAlphaId);
+      initFonts();
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewId, nullptr);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
     }
 #   else
-    RendererContext(std::shared_ptr<video_api::Renderer> renderer,
-                    const char* fontDirectoryPath, const char* iconSpritePath, const char* tabSpritePath,
-                    const char* pandoraLogoPath, const char* ratioPreviewPath,
+    RendererContext(std::shared_ptr<video_api::Renderer> renderer, const char* fontDirectoryPath,
+                    const char* logoId, const char* logo2xId,
+                    const char* iconSpritePath, const char* iconSprite2xPath,
+                    const char* tabSpritePath, const char* tabSprite2xPath,
+                    const char* ratioPreviewPath, const char* radialGradientPath,
                     uint32_t clientWidth, uint32_t clientHeight)
-    : renderer_(std::move(renderer)), imageLoader_(renderer_, iconSpritePath, tabSpritePath),
+    : renderer_(std::move(renderer)),
+      imageLoader_(renderer_, logoId, logo2xId, iconSpritePath, iconSprite2xPath, tabSpritePath, tabSprite2xPath, radialGradientPath),
       fontDirectoryPath(fontDirectoryPath) {
       onSizeChange(clientWidth, clientHeight);
-      initFonts(fontDirectoryPath);
-      pandoraLogo = this->imageLoader_.loadImage(pandoraLogoId);
+      initFonts();
       ratioPreview = this->imageLoader_.loadImage(ratioPreviewPath);
       if (ratioPreview == nullptr)
         ratioPreview = this->imageLoader_.generateSquareIcon(true).texture();
@@ -100,7 +110,6 @@ namespace menu {
 
     inline video_api::Renderer& renderer() noexcept { return *renderer_; }       ///< Video rendered used for menu
     inline display::ImageLoader& imageLoader() noexcept { return imageLoader_; } ///< Menu image/sprite loader
-    inline const std::shared_ptr<video_api::Texture2D>& pandoraLogoImage() const noexcept { return pandoraLogo; }
     inline const std::shared_ptr<video_api::Texture2D>& ratioPreviewImage() const noexcept { return ratioPreview; }
     
     /// @brief Get font glyph reader (by font type)
@@ -116,13 +125,12 @@ namespace menu {
     inline float pixelSizeY() const noexcept { return pixelSizeY_; } ///< Vertical pixel size in shader coords
     
   private:
-    void initFonts(const char* fontDirectoryPath);
+    void initFonts();
 
   private:
     std::shared_ptr<video_api::Renderer> renderer_ = nullptr;
     std::array<std::unique_ptr<display::Font>, (size_t)FontType::COUNT> fonts{};
     display::ImageLoader imageLoader_;
-    std::shared_ptr<video_api::Texture2D> pandoraLogo = nullptr;
     std::shared_ptr<video_api::Texture2D> ratioPreview = nullptr;
     uint32_t clientWidth_ = 0;
     uint32_t clientHeight_ = 0;

@@ -321,7 +321,7 @@ void GeometryGenerator::fillCrossVertices(ControlVertex* outVertexIt, const floa
 }
 
 void GeometryGenerator::fillPencilVertices(ControlVertex* outVertexIt, const float rgba[4],
-                                           float x1, float x2, float y1, float y2) noexcept {
+                                           float x1, float x2, float y1, float y2, bool smoothed) noexcept {
   // top
   fillControlVertex(*outVertexIt,     rgba, x2 - 2.f, y1 + 2.f);
   fillControlVertex(*(++outVertexIt), rgba, x2 + 2.f, y1 - 2.f);
@@ -335,9 +335,25 @@ void GeometryGenerator::fillPencilVertices(ControlVertex* outVertexIt, const flo
   fillControlVertex(*(++outVertexIt), rgba, x1 + 5.f, y2 + 1.f);
 
   // tip
-  fillControlVertex(*(++outVertexIt), rgba, x1,       y2 + 4.f);
-  fillControlVertex(*(++outVertexIt), rgba, x1 + 4.f, y2);
-  fillControlVertex(*(++outVertexIt), rgba, x1 - 1.f, y2 - 1.f);
+  const float halfRgba[4]{ rgba[0], rgba[1], rgba[2], rgba[3] * 0.4f };
+  if (smoothed) {
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 - 0.15f, y2 + 3.9f);
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 + 3.9f,  y2 - 0.15f);
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 - 1.74f, y2 - 1.74f);
+    
+    fillControlVertex(*(++outVertexIt), rgba, x1, y2 + 4.f);
+    fillControlVertex(*(++outVertexIt), rgba, x1 + 4.f, y2);
+    fillControlVertex(*(++outVertexIt), rgba, x1 - 1.5f, y2 - 1.5f);
+  }
+  else {
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 - 0.15f, y2 + 4.f);
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 + 4.f, y2 - 0.15f);
+    fillControlVertex(*(++outVertexIt), halfRgba, x1 - 2.f, y2 - 2.f);
+
+    fillControlVertex(*(++outVertexIt), rgba, x1, y2 + 4.f);
+    fillControlVertex(*(++outVertexIt), rgba, x1 + 4.f, y2);
+    fillControlVertex(*(++outVertexIt), rgba, x1 - 1.25f, y2 - 1.25f);
+  }
 }
 
 

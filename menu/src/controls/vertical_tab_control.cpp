@@ -64,13 +64,13 @@ void VerticalTabControl::init(RendererContext& context, int32_t x, int32_t y, ui
     IconMesh icon;
     TextMesh label;
     uint32_t height = paddingY;
-    if (tabIt->icon() != ControlIconType::none) {
-      auto iconData = context.imageLoader().getIcon(tabIt->icon());
+    if (tabIt->icon() != TabIconType::none) {
+      auto iconData = context.imageLoader().getTabIcon(tabIt->icon(), context.scaling());
       if (iconData.texture() != nullptr) {
-        const int32_t iconX = x + ((int32_t)tabWidth - (int32_t)iconData.width())/2;
+        const int32_t iconX = x + ((int32_t)tabWidth - (int32_t)iconData.contentWidth())/2;
         icon = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                        iconX, tabY + (int32_t)paddingY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
-        height += iconData.height();
+                        iconX, tabY + (int32_t)paddingY, iconData.offsetX(), iconData.offsetY(), iconData.textureWidth(), iconData.textureHeight(), iconData.scaling());
+        height += iconData.contentHeight();
       }
     }
     if (tabWidth >= Control::sectionWideTabWidth() && tabIt->name() && *(tabIt->name()) != (char16_t)0) {

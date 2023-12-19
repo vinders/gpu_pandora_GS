@@ -151,16 +151,16 @@ void Tile::init(RendererContext& context, const char16_t* label, int32_t x, int3
                              x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y(), buttonHeight - 1u, buttonHeight - 1u);
 
     // create edit button
-    vertices = std::vector<ControlVertex>(static_cast<size_t>(11 + 8));
+    vertices = std::vector<ControlVertex>(static_cast<size_t>(14 + 8));
     vertexIt = vertices.data();
     GeometryGenerator::fillRectangleVertices(vertexIt, colorBorder, 1.f, (float)(buttonHeight - 1u), 0.f, -(float)(buttonHeight - 1u)); // background
     vertexIt += 4;
     GeometryGenerator::fillRectangleVertices(vertexIt, buttonBorderColor, 0.f, 1.f, 0.f, -(float)(buttonHeight - 1u)); // border left
     vertexIt += 4;
     GeometryGenerator::fillPencilVertices(vertexIt, iconColor, (float)(iconOffset - 1u), (float)(buttonHeight - iconOffset + 2u),
-                                          -(float)(iconOffset - 2u), -(float)(buttonHeight - iconOffset + 1u));
+                                          -(float)(iconOffset - 2u), -(float)(buttonHeight - iconOffset + 1u), (context.scaling() > 1u));
 
-    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11, 12,13,14,14,13,15, 16,17,18 };
+    indices = { 0,1,2,2,1,3,  4,5,6,6,5,7,  8,9,10,10,9,11, 12,13,14,14,13,15, 16,17,18, 19,20,21 };
     editMesh = ControlMesh(context.renderer(), std::move(vertices), indices, context.pixelSizeX(), context.pixelSizeY(),
                            x + (int32_t)fixedWidth - (int32_t)buttonHeight, controlMesh.y() + (int32_t)buttonHeight,
                            buttonHeight - 1u, buttonHeight - 1u);

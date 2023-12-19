@@ -42,7 +42,7 @@ void IconMesh::initFullImage(Renderer& renderer, const float pxSizeX, const floa
 
 IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
                    const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
-                   uint32_t txOffsetX, uint32_t txOffsetY, uint32_t width, uint32_t height)
+                   uint32_t txOffsetX, uint32_t txOffsetY, uint32_t width, uint32_t height, uint32_t textureScaling)
   : texture(std::move(texture)),
     x_(x),
     y_(y),
@@ -50,10 +50,14 @@ IconMesh::IconMesh(Renderer& renderer, std::shared_ptr<Texture2D> texture,
     height_(height) {
   if (this->texture == nullptr)
     return;
+  if (textureScaling > 1u) {
+    this->width_ /= textureScaling;
+    this->height_ /= textureScaling;
+  }
   const float left = ToVertexPositionX(x, pxSizeX);
   const float top = ToVertexPositionY(y, pxSizeY);
-  const float right = left + (float)width*pxSizeX;
-  const float bottom = top - (float)height*pxSizeY;
+  const float right = left + (float)this->width_/*downscaled*/*pxSizeX;
+  const float bottom = top - (float)this->height_/*downscaled*/*pxSizeY;
   
   const uint32_t textureWidth = this->texture->rowBytes() >> 2;
   const float texLeft = ToTextureCoord(txOffsetX, textureWidth);
@@ -90,7 +94,7 @@ void IconMesh::regenerate(Renderer& renderer, const float pxSizeX, const float p
   IconVertex* vertexIt = vertices;
   vertexIt->position[0] = left;      vertexIt->position[1] = top;
   (++vertexIt)->position[0] = right; vertexIt->position[1] = top;
-  (++vertexIt)->position[0] = left; vertexIt->position[1] = bottom;
+  (++vertexIt)->position[0] = left;  vertexIt->position[1] = bottom;
   (++vertexIt)->position[0] = right; vertexIt->position[1] = bottom;
   
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
@@ -98,8 +102,13 @@ void IconMesh::regenerate(Renderer& renderer, const float pxSizeX, const float p
 }
 
 void IconMesh::invertX(video_api::Renderer& renderer) {
-  for (auto& vertex : vertices)
-    vertex.coords[0] = -vertex.coords[0];
+  float tmpCoord = vertices[0].coords[0];
+  vertices[0].coords[0] = vertices[1].coords[0];
+  vertices[1].coords[0] = tmpCoord;
+  tmpCoord = vertices[2].coords[0];
+  vertices[2].coords[0] = vertices[3].coords[0];
+  vertices[3].coords[0] = tmpCoord;
+
   vertexBuffer = Buffer<ResourceUsage::staticGpu>(renderer, BufferType::vertex,
                                                   4*sizeof(IconVertex), vertices, false);
 }

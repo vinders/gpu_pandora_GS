@@ -71,7 +71,7 @@ namespace display {
       /// @param pxSizeY  Expected: ToPixelSize(frameHeight)
       IconMesh(video_api::Renderer& renderer, std::shared_ptr<video_api::Texture2D> texture,
                const float pxSizeX, const float pxSizeY, int32_t x, int32_t y,
-               uint32_t txOffsetX, uint32_t txOffsetY, uint32_t width, uint32_t height);
+               uint32_t txOffsetX, uint32_t txOffsetY, uint32_t width, uint32_t height, uint32_t textureScaling);
       IconMesh() = default;
       IconMesh(IconMesh&&) = default;
       IconMesh& operator=(IconMesh&&) = default;

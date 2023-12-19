@@ -18,15 +18,19 @@ GNU General Public License for more details (LICENSE file).
 #include <display/video_api.h>
 
 namespace display {
+  /// @brief Optional type of icon to display in a tab
+  enum class TabIconType : uint32_t {
+    none = 0,
+    home,
+    settings,
+    selector,
+    profile,
+  };
   /// @brief Optional type of icon to display in a control
   enum class ControlIconType : uint32_t {
     none = 0,
     checked,
     unchecked,
-    tabHome,
-    tabSettings,
-    tabSelector,
-    tabProfile,
     add,
     edit,
     remove,
@@ -62,6 +66,16 @@ namespace display {
       : texture_(std::move(texture)),
         offsetX_(offsetX), offsetY_(offsetY),
         width_(width), height_(height) {}
+    ControlIcon(std::shared_ptr<video_api::Texture2D> texture,
+                uint32_t offsetX, uint32_t offsetY, uint32_t width, uint32_t height, uint32_t scaling)
+      : texture_(std::move(texture)),
+        offsetX_(offsetX), offsetY_(offsetY),
+        width_(width), height_(height), scaling_(scaling) {
+      if (scaling > 1u) {
+        offsetX_ *= scaling;
+        offsetY_ *= scaling;
+      }
+    }
     ControlIcon() = default;
     ControlIcon(const ControlIcon&) = default;
     ControlIcon(ControlIcon&&) noexcept = default;
@@ -73,8 +87,11 @@ namespace display {
     inline std::shared_ptr<video_api::Texture2D>& texture() noexcept { return texture_; } ///< Sprite-sheet
     inline uint32_t offsetX() const noexcept { return offsetX_; } ///< Icon offset-X in sprite-sheet
     inline uint32_t offsetY() const noexcept { return offsetY_; } ///< Icon offset-Y in sprite-sheet
-    inline uint32_t width() const noexcept { return width_; }   ///< Icon width in sprite-sheet
-    inline uint32_t height() const noexcept { return height_; } ///< Icon height in sprite-sheet
+    inline uint32_t contentWidth() const noexcept { return width_; }   ///< Icon width in page
+    inline uint32_t contentHeight() const noexcept { return height_; } ///< Icon height in page
+    inline uint32_t textureWidth() const noexcept { return width_*scaling_; }   ///< Icon width in sprite-sheet
+    inline uint32_t textureHeight() const noexcept { return height_*scaling_; } ///< Icon height in sprite-sheet
+    inline uint32_t scaling() const noexcept { return scaling_; } ///< Icon height in sprite-sheet
     
   private:
     std::shared_ptr<video_api::Texture2D> texture_ = nullptr;
@@ -82,6 +99,7 @@ namespace display {
     uint32_t offsetY_ = 0;
     uint32_t width_ = 0;
     uint32_t height_ = 0;
+    uint32_t scaling_ = 1;
   };
   
   // ---
@@ -91,27 +109,49 @@ namespace display {
   public:
 #   ifdef _WINDOWS
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
+                const char* logoId, const char* logoAlphaId,
+                const char* logo2xId, const char* logo2xAlphaId,
                 const char* iconSpriteId, const char* iconSpriteAlphaId,
+                const char* iconSprite2xId, const char* iconSprite2xAlphaId,
                 const char* tabSpriteId, const char* tabSpriteAlphaId,
+                const char* tabSprite2xId, const char* tabSprite2xAlphaId,
                 const char* radialGradientId)
       : renderer(std::move(renderer)), radialGradientId(radialGradientId) {
       iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
+      iconsSprite2x = loadImage(iconSprite2xId, iconSprite2xAlphaId);
       tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
+      tabsSprite2x = loadImage(tabSprite2xId, tabSprite2xAlphaId);
+      logo = loadImage(logoId, logoAlphaId);
+      logo2x = loadImage(logo2xId, logo2xAlphaId);
     }
     ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
+                const wchar_t* logoId, const wchar_t* logoAlphaId,
+                const wchar_t* logo2xId, const wchar_t* logo2xAlphaId,
                 const wchar_t* iconSpriteId, const wchar_t* iconSpriteAlphaId,
+                const wchar_t* iconSprite2xId, const wchar_t* iconSprite2xAlphaId,
                 const wchar_t* tabSpriteId, const wchar_t* tabSpriteAlphaId,
+                const wchar_t* tabSprite2xId, const wchar_t* tabSprite2xAlphaId,
                 const wchar_t* radialGradientId)
       : renderer(std::move(renderer)), radialGradientWideId(radialGradientId) {
       iconsSprite = loadImage(iconSpriteId, iconSpriteAlphaId);
+      iconsSprite2x = loadImage(iconSprite2xId, iconSprite2xAlphaId);
       tabsSprite = loadImage(tabSpriteId, tabSpriteAlphaId);
+      tabsSprite2x = loadImage(tabSprite2xId, tabSprite2xAlphaId);
+      logo = loadImage(logoId, logoAlphaId);
+      logo2x = loadImage(logo2xId, logo2xAlphaId);
     }
 #   else
-    ImageLoader(std::shared_ptr<video_api::Renderer> renderer, const char* iconSpritePath,
-                const char* tabSpritePath, const char* radialGradientPath)
+    ImageLoader(std::shared_ptr<video_api::Renderer> renderer,
+                const char* logoPath, const char* logo2xPath,
+                const char* iconSpritePath, const char* iconSprite2xPath,
+                const char* tabSpritePath, const char* tabSprite2xPath, const char* radialGradientPath)
       : renderer(std::move(renderer)) {
       iconsSprite = loadImage(iconSpritePath);
+      iconsSprite2x = loadImage(iconSprite2xPath);
       tabsSprite = loadImage(tabSpritePath);
+      tabsSprite2x = loadImage(tabSprite2xPath);
+      logo = loadImage(logoPath);
+      logo2x = loadImage(logo2xPath);
     }
 #   endif
 
@@ -127,8 +167,12 @@ namespace display {
       renderer = nullptr;
     }
     
+    /// @brief Load logo texture
+    ControlIcon getLogo(uint32_t themeIndex, uint32_t themeCount, uint32_t scaling);
+    /// @brief Load icon to display in a tab
+    ControlIcon getTabIcon(TabIconType type, uint32_t scaling);
     /// @brief Load icon to display in a control
-    ControlIcon getIcon(ControlIconType type);
+    ControlIcon getIcon(ControlIconType type, uint32_t scaling);
     /// @brief Generate square icon for a control (e.g. to use as a placeholder, if no icon is available)
     ControlIcon generateSquareIcon(bool isFilled);
     
@@ -147,6 +191,10 @@ namespace display {
     std::shared_ptr<video_api::Renderer> renderer = nullptr;
     std::shared_ptr<video_api::Texture2D> iconsSprite = nullptr;
     std::shared_ptr<video_api::Texture2D> tabsSprite = nullptr;
+    std::shared_ptr<video_api::Texture2D> iconsSprite2x = nullptr;
+    std::shared_ptr<video_api::Texture2D> tabsSprite2x = nullptr;
+    std::shared_ptr<video_api::Texture2D> logo = nullptr;
+    std::shared_ptr<video_api::Texture2D> logo2x = nullptr;
 #   ifdef _WINDOWS
     const char* radialGradientId = nullptr;
     const wchar_t* radialGradientWideId = nullptr;

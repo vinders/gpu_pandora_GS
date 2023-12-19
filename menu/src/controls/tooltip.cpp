@@ -52,11 +52,11 @@ void Tooltip::init(RendererContext& context, const char16_t* label, int32_t x, i
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
   if (icon != display::ControlIconType::none) {
-    iconData = context.imageLoader().getIcon(icon);
+    iconData = context.imageLoader().getIcon(icon, context.scaling());
 
     const bool isLabelEmpty = (label == nullptr || *label == (char16_t)0);
     if (iconData.texture() != nullptr)
-      iconWidthWithMargin = !isLabelEmpty ? iconData.width() + iconMarginRight() : iconData.width();
+      iconWidthWithMargin = !isLabelEmpty ? iconData.contentWidth() + iconMarginRight() : iconData.contentWidth();
   }
   
   // create label
@@ -75,9 +75,9 @@ void Tooltip::init(RendererContext& context, const char16_t* label, int32_t x, i
   // create icon (optional)
   if (iconData.texture() != nullptr) {
     const int32_t iconX = x + (int32_t)Control::tooltipPaddingX();
-    const int32_t iconY = y + ((int32_t)height_ - (int32_t)iconData.height())/2;
+    const int32_t iconY = y + ((int32_t)height_ - (int32_t)iconData.contentHeight())/2;
     iconMesh = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                        iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
+                        iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.textureWidth(), iconData.textureHeight(), iconData.scaling());
   }
 }
 
@@ -113,16 +113,16 @@ void Tooltip::updateIcon(RendererContext& context, display::ControlIconType icon
   uint32_t iconWidthWithMargin = 0;
   ControlIcon iconData;
   if (icon != display::ControlIconType::none) {
-    iconData = context.imageLoader().getIcon(icon);
+    iconData = context.imageLoader().getIcon(icon, context.scaling());
     if (iconData.texture() != nullptr)
-      iconWidthWithMargin = labelMesh.width() ? iconData.width() + iconMarginRight() : iconData.width();
+      iconWidthWithMargin = labelMesh.width() ? iconData.contentWidth() + iconMarginRight() : iconData.contentWidth();
   }
   // replace icon
   if (iconData.texture() != nullptr) {
     const int32_t iconX = controlMesh.x() + (int32_t)Control::tooltipPaddingX();
-    const int32_t iconY = controlMesh.y() + ((int32_t)controlMesh.height() - (int32_t)iconData.height())/2;
+    const int32_t iconY = controlMesh.y() + ((int32_t)controlMesh.height() - (int32_t)iconData.contentHeight())/2;
     iconMesh = IconMesh(context.renderer(), std::move(iconData.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                        iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.width(), iconData.height());
+                        iconX, iconY, iconData.offsetX(), iconData.offsetY(), iconData.textureWidth(), iconData.textureHeight(), iconData.scaling());
 
     if (labelMesh.x() == iconMesh.x()) { // adjust label location
       labelMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(),

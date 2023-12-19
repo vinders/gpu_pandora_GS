@@ -56,39 +56,66 @@ const char16_t* display::toDefaultLabel(ControlIconType type) noexcept {
   };
 }
 
-ControlIcon ImageLoader::getIcon(ControlIconType type) {
-  if (iconsSprite != nullptr) {
+ControlIcon ImageLoader::getLogo(uint32_t themeIndex, uint32_t themeCount, uint32_t scaling) {
+  if (logo != nullptr) {
+    const uint32_t width = logo->rowBytes() >> 2;
+    const uint32_t height = logo->height() / themeCount;
+    if (scaling > 1u)
+      return ControlIcon(logo2x, 0, themeIndex*height, width, height, 2u);
+    else
+      return ControlIcon(logo, 0, themeIndex*height, width, height, 1u);
+  }
+  return ControlIcon(nullptr, 0,0, 0,0);
+}
+
+ControlIcon ImageLoader::getTabIcon(TabIconType type, uint32_t scaling) {
+  auto& sprite = (scaling > 1u) ? tabsSprite2x : tabsSprite;
+  if (scaling > 1u)
+    scaling = 2u;
+  if (sprite != nullptr) {
     switch (type) {
-      case ControlIconType::checked:   return ControlIcon(iconsSprite, 0, 0, 64,22);
-      case ControlIconType::unchecked: return ControlIcon(iconsSprite, 0,24, 64,22);
-      case ControlIconType::tabHome:      return ControlIcon(tabsSprite, 0,0, 48,48);
-      case ControlIconType::tabSettings:  return ControlIcon(tabsSprite, 0,48, 48,48);
-      case ControlIconType::tabSelector:  return ControlIcon(tabsSprite, 0,96, 48,48);
-      case ControlIconType::tabProfile:   return ControlIcon(tabsSprite, 0,144, 48,48);
-      case ControlIconType::add:    return ControlIcon(iconsSprite, 1,48, 19,19);
-      case ControlIconType::edit:   return ControlIcon(iconsSprite, 1,69, 19,19);
-      case ControlIconType::remove: return ControlIcon(iconsSprite, 1,90, 19,19);
-      case ControlIconType::keyboard:   return ControlIcon(iconsSprite, 1,111, 22,22);
-      case ControlIconType::controller: return ControlIcon(iconsSprite, 1,135, 22,22);
-      case ControlIconType::buttonDpad:      return ControlIcon(iconsSprite, 26,86, 38,38);
-      case ControlIconType::buttonDpadUp:    return ControlIcon(iconsSprite, 26,48, 14,17);
-      case ControlIconType::buttonDpadDown:  return ControlIcon(iconsSprite, 26,67, 14,17);
-      case ControlIconType::buttonDpadLeft:  return ControlIcon(iconsSprite, 27,60, 44,70);
-      case ControlIconType::buttonDpadRight: return ControlIcon(iconsSprite, 48,60, 44,48);
-      case ControlIconType::buttonStart:    return ControlIcon(iconsSprite, 0,167, 26,14);
-      case ControlIconType::buttonSelect:   return ControlIcon(iconsSprite, 0,187, 26,12);
-      case ControlIconType::buttonL1:       return ControlIcon(iconsSprite, 26,126, 38,19);
-      case ControlIconType::buttonL2:       return ControlIcon(iconsSprite, 26,145, 38,19);
-      case ControlIconType::buttonSmallL2:  return ControlIcon(iconsSprite, 35,147, 21,16);
-      case ControlIconType::buttonR1:       return ControlIcon(iconsSprite, 26,164, 38,19);
-      case ControlIconType::buttonR2:       return ControlIcon(iconsSprite, 26,183, 38,19);
-      case ControlIconType::buttonSmallR2:  return ControlIcon(iconsSprite, 35,185, 21,16);
-      case ControlIconType::buttonTriangle: return ControlIcon(iconsSprite,  1,204, 26,26);
-      case ControlIconType::buttonCircle:   return ControlIcon(iconsSprite, 28,204, 26,26);
-      case ControlIconType::buttonSquare:   return ControlIcon(iconsSprite,  1,231, 26,26);
-      case ControlIconType::buttonCross:    return ControlIcon(iconsSprite, 28,231, 26,26);
-      case ControlIconType::buttonL3:       return ControlIcon(iconsSprite,  1,258, 26,26);
-      case ControlIconType::buttonR3:       return ControlIcon(iconsSprite, 28,258, 26,26);
+      case TabIconType::home:      return ControlIcon(sprite, 0,0,   48,48, scaling);
+      case TabIconType::settings:  return ControlIcon(sprite, 0,48,  48,48, scaling);
+      case TabIconType::selector:  return ControlIcon(sprite, 0,96,  48,48, scaling);
+      case TabIconType::profile:   return ControlIcon(sprite, 0,144, 48,48, scaling);
+      default: break;
+    }
+  }
+  return ControlIcon(nullptr, 0,0, 0,0);
+}
+
+ControlIcon ImageLoader::getIcon(ControlIconType type, uint32_t scaling) {
+  auto& sprite = (scaling > 1u) ? iconsSprite2x : iconsSprite;
+  if (scaling > 1u)
+    scaling = 2u;
+  if (sprite != nullptr) {
+    switch (type) {
+      case ControlIconType::checked:   return ControlIcon(sprite, 0, 0, 64,22, scaling);
+      case ControlIconType::unchecked: return ControlIcon(sprite, 0,24, 64,22, scaling);
+      case ControlIconType::add:    return ControlIcon(sprite, 1,48, 19,19, scaling);
+      case ControlIconType::edit:   return ControlIcon(sprite, 1,69, 19,19, scaling);
+      case ControlIconType::remove: return ControlIcon(sprite, 1,90, 19,19, scaling);
+      case ControlIconType::keyboard:   return ControlIcon(sprite, 1,111, 22,22, scaling);
+      case ControlIconType::controller: return ControlIcon(sprite, 1,135, 22,22, scaling);
+      case ControlIconType::buttonDpad:      return ControlIcon(sprite, 26,48, 38,38, scaling);
+      case ControlIconType::buttonDpadUp:    return ControlIcon(sprite, 38,49, 14,17, scaling);
+      case ControlIconType::buttonDpadDown:  return ControlIcon(sprite, 38,68, 14,17, scaling);
+      case ControlIconType::buttonDpadLeft:  return ControlIcon(sprite, 27,60, 17,14, scaling);
+      case ControlIconType::buttonDpadRight: return ControlIcon(sprite, 46,60, 17,14, scaling);
+      case ControlIconType::buttonStart:    return ControlIcon(sprite, 0,129, 26,14, scaling);
+      case ControlIconType::buttonSelect:   return ControlIcon(sprite, 0,149, 26,12, scaling);
+      case ControlIconType::buttonL1:       return ControlIcon(sprite, 26,88, 38,19, scaling);
+      case ControlIconType::buttonL2:       return ControlIcon(sprite, 26,107, 38,19, scaling);
+      case ControlIconType::buttonSmallL2:  return ControlIcon(sprite, 35,109, 21,16, scaling);
+      case ControlIconType::buttonR1:       return ControlIcon(sprite, 26,126, 38,19, scaling);
+      case ControlIconType::buttonR2:       return ControlIcon(sprite, 26,145, 38,19, scaling);
+      case ControlIconType::buttonSmallR2:  return ControlIcon(sprite, 35,147, 21,16, scaling);
+      case ControlIconType::buttonTriangle: return ControlIcon(sprite,  1,166, 26,26, scaling);
+      case ControlIconType::buttonCircle:   return ControlIcon(sprite, 28,166, 26,26, scaling);
+      case ControlIconType::buttonSquare:   return ControlIcon(sprite,  1,193, 26,26, scaling);
+      case ControlIconType::buttonCross:    return ControlIcon(sprite, 28,193, 26,26, scaling);
+      case ControlIconType::buttonL3:       return ControlIcon(sprite,  1,220, 26,26, scaling);
+      case ControlIconType::buttonR3:       return ControlIcon(sprite, 28,220, 26,26, scaling);
       default: break;
     }
   }

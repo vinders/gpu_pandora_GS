@@ -25,7 +25,7 @@ namespace menu {
     public:
       static constexpr const size_t maxLength{ (size_t)31 }; ///< Max option name length
 
-      VerticalTabOption(const char16_t* label, display::ControlIconType icon) noexcept
+      VerticalTabOption(const char16_t* label, display::TabIconType icon) noexcept
         : icon_(icon) {
         updateName(label);
       }
@@ -37,7 +37,7 @@ namespace menu {
       ~VerticalTabOption() noexcept = default;
 
       inline const char16_t* name() const noexcept { return name_; } ///< Option label to display
-      inline display::ControlIconType icon() const noexcept { return icon_; } ///< Icon associated with this tab
+      inline display::TabIconType icon() const noexcept { return icon_; } ///< Icon associated with this tab
 
       inline void updateName(const char16_t* label) noexcept { ///< Set option label
         size_t length = display::controls::TextMesh::getStringLength(label);
@@ -51,7 +51,7 @@ namespace menu {
 
     private:
       char16_t name_[maxLength+1];
-      display::ControlIconType icon_ = display::ControlIconType::none;
+      display::TabIconType icon_ = display::TabIconType::none;
     };
   }
 }

@@ -26,8 +26,8 @@ ControlType CheckBox::type() const noexcept { return ControlType::checkBox; }
 
 void CheckBox::init(RendererContext& context, const char16_t* label, int32_t x, int32_t labelY) {
   // load icons
-  ControlIcon iconDataOn = context.imageLoader().getIcon(ControlIconType::checked);
-  ControlIcon iconDataOff = context.imageLoader().getIcon(ControlIconType::unchecked);
+  ControlIcon iconDataOn = context.imageLoader().getIcon(ControlIconType::checked, context.scaling());
+  ControlIcon iconDataOff = context.imageLoader().getIcon(ControlIconType::unchecked, context.scaling());
   if (iconDataOn.texture() == nullptr) // if not available, generate visual indicator (to replace icons)
     iconDataOn = context.imageLoader().generateSquareIcon(true);
   if (iconDataOff.texture() == nullptr)
@@ -42,11 +42,13 @@ void CheckBox::init(RendererContext& context, const char16_t* label, int32_t x, 
 
   // create icons
   const int32_t boxX = x + (int32_t)labelWidth;
-  const int32_t boxY = labelY - ((int32_t)iconDataOn.height() - (int32_t)labelFont.XHeight())/2 - 1;
+  const int32_t boxY = labelY - ((int32_t)iconDataOn.contentHeight() - (int32_t)labelFont.XHeight())/2 - 1;
   checkedMesh = IconMesh(context.renderer(), std::move(iconDataOn.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                         boxX, boxY, iconDataOn.offsetX(), iconDataOn.offsetY(), iconDataOn.width(), iconDataOn.height());
+                         boxX, boxY, iconDataOn.offsetX(), iconDataOn.offsetY(),
+                         iconDataOn.textureWidth(), iconDataOn.textureHeight(), iconDataOn.scaling());
   uncheckedMesh = IconMesh(context.renderer(), std::move(iconDataOff.texture()), context.pixelSizeX(), context.pixelSizeY(),
-                           boxX, boxY, iconDataOff.offsetX(), iconDataOff.offsetY(), iconDataOff.width(), iconDataOff.height());
+                           boxX, boxY, iconDataOff.offsetX(), iconDataOff.offsetY(),
+                           iconDataOff.textureWidth(), iconDataOff.textureHeight(), iconDataOff.scaling());
 }
 
 // ---

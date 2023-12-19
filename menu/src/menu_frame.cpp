@@ -451,9 +451,9 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
   
   if (sectionMode == MenuMode::configDialog) {
     sectionTabCount = 3;
-    sectionTabOptions[0] = VerticalTabOption(localization->getMessage(CommonMessages::globalSettings), ControlIconType::tabSettings);
-    sectionTabOptions[1] = VerticalTabOption(localization->getMessage(CommonMessages::profileSelector), ControlIconType::tabSelector);
-    sectionTabOptions[2] = VerticalTabOption(localization->getMessage(CommonMessages::profileSettings), ControlIconType::tabProfile);
+    sectionTabOptions[0] = VerticalTabOption(localization->getMessage(CommonMessages::globalSettings), TabIconType::settings);
+    sectionTabOptions[1] = VerticalTabOption(localization->getMessage(CommonMessages::profileSelector), TabIconType::selector);
+    sectionTabOptions[2] = VerticalTabOption(localization->getMessage(CommonMessages::profileSettings), TabIconType::profile);
     sectionChangeHandler = [this](uint32_t tabIndex) {
       switch (tabIndex) {
         case 0: this->pageToLoad = PageId::generalSettings; editedProfileId = activeProfileId; break;
@@ -465,10 +465,10 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
   }
   else {
     sectionTabCount = 4;
-    sectionTabOptions[0] = VerticalTabOption(localization->getMessage(CommonMessages::mainMenu), ControlIconType::tabHome);
-    sectionTabOptions[1] = VerticalTabOption(localization->getMessage(CommonMessages::profileSelector), ControlIconType::tabSelector);
-    sectionTabOptions[2] = VerticalTabOption(localization->getMessage(CommonMessages::profileSettings), ControlIconType::tabProfile);
-    sectionTabOptions[3] = VerticalTabOption(localization->getMessage(CommonMessages::globalSettings), ControlIconType::tabSettings);
+    sectionTabOptions[0] = VerticalTabOption(localization->getMessage(CommonMessages::mainMenu), TabIconType::home);
+    sectionTabOptions[1] = VerticalTabOption(localization->getMessage(CommonMessages::profileSelector), TabIconType::selector);
+    sectionTabOptions[2] = VerticalTabOption(localization->getMessage(CommonMessages::profileSettings), TabIconType::profile);
+    sectionTabOptions[3] = VerticalTabOption(localization->getMessage(CommonMessages::globalSettings), TabIconType::settings);
     sectionChangeHandler = [this](uint32_t tabIndex) {
       switch (tabIndex) {
         case 0: this->pageToLoad = PageId::mainMenu; editedProfileId = activeProfileId; break;
@@ -489,37 +489,40 @@ void MenuFrame::createSectionTabs(uint32_t activeTabIndex) {
                                    activeTabIndex, std::move(sectionChangeHandler));
   
   // top logo
-  const uint32_t logoHeight = context->pandoraLogoImage()->height() / (uint32_t)ColorThemeType::COUNT;
-  uint32_t logoWidth = (context->pandoraLogoImage()->rowBytes() >> 2);
-  if (sectionTabs.width() < Control::sectionWideTabWidth())
-    logoWidth -= 25;
-  const uint32_t logoX = (sectionTabs.width() + 1u - logoWidth) >> 1;
-  const uint32_t logoY = (logoAreaHeight + 1u - logoHeight) >> 1;
-
-  logoMesh = IconMesh(context->renderer(), context->pandoraLogoImage(),
-                      context->pixelSizeX(), context->pixelSizeY(), logoX, logoY, 0,
-                      logoHeight*(uint32_t)theme->themeType(), logoWidth, logoHeight);
+  auto logo = context->imageLoader().getLogo((uint32_t)theme->themeType(), (uint32_t)ColorThemeType::COUNT, context->scaling());
+  uint32_t logoContentWidth = logo.contentWidth(), logoTextureWidth = logo.textureWidth();
+  if (sectionTabs.width() < Control::sectionWideTabWidth()) {
+    logoContentWidth -= 25;
+    logoTextureWidth -= 25*logo.scaling();
+  }
+  const uint32_t logoX = (sectionTabs.width() + 1u - logoContentWidth) >> 1;
+  const uint32_t logoY = (logoAreaHeight + 1u - logo.contentHeight()) >> 1;
+  logoMesh = IconMesh(context->renderer(), std::move(logo.texture()),
+                      context->pixelSizeX(), context->pixelSizeY(), logoX, logoY,
+                      logo.offsetX(), logo.offsetY(), logoTextureWidth, logo.textureHeight(), logo.scaling());
 
   // bottom controller indicators
-  auto upButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonL1);
-  auto downButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonR1);
+  auto upButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonL1, context->scaling());
+  auto downButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonR1, context->scaling());
   int32_t upButtonX, upButtonY, downButtonX, downButtonY;
-  if (sectionTabs.width() > upButtonIcon.width() + downButtonIcon.width() + 2u) {
-    upButtonX = (sectionTabs.width() - (upButtonIcon.width() + downButtonIcon.width() + 2u) + 1u) >> 1;
-    downButtonX = upButtonX + (int32_t)upButtonIcon.width() + 2;
-    upButtonY = downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.height() - (Control::comboBoxPaddingY() << 1) - 1u);
+  if (sectionTabs.width() > upButtonIcon.contentWidth() + downButtonIcon.contentWidth() + 2u) {
+    upButtonX = (sectionTabs.width() - (upButtonIcon.contentWidth() + downButtonIcon.contentWidth() + 2u) + 1u) >> 1;
+    downButtonX = upButtonX + (int32_t)upButtonIcon.contentWidth() + 2;
+    upButtonY = downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.contentHeight() - (Control::comboBoxPaddingY() << 1) - 1u);
   }
   else {
-    upButtonX = downButtonX = (int32_t)((sectionTabs.width() - upButtonIcon.width()) >> 1);
-    downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.height() - Control::comboBoxPaddingY() + 2u);
-    upButtonY = downButtonY - (int32_t)downButtonIcon.height() - 2;
+    upButtonX = downButtonX = (int32_t)((sectionTabs.width() - upButtonIcon.contentWidth()) >> 1);
+    downButtonY = (int32_t)(sectionTabs.height() - upButtonIcon.contentHeight() - Control::comboBoxPaddingY() + 2u);
+    upButtonY = downButtonY - (int32_t)downButtonIcon.contentHeight() - 2;
   }
   sectionUpButtonMesh = IconMesh(context->renderer(), upButtonIcon.texture(),
                                  context->pixelSizeX(), context->pixelSizeY(), upButtonX, upButtonY,
-                                 upButtonIcon.offsetX(), upButtonIcon.offsetY(), upButtonIcon.width(), upButtonIcon.height());
+                                 upButtonIcon.offsetX(), upButtonIcon.offsetY(), upButtonIcon.textureWidth(),
+                                 upButtonIcon.textureHeight(), upButtonIcon.scaling());
   sectionDownButtonMesh = IconMesh(context->renderer(), downButtonIcon.texture(),
                                    context->pixelSizeX(), context->pixelSizeY(), downButtonX, downButtonY,
-                                   downButtonIcon.offsetX(), downButtonIcon.offsetY(), downButtonIcon.width(), downButtonIcon.height());
+                                   downButtonIcon.offsetX(), downButtonIcon.offsetY(), downButtonIcon.textureWidth(),
+                                   downButtonIcon.textureHeight(), downButtonIcon.scaling());
 }
 
 void MenuFrame::moveSectionTabs() {
@@ -613,15 +616,15 @@ void MenuFrame::createPageTabs(TabMode mode, uint32_t activeTabIndex, bool force
 
     // create controller indicators
     if (mode != TabMode::none) {
-      auto prevButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallL2);
-      const int32_t buttonY = (int32_t)((pageTabs.height() - prevButtonIcon.height() + 1u) >> 1);
+      auto prevButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallL2, context->scaling());
+      const int32_t buttonY = (int32_t)((pageTabs.height() - prevButtonIcon.contentHeight() + 1u) >> 1);
       pagePreviousButton = IconMesh(context->renderer(), prevButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
                                     (int32_t)(sectionTabs.width() + Control::controlSideMargin()), buttonY,
-                                    prevButtonIcon.offsetX(), prevButtonIcon.offsetY(), prevButtonIcon.width(), prevButtonIcon.height());
-      auto nextButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallR2);
+                                    prevButtonIcon.offsetX(), prevButtonIcon.offsetY(), prevButtonIcon.textureWidth(), prevButtonIcon.textureHeight(), prevButtonIcon.scaling());
+      auto nextButtonIcon = context->imageLoader().getIcon(ControlIconType::buttonSmallR2, context->scaling());
       pageNextButton = IconMesh(context->renderer(), nextButtonIcon.texture(), context->pixelSizeX(), context->pixelSizeY(),
-                                (int32_t)(context->clientWidth() - nextButtonIcon.width() - Control::controlSideMargin()), buttonY,
-                                nextButtonIcon.offsetX(), nextButtonIcon.offsetY(), nextButtonIcon.width(), nextButtonIcon.height());
+                                (int32_t)(context->clientWidth() - nextButtonIcon.contentWidth() - Control::controlSideMargin()), buttonY,
+                                nextButtonIcon.offsetX(), nextButtonIcon.offsetY(), nextButtonIcon.textureWidth(), nextButtonIcon.textureHeight(), nextButtonIcon.scaling());
     }
   }
   else // change active tab

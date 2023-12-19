@@ -30,7 +30,7 @@ using namespace video_api;
 using namespace menu;
 
 
-void RendererContext::initFonts(const char* fontDirectoryPath) {
+void RendererContext::initFonts() {
   static_assert(CONST_STRING_SIZE(TITLES_FONT_FILENAME) <= MAX_FONT_FILENAME_SIZE
              && CONST_STRING_SIZE(LABELS_FONT_FILENAME) <= MAX_FONT_FILENAME_SIZE
              && CONST_STRING_SIZE(INPUT_FONT_FILENAME) <= MAX_FONT_FILENAME_SIZE,
@@ -104,7 +104,7 @@ bool RendererContext::onSizeChange(uint32_t clientWidth, uint32_t clientHeight) 
     pixelSizeY_ = display::ToPixelSize(this->clientHeight_);
 
     if (oldScaling != scaling_)
-      initFonts(fontDirectoryPath);
+      initFonts();
     return true;
   }
   return false;

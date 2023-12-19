@@ -61,7 +61,7 @@ static MainMenuGrid computeGrid(RendererContext& context, int32_t x, int32_t y, 
   if (grid.offsetY < (int32_t)Control::titleMarginTop() + (int32_t)Control::pageLineHeight() + (int32_t)grid.titleHeight)
     grid.offsetY = Control::titleMarginTop() + Control::pageLineHeight() + grid.titleHeight;
   else {
-    grid.offsetY -= (int32_t)(height >> 4);
+    grid.offsetY -= (int32_t)(height >> 5);
     if (grid.offsetY > (int32_t)gridHeight)
       grid.offsetY = (int32_t)gridHeight;
   }

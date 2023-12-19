@@ -207,7 +207,7 @@ void TextBox::updateCaretLocation(RendererContext& context) {
     ++currentLocation;
   }
   // caret at the end
-  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), currentX, caretMesh.y());
+  caretMesh.move(context.renderer(), context.pixelSizeX(), context.pixelSizeY(), (int32_t)currentX, caretMesh.y());
 }
 
 
