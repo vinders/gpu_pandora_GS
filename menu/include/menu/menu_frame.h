@@ -81,7 +81,7 @@ namespace menu {
     void resizeGraphicsPipelines();
     void createBackground();
     void moveBackground();
-    void onProfileSelection(uint32_t profileId, bool isEditing);
+    void onProfileSelection(uint32_t profileId, pages::SelectorOperation operation);
     
     void createSectionTabs(uint32_t activeTabIndex);
     void moveSectionTabs();

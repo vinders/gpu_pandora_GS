@@ -193,7 +193,7 @@ void PageContentBuilder::addComboBoxWithButton(uint32_t controlId, const char16_
                                                ComboBoxOption* options, size_t optionCount, ComboBox& outComboBox,
                                                uint32_t buttonId, const char16_t* buttonLabel, Button& outButton) {
   uint32_t minLabelWidth = Control::pageLabelWidth();
-  if (fieldsetWidth < Control::pageLabelWidth() + Control::controlSideMargin() + Control::pageControlWidth() + 20 + 48)
+  if (fieldsetWidth < Control::pageLabelWidth() + Control::controlSideMargin() + Control::pageControlWidth() + 40 + 48)
     minLabelWidth -= 48u;
 
   outComboBox = ComboBox(*context, label,

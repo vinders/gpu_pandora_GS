@@ -56,7 +56,7 @@ MenuFrame::MenuFrame(MenuMode mode, std::shared_ptr<RendererContext> context_,
   // load first page
   createSectionTabs(0);
   createBackground(); // uses section tab width -> done after
-  createPage(PageId::mainMenu, isControllerUsed, true);
+  createPage((sectionMode == MenuMode::gameMenu) ? PageId::mainMenu : PageId::generalSettings, isControllerUsed, true);
   isInvalidated = true;
   
   // create presets
@@ -233,15 +233,16 @@ bool MenuFrame::onMouseEvent(Window*, MouseEvent event, int32_t x, int32_t y, in
   return false;
 }
 
-void MenuFrame::onProfileSelection(uint32_t profileId, bool isEditing) {
-  if (isEditing) {
+void MenuFrame::onProfileSelection(uint32_t profileId, SelectorOperation operation) {
+  if (operation == SelectorOperation::edit) {
     sectionTabs.selectIndex(*context, 2u);
     editedProfileId = profileId;
     pageToLoad = PageId::profileSettings;
   }
   else {
     activeProfileId = editedProfileId = profileId;
-    onClose(MenuOperation::resume);
+    if (sectionMode == MenuMode::gameMenu && operation == SelectorOperation::select)
+      onClose(MenuOperation::resume);
   }
 }
 

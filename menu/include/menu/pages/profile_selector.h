@@ -36,7 +36,7 @@ namespace menu {
                       const std::shared_ptr<ColorTheme>& theme, const MessageResources& localizedText,
                       int32_t x, int32_t y, uint32_t width, uint32_t height,
                       uint32_t activeProfileId, std::vector<ConfigProfile>& profiles,
-                      std::function<void(uint32_t profileId, bool isEditing)> onSelection)
+                      std::function<void(uint32_t profileId, SelectorOperation operation)> onSelection)
         : Page(std::move(context), std::move(buffers), *theme, x, y, width, height, false, false, buttonBarHeight()),
           theme(theme),
           profiles(&profiles),
@@ -94,7 +94,7 @@ namespace menu {
       controls::Label deleteProfileControllerInfo;
 
       controls::Popup confirmationPopup;
-      std::function<void(uint32_t profileId, bool isEditing)> onSelection;
+      std::function<void(uint32_t profileId, SelectorOperation operation)> onSelection;
     };
   }
 }

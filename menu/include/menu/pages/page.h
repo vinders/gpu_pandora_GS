@@ -51,6 +51,11 @@ namespace menu {
       resetGame,
       exitGame
     };
+    enum class SelectorOperation : uint32_t { ///< Type of operation performed in the profile selector
+      select = 0,
+      edit,
+      remove
+    };
     
     // ---
     

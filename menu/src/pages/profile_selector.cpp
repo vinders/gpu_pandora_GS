@@ -275,11 +275,11 @@ void ProfileSelector::onButtonAction(uint32_t id) {
         ++nextId;
 
       profiles->emplace_back(nextId, nullptr, TileColors::themeColor);
-      onSelection(nextId, true);
+      onSelection(nextId, SelectorOperation::edit);
       break;
     }
     case EDIT_PROFILE_ID: {
-      onSelection(this->activeProfileId, true);
+      onSelection(this->activeProfileId, SelectorOperation::edit);
       break;
     }
     case DELETE_PROFILE_ID: {
@@ -299,10 +299,10 @@ void ProfileSelector::onTileAction(uint32_t profileId, TileAction type) {
   switch (type) {
     case TileAction::select:
       activeProfileId = profileId;
-      onSelection(profileId, false);
+      onSelection(profileId, SelectorOperation::select);
       break;
     case TileAction::edit:
-      onSelection(profileId, true);
+      onSelection(profileId, SelectorOperation::edit);
       break;
     case TileAction::remove: {
       if (profileTiles.size() > (size_t)1u) {
@@ -325,8 +325,10 @@ void ProfileSelector::onProfileRemoved(uint32_t profileId) {
   registerControls(std::vector<ControlRegistration>{}); // unregister before removal
   profiles->erase(profiles->begin() + (intptr_t)index);
   profileTiles.erase(profileTiles.begin() + (intptr_t)index);
-  if (activeProfileId == profileId)
+  if (activeProfileId == profileId) {
     activeProfileId = profileTiles[(index != 0u) ? (index - 1u) : 0u].id();
+    onSelection(activeProfileId, SelectorOperation::remove);
+  }
 
   isDeleteEnabled = (profileTiles.size() > (size_t)1u);
   move(x(), y(), width(), height());
